@@ -1384,10 +1384,10 @@ export default function Dashboard({ setActiveTab }) {
 
       <AIDailyBrief />
 
-      <MarketSnapshot />
+      <IndexPerformancePanel />
 
       <div style={{ marginTop: '12px' }}>
-        <IndexPerformancePanel />
+        <MarketSnapshot />
       </div>
 
       <div style={{ marginTop: '12px', width: '100%' }}>

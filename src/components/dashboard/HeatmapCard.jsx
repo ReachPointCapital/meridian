@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 function getHeatColor(pct) {
   if (pct == null) return '#374151';
@@ -37,13 +37,21 @@ export default function HeatmapCard() {
       .catch(() => setLoading(false));
   }, []);
 
+  // Build rank map (original index = market cap rank) and sort by % change desc
+  const { sorted, rankMap } = useMemo(() => {
+    const rm = {};
+    data.forEach((s, i) => { rm[s.symbol] = i; });
+    const s = [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
+    return { sorted: s, rankMap: rm };
+  }, [data]);
+
   const handleMouseMove = (e) => {
     setMousePos({ x: e.clientX, y: e.clientY });
   };
 
   const renderCollapsed = () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
-      {data.map((stock, i) => (
+      {sorted.map((stock) => (
         <div
           key={stock.symbol}
           onMouseEnter={() => setHovered(stock)}
@@ -63,13 +71,14 @@ export default function HeatmapCard() {
 
   const renderExpanded = () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
-      {data.map((stock, i) => {
+      {sorted.map((stock) => {
+        const rank = rankMap[stock.symbol] ?? 99;
         let minW, minH, showTicker, showPct;
-        if (i < 10) {
+        if (rank < 10) {
           minW = 80; minH = 52; showTicker = true; showPct = true;
-        } else if (i < 30) {
+        } else if (rank < 30) {
           minW = 56; minH = 40; showTicker = true; showPct = true;
-        } else if (i < 60) {
+        } else if (rank < 60) {
           minW = 40; minH = 32; showTicker = true; showPct = false;
         } else {
           minW = 28; minH = 24; showTicker = false; showPct = false;
@@ -86,8 +95,8 @@ export default function HeatmapCard() {
             style={{
               minWidth: `${minW}px`,
               minHeight: `${minH}px`,
-              flex: i < 10 ? '1 1 80px' : i < 30 ? '1 1 56px' : i < 60 ? '0 1 40px' : '0 0 28px',
-              maxWidth: i < 10 ? '120px' : i < 30 ? '80px' : i < 60 ? '56px' : '36px',
+              flex: rank < 10 ? '1 1 80px' : rank < 30 ? '1 1 56px' : rank < 60 ? '0 1 40px' : '0 0 28px',
+              maxWidth: rank < 10 ? '120px' : rank < 30 ? '80px' : rank < 60 ? '56px' : '36px',
               backgroundColor: getHeatColor(stock.changePercent),
               borderRadius: '3px',
               padding: showTicker ? '4px 6px' : '2px',
@@ -99,12 +108,12 @@ export default function HeatmapCard() {
             }}
           >
             {showTicker && (
-              <div style={{ fontSize: i < 10 ? '11px' : '10px', fontWeight: 700, color: textCol, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: rank < 10 ? '11px' : '10px', fontWeight: 700, color: textCol, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {stock.symbol}
               </div>
             )}
             {showPct && (
-              <div style={{ fontSize: i < 10 ? '10px' : '9px', color: textCol, opacity: 0.8, marginTop: '2px', lineHeight: 1, fontFamily: 'monospace' }}>
+              <div style={{ fontSize: rank < 10 ? '10px' : '9px', color: textCol, opacity: 0.8, marginTop: '2px', lineHeight: 1, fontFamily: 'monospace' }}>
                 {formatPct(stock.changePercent)}
               </div>
             )}
