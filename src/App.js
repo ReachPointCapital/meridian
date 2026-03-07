@@ -385,12 +385,29 @@ function AppContent() {
   );
 }
 
+function HomeWithLayout() {
+  const navigate = useNavigate();
+  const handleTabChange = useCallback((tab) => {
+    const path = TAB_TO_PATH[tab];
+    if (path) navigate(path);
+  }, [navigate]);
+
+  return (
+    <>
+      <Navbar activeTab="" setActiveTab={handleTabChange} alertCount={0} onAlertClick={() => {}} />
+      <Layout>
+        <Home />
+      </Layout>
+    </>
+  );
+}
+
 export default function App() {
   return (
     <AppProvider>
       <ProProvider>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomeWithLayout />} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
       </ProProvider>
