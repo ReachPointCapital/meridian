@@ -29,8 +29,11 @@ const SNAPSHOT_GROUPS = [
       { symbol: '^VIX', label: 'VIX' },
       { symbol: 'ES=F', label: 'S&P Futures' },
       { symbol: 'NQ=F', label: 'Nasdaq Futures' },
+      { symbol: 'YM=F', label: 'Dow Futures' },
       { symbol: '^SP600', label: 'S&P 600' },
+      { symbol: '^MID', label: 'S&P 400' },
       { symbol: '^NYA', label: 'NYSE Comp' },
+      { symbol: '^W5000', label: 'Wilshire 5000' },
     ],
   },
   {
@@ -1381,74 +1384,65 @@ export default function Dashboard({ setActiveTab }) {
 
       <AIDailyBrief />
 
-      {/* Two-column layout: tiles+charts left, heatmap right */}
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-        {/* Left column: tiles + all chart sections */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <MarketSnapshot />
+      <MarketSnapshot />
 
-          <div style={{ marginTop: '12px' }}>
-            <IndexPerformancePanel />
-          </div>
+      <div style={{ marginTop: '12px' }}>
+        <IndexPerformancePanel />
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-            <YieldCurvePanel />
-            <FearGreedPanel />
-          </div>
+      <div style={{ marginTop: '12px', width: '100%' }}>
+        <HeatmapCard />
+      </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <TopMovers onNavigate={handleNavigate} />
-          </div>
-          <div style={{ marginTop: '12px' }}>
-            <SectorHeatmap />
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+        <YieldCurvePanel />
+        <FearGreedPanel />
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-            <ForexPanel />
-            <MostShortedPanel onNavigate={handleNavigate} />
-          </div>
+      <div style={{ marginTop: '12px' }}>
+        <TopMovers onNavigate={handleNavigate} />
+      </div>
+      <div style={{ marginTop: '12px' }}>
+        <SectorHeatmap />
+      </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <GlobalExchangeStatus />
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+        <ForexPanel />
+        <MostShortedPanel onNavigate={handleNavigate} />
+      </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <GlobalMarketsOverview onRowClick={handleItemClick} />
-          </div>
+      <div style={{ marginTop: '12px' }}>
+        <GlobalExchangeStatus />
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-            <CentralBankTracker onRowClick={handleItemClick} />
-            <M2MoneySupply />
-          </div>
+      <div style={{ marginTop: '12px' }}>
+        <GlobalMarketsOverview onRowClick={handleItemClick} />
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-            <CommoditiesDashboard onItemClick={handleItemClick} />
-            <CurrencyStrengthIndex onItemClick={handleItemClick} />
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+        <CentralBankTracker onRowClick={handleItemClick} />
+        <M2MoneySupply />
+      </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <InsiderTradingFeed onNavigate={handleNavigate} />
-          </div>
-          <div style={{ marginTop: '12px' }}>
-            <NewsAndEarnings onNavigate={handleNavigate} />
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+        <CommoditiesDashboard onItemClick={handleItemClick} />
+        <CurrencyStrengthIndex onItemClick={handleItemClick} />
+      </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <RecentEconomicReleases onRowClick={handleItemClick} />
-          </div>
+      <div style={{ marginTop: '12px' }}>
+        <InsiderTradingFeed onNavigate={handleNavigate} />
+      </div>
+      <div style={{ marginTop: '12px' }}>
+        <NewsAndEarnings onNavigate={handleNavigate} />
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-            <IPOCalendarPanel />
-            <EconomicCalendarPanel />
-          </div>
-        </div>
+      <div style={{ marginTop: '12px' }}>
+        <RecentEconomicReleases onRowClick={handleItemClick} />
+      </div>
 
-        {/* Right column: heatmap pinned */}
-        <div style={{ width: '420px', flexShrink: 0 }}>
-          <div style={{ position: 'sticky', top: '16px' }}>
-            <HeatmapCard />
-          </div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+        <IPOCalendarPanel />
+        <EconomicCalendarPanel />
       </div>
 
       {/* Detail Panel */}

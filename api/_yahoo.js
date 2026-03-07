@@ -280,7 +280,9 @@ async function yahooMacro() {
     { symbol: 'DIA', label: 'Dow Jones' }, { symbol: 'IWM', label: 'Russell 2000' },
     { symbol: '^VIX', label: 'VIX' },
     { symbol: 'ES=F', label: 'S&P Futures' }, { symbol: 'NQ=F', label: 'Nasdaq Futures' },
-    { symbol: '^SP600', label: 'S&P 600' }, { symbol: '^NYA', label: 'NYSE Composite' },
+    { symbol: 'YM=F', label: 'Dow Futures' },
+    { symbol: '^SP600', label: 'S&P 600' }, { symbol: '^MID', label: 'S&P 400' },
+    { symbol: '^NYA', label: 'NYSE Composite' }, { symbol: '^W5000', label: 'Wilshire 5000' },
     // Commodities & Rates
     { symbol: 'GC=F', label: 'Gold' }, { symbol: 'CL=F', label: 'WTI Oil' },
     { symbol: 'HG=F', label: 'Copper' }, { symbol: '^TNX', label: '10Y Yield' },
