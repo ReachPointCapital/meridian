@@ -346,7 +346,7 @@ function CommoditiesDashboard({ onItemClick }) {
           {Object.entries(categories).map(([cat, items]) => (
             <div key={cat} style={{ marginBottom: '12px' }}>
               <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{cat}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '6px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                 {items.map(c => {
                   const isPos = (c.changePercent || 0) >= 0;
                   return (

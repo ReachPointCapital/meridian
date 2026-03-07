@@ -11,7 +11,6 @@ const COMMODITIES = [
   { symbol: 'SI=F', name: 'Silver', category: 'Metals' },
   { symbol: 'HG=F', name: 'Copper', category: 'Metals' },
   { symbol: 'PL=F', name: 'Platinum', category: 'Metals' },
-  { symbol: 'PA=F', name: 'Palladium', category: 'Metals' },
   { symbol: 'ZC=F', name: 'Corn', category: 'Agriculture' },
   { symbol: 'ZW=F', name: 'Wheat', category: 'Agriculture' },
   { symbol: 'ZS=F', name: 'Soybeans', category: 'Agriculture' },
@@ -19,6 +18,7 @@ const COMMODITIES = [
   { symbol: 'SB=F', name: 'Sugar', category: 'Agriculture' },
   { symbol: 'CT=F', name: 'Cotton', category: 'Agriculture' },
   { symbol: 'LE=F', name: 'Live Cattle', category: 'Agriculture' },
+  { symbol: 'LBS=F', name: 'Lumber', category: 'Agriculture' },
 ];
 
 module.exports = async (req, res) => {

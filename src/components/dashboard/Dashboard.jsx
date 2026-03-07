@@ -671,15 +671,23 @@ function SectorHeatmap() {
   const getColor = (pct) => {
     const val = parseFloat(pct);
     if (isNaN(val)) return 'var(--bg-tertiary)';
-    if (val > 2) return '#052E16';
-    if (val > 1) return '#14532D';
-    if (val > 0.5) return '#166534';
-    if (val > 0) return '#15803D44';
-    if (val > -0.5) return '#B91C1C44';
-    if (val > -1) return '#991B1B';
-    if (val > -2) return '#7F1D1D';
-    return '#450A0A';
+    if (val > 0) return '#14532d';
+    if (val < 0) return '#7f1d1d';
+    return '#374151';
   };
+
+  // Ensure we have 12 sectors for a clean 4×3 grid
+  const displaySectors = useMemo(() => {
+    const list = [...sectors];
+    const names = list.map(s => (s.sector || '').toLowerCase());
+    if (!names.some(n => n.includes('real estate'))) {
+      list.push({ sector: 'Real Estate', changesPercentage: 0 });
+    }
+    if (list.length < 12 && !names.some(n => n.includes('transportation'))) {
+      list.push({ sector: 'Transportation', changesPercentage: 0 });
+    }
+    return list.slice(0, 12);
+  }, [sectors]);
 
   return (
     <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
@@ -688,15 +696,15 @@ function SectorHeatmap() {
       </div>
       <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
         {loading ? (
-          Array.from({ length: 12 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '72px', borderRadius: '6px' }} />)
-        ) : sectors.length === 0 ? (
+          Array.from({ length: 12 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '80px', borderRadius: '6px' }} />)
+        ) : displaySectors.length === 0 ? (
           <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', gridColumn: '1 / -1', textAlign: 'center', padding: '16px' }}>No sector data available.</p>
-        ) : sectors.map((s, i) => {
+        ) : displaySectors.map((s, i) => {
           const pctNum = typeof s.changesPercentage === 'number' ? s.changesPercentage : parseFloat(s.changesPercentage || '0');
           return (
-            <div key={i} style={{ backgroundColor: getColor(pctNum), borderRadius: '6px', padding: '12px', height: '72px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' }}>
-              <span style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: 500 }}>{(s.sector || '').replace(/_/g, ' ')}</span>
-              <span style={{ color: '#FFFFFF', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
+            <div key={i} style={{ backgroundColor: getColor(pctNum), borderRadius: '6px', padding: '12px', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' }}>
+              <span style={{ color: '#FFFFFF', fontSize: '13px', fontWeight: 600 }}>{(s.sector || '').replace(/_/g, ' ')}</span>
+              <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace' }}>
                 {pctNum >= 0 ? '+' : ''}{pctNum.toFixed(2)}%
               </span>
             </div>
@@ -1247,6 +1255,10 @@ function GlobalExchangeStatus() {
     { name: 'BSE', city: 'Mumbai', tz: 'Asia/Kolkata', open: '09:15', close: '15:30', flag: '\ud83c\uddee\ud83c\uddf3' },
     { name: 'ASX', city: 'Sydney', tz: 'Australia/Sydney', open: '10:00', close: '16:00', flag: '\ud83c\udde6\ud83c\uddfa' },
     { name: 'TSX', city: 'Toronto', tz: 'America/Toronto', open: '09:30', close: '16:00', flag: '\ud83c\udde8\ud83c\udde6' },
+    { name: 'KOSPI', city: 'Seoul', tz: 'Asia/Seoul', open: '09:00', close: '15:30', flag: '\ud83c\uddf0\ud83c\uddf7' },
+    { name: 'B3', city: 'São Paulo', tz: 'America/Sao_Paulo', open: '10:00', close: '17:00', flag: '\ud83c\udde7\ud83c\uddf7' },
+    { name: 'SGX', city: 'Singapore', tz: 'Asia/Singapore', open: '09:00', close: '17:00', flag: '\ud83c\uddf8\ud83c\uddec' },
+    { name: 'JSE', city: 'Johannesburg', tz: 'Africa/Johannesburg', open: '09:00', close: '17:00', flag: '\ud83c\uddff\ud83c\udde6' },
   ];
 
   const [, setTick] = useState(0);
@@ -1281,7 +1293,7 @@ function GlobalExchangeStatus() {
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Global Exchange Status</span>
       </div>
-      <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px' }}>
+      <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
         {EXCHANGES.map(ex => {
           const { status, color } = getStatus(ex);
           return (
@@ -1377,7 +1389,12 @@ export default function Dashboard({ setActiveTab }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
         <ForexPanel />
+        <CurrencyStrengthIndex onItemClick={handleItemClick} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
         <MostShortedPanel onNavigate={handleNavigate} />
+        <CommoditiesDashboard onItemClick={handleItemClick} />
       </div>
 
       <div style={{ marginTop: '12px' }}>
@@ -1391,11 +1408,6 @@ export default function Dashboard({ setActiveTab }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
         <CentralBankTracker onRowClick={handleItemClick} />
         <M2MoneySupply />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-        <CommoditiesDashboard onItemClick={handleItemClick} />
-        <CurrencyStrengthIndex onItemClick={handleItemClick} />
       </div>
 
       <div style={{ marginTop: '12px' }}>

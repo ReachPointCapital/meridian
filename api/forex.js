@@ -9,6 +9,9 @@ const PAIRS = [
   { symbol: 'USDCAD=X', label: 'USD/CAD' },
   { symbol: 'AUDUSD=X', label: 'AUD/USD' },
   { symbol: 'USDCHF=X', label: 'USD/CHF' },
+  { symbol: 'CNY=X', label: 'USD/CNY' },
+  { symbol: 'KRW=X', label: 'USD/KRW' },
+  { symbol: 'INR=X', label: 'USD/INR' },
 ];
 
 module.exports = async (req, res) => {
