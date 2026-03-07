@@ -135,12 +135,18 @@ function MarketSnapshot() {
       {SNAPSHOT_GROUPS.map(group => (
         <div key={group.label} style={{ marginBottom: '8px' }}>
           <div style={{
-            fontSize: '10px',
-            fontWeight: 700,
-            letterSpacing: '2px',
-            color: '#F0A500',
+            fontSize: '13px',
+            fontWeight: 600,
+            letterSpacing: '3px',
+            color: 'rgba(255,255,255,0.7)',
             textTransform: 'uppercase',
-            marginBottom: '4px',
+            marginBottom: '8px',
+            paddingBottom: '4px',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            borderLeft: '2px solid #F0A500',
+            paddingLeft: '8px',
+            display: 'block',
+            width: '100%',
           }}>
             {group.label}
           </div>
@@ -1386,14 +1392,6 @@ export default function Dashboard({ setActiveTab }) {
 
       <IndexPerformancePanel />
 
-      <div style={{ marginTop: '12px' }}>
-        <MarketSnapshot />
-      </div>
-
-      <div style={{ marginTop: '12px', width: '100%' }}>
-        <HeatmapCard />
-      </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
         <YieldCurvePanel />
         <FearGreedPanel />
@@ -1402,6 +1400,15 @@ export default function Dashboard({ setActiveTab }) {
       <div style={{ marginTop: '12px' }}>
         <TopMovers onNavigate={handleNavigate} />
       </div>
+
+      <div style={{ marginTop: '12px' }}>
+        <MarketSnapshot />
+      </div>
+
+      <div style={{ marginTop: '12px', width: '100%' }}>
+        <HeatmapCard />
+      </div>
+
       <div style={{ marginTop: '12px' }}>
         <SectorHeatmap />
       </div>

@@ -49,42 +49,59 @@ export default function HeatmapCard() {
     setMousePos({ x: e.clientX, y: e.clientY });
   };
 
-  const renderCollapsed = () => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
-      {sorted.map((stock) => (
-        <div
-          key={stock.symbol}
-          onMouseEnter={() => setHovered(stock)}
-          onMouseLeave={() => setHovered(null)}
-          onMouseMove={handleMouseMove}
-          style={{
-            width: '16px',
-            height: '16px',
-            borderRadius: '2px',
-            backgroundColor: getHeatColor(stock.changePercent),
-            cursor: 'pointer',
-          }}
-        />
-      ))}
-    </div>
-  );
+  // Collapsed: 3 equal rows of colored squares, sorted green→red
+  const renderCollapsed = () => {
+    const perRow = Math.ceil(sorted.length / 3);
+    const rows = [
+      sorted.slice(0, perRow),
+      sorted.slice(perRow, perRow * 2),
+      sorted.slice(perRow * 2),
+    ];
+    return (
+      <div style={{ padding: '4px 10px 6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        {rows.map((row, ri) => (
+          <div key={ri} style={{ display: 'flex', height: '18px', gap: '1px' }}>
+            {row.map((stock) => (
+              <div
+                key={stock.symbol}
+                onMouseEnter={() => setHovered(stock)}
+                onMouseLeave={() => setHovered(null)}
+                onMouseMove={handleMouseMove}
+                style={{
+                  flex: 1,
+                  backgroundColor: getHeatColor(stock.changePercent),
+                  borderRadius: '1px',
+                  cursor: 'pointer',
+                  minWidth: 0,
+                }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   const renderExpanded = () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
       {sorted.map((stock) => {
-        const rank = rankMap[stock.symbol] ?? 99;
-        let minW, minH, showTicker, showPct;
+        const rank = rankMap[stock.symbol] ?? 999;
+        let w, h, showTicker, showPct;
         if (rank < 10) {
-          minW = 80; minH = 52; showTicker = true; showPct = true;
+          w = 70; h = 46; showTicker = true; showPct = true;
         } else if (rank < 30) {
-          minW = 56; minH = 40; showTicker = true; showPct = true;
-        } else if (rank < 60) {
-          minW = 40; minH = 32; showTicker = true; showPct = false;
+          w = 52; h = 36; showTicker = true; showPct = true;
+        } else if (rank < 70) {
+          w = 36; h = 28; showTicker = true; showPct = false;
+        } else if (rank < 150) {
+          w = 24; h = 20; showTicker = false; showPct = false;
         } else {
-          minW = 28; minH = 24; showTicker = false; showPct = false;
+          w = 16; h = 14; showTicker = false; showPct = false;
         }
 
         const textCol = getTextColor(stock.changePercent);
+        const isMega = rank < 10;
+        const isLarge = rank < 30;
 
         return (
           <div
@@ -93,27 +110,41 @@ export default function HeatmapCard() {
             onMouseLeave={() => setHovered(null)}
             onMouseMove={handleMouseMove}
             style={{
-              minWidth: `${minW}px`,
-              minHeight: `${minH}px`,
-              flex: rank < 10 ? '1 1 80px' : rank < 30 ? '1 1 56px' : rank < 60 ? '0 1 40px' : '0 0 28px',
-              maxWidth: rank < 10 ? '120px' : rank < 30 ? '80px' : rank < 60 ? '56px' : '36px',
+              width: `${w}px`,
+              height: `${h}px`,
               backgroundColor: getHeatColor(stock.changePercent),
-              borderRadius: '3px',
-              padding: showTicker ? '4px 6px' : '2px',
+              borderRadius: rank < 70 ? '3px' : '2px',
+              padding: showTicker ? '3px 4px' : '0',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               cursor: 'pointer',
               overflow: 'hidden',
+              flexShrink: 0,
             }}
           >
             {showTicker && (
-              <div style={{ fontSize: rank < 10 ? '11px' : '10px', fontWeight: 700, color: textCol, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{
+                fontSize: isMega ? '10px' : isLarge ? '9px' : '8px',
+                fontWeight: 700,
+                color: textCol,
+                lineHeight: 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
                 {stock.symbol}
               </div>
             )}
             {showPct && (
-              <div style={{ fontSize: rank < 10 ? '10px' : '9px', color: textCol, opacity: 0.8, marginTop: '2px', lineHeight: 1, fontFamily: 'monospace' }}>
+              <div style={{
+                fontSize: isMega ? '9px' : '8px',
+                color: textCol,
+                opacity: 0.8,
+                marginTop: '1px',
+                lineHeight: 1,
+                fontFamily: 'monospace',
+              }}>
                 {formatPct(stock.changePercent)}
               </div>
             )}
@@ -150,7 +181,7 @@ export default function HeatmapCard() {
             S&P 500 Heatmap
           </span>
           <span style={{ color: 'var(--text-tertiary)', fontSize: '9px' }}>
-            Top 100 · 15min delay
+            {data.length} stocks · 15min delay
           </span>
         </div>
         {!loading && data.length > 0 && (
