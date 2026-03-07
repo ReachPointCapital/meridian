@@ -62,12 +62,7 @@ export default function Home() {
       justifyContent: 'center',
       padding: '48px 24px',
     }}>
-      {/* Logo + Branding */}
-      <img
-        src="/meridian-logo-dark.jpg"
-        alt="Meridian"
-        style={{ width: '80px', height: 'auto', marginBottom: '20px', borderRadius: '8px' }}
-      />
+      {/* Branding */}
       <h1 style={{
         color: 'var(--gold)',
         fontSize: '28px',
@@ -146,22 +141,25 @@ export default function Home() {
       </div>
 
       {/* Live Price Tiles */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '48px', flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', maxWidth: '800px', margin: '0 auto 40px auto' }}>
         {PRICE_TILES.map(tile => {
           const data = prices[tile.symbol];
           const price = data?.price;
           const changePct = data?.changePercent ?? data?.changesPercentage ?? 0;
           const isPos = changePct >= 0;
           return (
-            <div key={tile.symbol} style={{
+            <div key={tile.symbol} onClick={() => navigate('/dashboard')} style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
               padding: '16px 24px',
-              minWidth: '160px',
               textAlign: 'center',
               boxShadow: 'var(--card-shadow)',
-            }}>
+              cursor: 'pointer',
+              transition: 'all 150ms ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}>
               <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 500, letterSpacing: '0.05em', marginBottom: '6px' }}>
                 {tile.label}
               </div>
@@ -180,9 +178,9 @@ export default function Home() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '12px',
-        width: '100%',
+        gap: '16px',
         maxWidth: '800px',
+        margin: '0 auto',
       }}>
         {NAV_TILES.map(tile => (
           <div

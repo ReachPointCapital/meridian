@@ -1,14 +1,40 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, Menu } from 'lucide-react';
-import { api } from '../../services/api';
 import { formatPrice, formatPercent } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
 
-const LABEL_MAP = {
-  SPY: 'S&P 500', QQQ: 'NASDAQ', DIA: 'Dow Jones',
-  IWM: 'Russell 2000', VXX: 'VIX', GLD: 'Gold',
-  USO: 'Oil', 'BTC-USD': 'Bitcoin',
-};
+const INSTRUMENTS = [
+  // US Indices
+  { symbol: 'SPY', label: 'S&P 500', group: 'US INDICES' },
+  { symbol: 'QQQ', label: 'NASDAQ', group: null },
+  { symbol: 'DIA', label: 'Dow Jones', group: null },
+  { symbol: 'IWM', label: 'Russell 2000', group: null },
+  { symbol: '^VIX', label: 'VIX', group: null },
+  // Global
+  { symbol: '^FTSE', label: 'FTSE 100', group: 'GLOBAL' },
+  { symbol: '^N225', label: 'Nikkei 225', group: null },
+  { symbol: '^GDAXI', label: 'DAX', group: null },
+  { symbol: '^HSI', label: 'Hang Seng', group: null },
+  // Commodities
+  { symbol: 'GC=F', label: 'Gold', group: 'COMMODITIES' },
+  { symbol: 'CL=F', label: 'WTI Oil', group: null },
+  { symbol: 'BZ=F', label: 'Brent', group: null },
+  { symbol: 'SI=F', label: 'Silver', group: null },
+  { symbol: 'NG=F', label: 'Nat Gas', group: null },
+  // Crypto
+  { symbol: 'BTC-USD', label: 'Bitcoin', group: 'CRYPTO' },
+  { symbol: 'ETH-USD', label: 'Ethereum', group: null },
+  { symbol: 'SOL-USD', label: 'Solana', group: null },
+  // Rates
+  { symbol: '^TNX', label: '10Y Yield', group: 'RATES' },
+  { symbol: '^IRX', label: '3M Yield', group: null },
+  { symbol: '^TYX', label: '30Y Yield', group: null },
+  // FX
+  { symbol: 'EURUSD=X', label: 'EUR/USD', group: 'FX' },
+  { symbol: 'GBPUSD=X', label: 'GBP/USD', group: null },
+  { symbol: 'USDJPY=X', label: 'USD/JPY', group: null },
+  { symbol: 'USDCNY=X', label: 'USD/CNY', group: null },
+];
 
 function MacroItem({ item, onSelect }) {
   const positive = (item.changePercent || 0) >= 0;
@@ -18,36 +44,41 @@ function MacroItem({ item, onSelect }) {
     <div
       onClick={() => onSelect && onSelect(item.symbol)}
       style={{
-        padding: '8px 12px',
+        padding: '4px 12px',
         borderBottom: '1px solid var(--border-color)',
         cursor: 'pointer',
         transition: 'background 150ms ease',
+        height: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}
       onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          {item.label}
+      <span style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 500, letterSpacing: '0.03em' }}>
+        {item.label}
+      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{
+          color: 'var(--text-primary)',
+          fontSize: '11px',
+          fontWeight: 600,
+          fontFamily: 'monospace',
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          {item.price != null ? formatPrice(item.price) : '\u2014'}
         </span>
         <span style={{
           color: changeColor,
-          fontSize: '10px',
+          fontSize: '9px',
           fontWeight: 500,
           fontVariantNumeric: 'tabular-nums',
+          minWidth: '42px',
+          textAlign: 'right',
         }}>
           {item.changePercent != null ? formatPercent(item.changePercent) : '\u2014'}
         </span>
-      </div>
-      <div style={{
-        color: 'var(--text-primary)',
-        fontSize: '13px',
-        fontWeight: 600,
-        fontFamily: 'monospace',
-        fontVariantNumeric: 'tabular-nums',
-        marginTop: '2px',
-      }}>
-        {item.price != null ? formatPrice(item.price) : '\u2014'}
       </div>
     </div>
   );
@@ -67,18 +98,30 @@ export default function MacroSidebar() {
   const fetchData = useCallback(async () => {
     if (prevDataRef.current.length === 0) setLoading(true);
     try {
-      const result = await api.macro();
-      const mapped = Array.isArray(result) ? result.map(item => ({
-        symbol: item.symbol,
-        label: item.label || LABEL_MAP[item.symbol] || item.symbol,
-        price: item.price,
-        change: item.change,
-        changePercent: item.changePercent,
-      })) : [];
+      const symbols = INSTRUMENTS.map(i => i.symbol);
+      const res = await fetch(`/api/quote?symbol=${encodeURIComponent(symbols.join(','))}`);
+      const result = await res.json();
+      const quoteList = Array.isArray(result) ? result : [result];
+      const priceMap = {};
+      quoteList.forEach(q => {
+        if (q?.symbol) priceMap[q.symbol] = q;
+      });
+
+      const mapped = INSTRUMENTS.map(inst => ({
+        symbol: inst.symbol,
+        label: inst.label,
+        group: inst.group,
+        price: priceMap[inst.symbol]?.price ?? null,
+        changePercent: priceMap[inst.symbol]?.changesPercentage ?? priceMap[inst.symbol]?.changePercent ?? null,
+      }));
       prevDataRef.current = mapped;
       setData(mapped);
     } catch (e) {
       console.error('MacroSidebar fetch error:', e);
+      // Fallback: use instrument list with null prices
+      if (prevDataRef.current.length === 0) {
+        setData(INSTRUMENTS.map(inst => ({ ...inst, price: null, changePercent: null })));
+      }
     }
     setLoading(false);
   }, []);
@@ -134,15 +177,29 @@ export default function MacroSidebar() {
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {loading ? (
-          Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} style={{ padding: '10px 12px', borderBottom: '1px solid var(--border-color)' }}>
-              <div className="skeleton" style={{ height: '10px', width: '60%', marginBottom: '6px' }} />
-              <div className="skeleton" style={{ height: '14px', width: '40%' }} />
+          Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} style={{ padding: '6px 12px', borderBottom: '1px solid var(--border-color)', height: '32px' }}>
+              <div className="skeleton" style={{ height: '10px', width: '60%', marginBottom: '4px' }} />
+              <div className="skeleton" style={{ height: '10px', width: '40%' }} />
             </div>
           ))
         ) : (
           data.map(item => (
-            <MacroItem key={item.symbol} item={item} onSelect={setActiveSymbol} />
+            <React.Fragment key={item.symbol}>
+              {item.group && (
+                <div style={{
+                  padding: '8px 12px 2px',
+                  color: 'var(--gold)',
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}>
+                  {item.group}
+                </div>
+              )}
+              <MacroItem item={item} onSelect={setActiveSymbol} />
+            </React.Fragment>
           ))
         )}
       </div>
