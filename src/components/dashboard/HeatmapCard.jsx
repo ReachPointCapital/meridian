@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 function getHeatColor(changePercent) {
   if (changePercent == null) return '#374151';
@@ -23,16 +23,7 @@ export default function HeatmapCard() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Group by sector preserving order
-  const sectorOrder = [];
-  const sectors = {};
-  data.forEach(stock => {
-    if (!sectors[stock.sector]) {
-      sectors[stock.sector] = [];
-      sectorOrder.push(stock.sector);
-    }
-    sectors[stock.sector].push(stock);
-  });
+  const totalCap = useMemo(() => data.reduce((s, st) => s + (st.marketCap || 0), 0), [data]);
 
   return (
     <div style={{
@@ -67,72 +58,66 @@ export default function HeatmapCard() {
       </div>
 
       {loading ? (
-        <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', color: 'var(--text-tertiary)', fontSize: '12px' }}>
+        <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px', color: 'var(--text-tertiary)', fontSize: '12px' }}>
           Loading heatmap...
         </div>
       ) : data.length === 0 ? (
-        <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>
+        <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px', height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           Heatmap data unavailable.
         </div>
       ) : (
-        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {sectorOrder.map(sectorName => {
-            const stocks = sectors[sectorName];
-            const sectorCap = stocks.reduce((s, st) => s + (st.marketCap || 0), 0);
-            const avgChange = stocks.reduce((s, st) => s + (st.changePercent || 0), 0) / stocks.length;
+        <div style={{
+          width: '100%',
+          height: '420px',
+          position: 'relative',
+          overflow: 'hidden',
+          padding: '4px',
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(12, 1fr)',
+            gridAutoRows: '52px',
+            gap: '2px',
+            width: '100%',
+            height: '100%',
+          }}>
+            {data.map(stock => {
+              const weight = totalCap > 0 ? (stock.marketCap || 0) / totalCap * 100 : 1;
+              const colSpan = weight > 8 ? 4 : weight > 4 ? 3 : weight > 2 ? 2 : 1;
 
-            return (
-              <div key={sectorName}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                  <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {sectorName}
-                  </span>
-                  <span style={{ fontSize: '9px', fontWeight: 600, color: avgChange >= 0 ? '#22c55e' : '#ef4444' }}>
-                    {avgChange >= 0 ? '+' : ''}{avgChange.toFixed(2)}%
-                  </span>
+              return (
+                <div
+                  key={stock.symbol}
+                  onMouseEnter={() => setHoveredStock(stock)}
+                  onMouseLeave={() => setHoveredStock(null)}
+                  style={{
+                    gridColumn: `span ${colSpan}`,
+                    background: getHeatColor(stock.changePercent),
+                    borderRadius: '3px',
+                    padding: '6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    transition: 'opacity 0.15s',
+                    opacity: hoveredStock && hoveredStock.symbol !== stock.symbol ? 0.7 : 1,
+                  }}
+                >
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'white', lineHeight: 1 }}>
+                    {stock.symbol}
+                  </div>
+                  {colSpan > 1 && (
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.75)', marginTop: '2px', lineHeight: 1 }}>
+                      {stock.changePercent != null
+                        ? `${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%`
+                        : '\u2014'}
+                    </div>
+                  )}
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
-                  {stocks.map(stock => {
-                    const tilePct = stock.marketCap / sectorCap * 100;
-                    const minWidth = tilePct < 5 ? 36 : tilePct < 10 ? 52 : tilePct < 20 ? 72 : 100;
-
-                    return (
-                      <div
-                        key={stock.symbol}
-                        onMouseEnter={() => setHoveredStock(stock)}
-                        onMouseLeave={() => setHoveredStock(null)}
-                        style={{
-                          background: getHeatColor(stock.changePercent),
-                          borderRadius: '3px',
-                          padding: '4px 6px',
-                          minWidth: `${minWidth}px`,
-                          height: '38px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          transition: 'opacity 0.15s',
-                          opacity: hoveredStock && hoveredStock.symbol !== stock.symbol ? 0.7 : 1,
-                          overflow: 'hidden',
-                          flex: `${stock.marketCap} 0 0`,
-                        }}
-                      >
-                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'white', lineHeight: 1 }}>
-                          {stock.symbol}
-                        </div>
-                        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.2, marginTop: '1px' }}>
-                          {stock.changePercent != null
-                            ? `${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%`
-                            : '\u2014'
-                          }
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 

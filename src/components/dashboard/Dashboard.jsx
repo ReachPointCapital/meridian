@@ -1369,7 +1369,7 @@ export default function Dashboard({ setActiveTab }) {
       <AIDailyBrief />
 
       {/* Market Snapshot + Heatmap side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '16px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '16px', marginBottom: '24px', alignItems: 'start' }}>
         <MarketSnapshot />
         <HeatmapCard />
       </div>
