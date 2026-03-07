@@ -27,10 +27,6 @@ const SNAPSHOT_GROUPS = [
       { symbol: 'DIA', label: 'Dow Jones' },
       { symbol: 'IWM', label: 'Russell 2000' },
       { symbol: '^VIX', label: 'VIX' },
-      { symbol: 'ES=F', label: 'S&P Futures' },
-      { symbol: 'NQ=F', label: 'Nasdaq Futures' },
-      { symbol: 'YM=F', label: 'Dow Futures' },
-      { symbol: '^W5000', label: 'Wilshire 5000' },
     ],
   },
   {
@@ -41,10 +37,6 @@ const SNAPSHOT_GROUPS = [
       { symbol: 'BZ=F', label: 'Brent Crude' },
       { symbol: 'SI=F', label: 'Silver' },
       { symbol: 'NG=F', label: 'Nat Gas' },
-      { symbol: 'HG=F', label: 'Copper' },
-      { symbol: 'EURUSD=X', label: 'EUR/USD' },
-      { symbol: 'GBPUSD=X', label: 'GBP/USD' },
-      { symbol: 'JPY=X', label: 'USD/JPY' },
     ],
   },
   {
@@ -55,10 +47,6 @@ const SNAPSHOT_GROUPS = [
       { symbol: 'SOL-USD', label: 'Solana' },
       { symbol: 'XRP-USD', label: 'XRP' },
       { symbol: 'ADA-USD', label: 'Cardano' },
-      { symbol: 'DOGE-USD', label: 'Dogecoin' },
-      { symbol: 'BNB-USD', label: 'BNB' },
-      { symbol: 'AVAX-USD', label: 'Avalanche' },
-      { symbol: 'LINK-USD', label: 'Chainlink' },
     ],
   },
 ];

@@ -23,11 +23,13 @@ function formatPct(pct) {
   return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
 }
 
+const BORDER = '1px solid #0D1117';
+
 export default function HeatmapCard() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
-  const [sortMode, setSortMode] = useState('mktcap'); // 'mktcap' | 'swing'
+  const [sortMode, setSortMode] = useState('mktcap');
   const [hovered, setHovered] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -35,34 +37,24 @@ export default function HeatmapCard() {
     fetch('/api/heatmap')
       .then(r => r.json())
       .then(d => {
-        if (Array.isArray(d)) {
-          // Filter to only stocks with valid data
-          setData(d.filter(s => s.price != null && s.changePercent != null));
-        }
+        if (Array.isArray(d)) setData(d.filter(s => s.price != null && s.changePercent != null));
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  // Build rank map and sorted arrays for both modes
   const { displayed, rankMap } = useMemo(() => {
     const rm = {};
     data.forEach((s, i) => { rm[s.symbol] = i; });
-
     let ordered;
     if (sortMode === 'mktcap') {
-      // Keep original market cap order
       ordered = [...data];
     } else {
-      // Sort by raw % change descending (green→red, biggest gains first)
-      ordered = [...data].sort((a, b) =>
-        (b.changePercent ?? -999) - (a.changePercent ?? -999)
-      );
+      ordered = [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
     }
     return { displayed: ordered, rankMap: rm };
   }, [data, sortMode]);
 
-  // For collapsed view, always sort green→red
   const collapsedSorted = useMemo(() => {
     return [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
   }, [data]);
@@ -71,7 +63,6 @@ export default function HeatmapCard() {
     setMousePos({ x: e.clientX, y: e.clientY });
   };
 
-  // Collapsed: 3 equal rows of colored squares, sorted green→red
   const renderCollapsed = () => {
     const perRow = Math.ceil(collapsedSorted.length / 3);
     const rows = [
@@ -80,9 +71,9 @@ export default function HeatmapCard() {
       collapsedSorted.slice(perRow * 2),
     ];
     return (
-      <div style={{ padding: '4px 10px 6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <div style={{ padding: '4px 0 6px', display: 'flex', flexDirection: 'column', gap: 0 }}>
         {rows.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', height: '18px', gap: '1px' }}>
+          <div key={ri} style={{ display: 'flex', height: '18px' }}>
             {row.map((stock) => (
               <div
                 key={stock.symbol}
@@ -92,9 +83,12 @@ export default function HeatmapCard() {
                 style={{
                   flex: 1,
                   backgroundColor: getHeatColor(stock.changePercent),
-                  borderRadius: '1px',
                   cursor: 'pointer',
                   minWidth: 0,
+                  margin: 0,
+                  padding: 0,
+                  borderRight: BORDER,
+                  borderBottom: ri < 2 ? BORDER : 'none',
                 }}
               />
             ))}
@@ -104,75 +98,84 @@ export default function HeatmapCard() {
     );
   };
 
-  const getCellSize = (stock) => {
-    // In swing mode, rank by absolute move; in mktcap mode, rank by original index
-    const rank = sortMode === 'swing'
-      ? displayed.indexOf(stock)
-      : (rankMap[stock.symbol] ?? 999);
+  const renderExpanded = () => {
+    const isSwing = sortMode === 'swing';
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0, margin: 0, padding: 0 }}>
+        {displayed.map((stock) => {
+          const rank = rankMap[stock.symbol] ?? 999;
+          let w, h, showTicker, showPct;
 
-    if (rank < 10) return { w: 70, h: 46, showTicker: true, showPct: true };
-    if (rank < 30) return { w: 52, h: 36, showTicker: true, showPct: true };
-    if (rank < 70) return { w: 36, h: 28, showTicker: true, showPct: false };
-    if (rank < 150) return { w: 24, h: 20, showTicker: false, showPct: false };
-    return { w: 16, h: 14, showTicker: false, showPct: false };
-  };
+          if (isSwing) {
+            // Uniform cells in swing mode
+            w = 32; h = 24; showTicker = true; showPct = false;
+          } else {
+            if (rank < 10) { w = 68; h = 44; showTicker = true; showPct = true; }
+            else if (rank < 30) { w = 50; h = 36; showTicker = true; showPct = true; }
+            else if (rank < 70) { w = 36; h = 28; showTicker = true; showPct = false; }
+            else if (rank < 200) { w = 24; h = 20; showTicker = false; showPct = false; }
+            else { w = 16; h = 14; showTicker = false; showPct = false; }
+          }
 
-  const renderExpanded = () => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
-      {displayed.map((stock) => {
-        const { w, h, showTicker, showPct } = getCellSize(stock);
-        const textCol = getTextColor(stock.changePercent);
+          const textCol = getTextColor(stock.changePercent);
 
-        return (
-          <div
-            key={stock.symbol}
-            onMouseEnter={() => setHovered(stock)}
-            onMouseLeave={() => setHovered(null)}
-            onMouseMove={handleMouseMove}
-            style={{
-              width: `${w}px`,
-              height: `${h}px`,
-              backgroundColor: getHeatColor(stock.changePercent),
-              borderRadius: w >= 36 ? '3px' : '2px',
-              padding: showTicker ? '3px 4px' : '0',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              overflow: 'hidden',
-              flexShrink: 0,
-            }}
-          >
-            {showTicker && (
-              <div style={{
-                fontSize: w >= 70 ? '10px' : w >= 52 ? '9px' : '8px',
-                fontWeight: 700,
-                color: textCol,
-                lineHeight: 1,
-                whiteSpace: 'nowrap',
+          return (
+            <div
+              key={stock.symbol}
+              onMouseEnter={() => setHovered(stock)}
+              onMouseLeave={() => setHovered(null)}
+              onMouseMove={handleMouseMove}
+              style={{
+                width: `${w}px`,
+                height: `${h}px`,
+                backgroundColor: getHeatColor(stock.changePercent),
+                border: BORDER,
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: showTicker ? 'flex-start' : 'center',
+                cursor: 'pointer',
                 overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>
-                {stock.symbol}
-              </div>
-            )}
-            {showPct && (
-              <div style={{
-                fontSize: w >= 70 ? '9px' : '8px',
-                color: textCol,
-                opacity: 0.8,
-                marginTop: '1px',
-                lineHeight: 1,
-                fontFamily: 'monospace',
-              }}>
-                {formatPct(stock.changePercent)}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+                flexShrink: 0,
+                boxSizing: 'border-box',
+                paddingLeft: showTicker ? '3px' : 0,
+                paddingRight: showTicker ? '2px' : 0,
+              }}
+            >
+              {showTicker && (
+                <div style={{
+                  fontSize: w >= 68 ? '10px' : w >= 50 ? '9px' : w >= 36 ? '8px' : '7px',
+                  fontWeight: 700,
+                  color: textCol,
+                  lineHeight: 1,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%',
+                }}>
+                  {stock.symbol}
+                </div>
+              )}
+              {showPct && (
+                <div style={{
+                  fontSize: w >= 68 ? '9px' : '8px',
+                  color: textCol,
+                  opacity: 0.8,
+                  marginTop: '1px',
+                  lineHeight: 1,
+                  fontFamily: 'monospace',
+                }}>
+                  {formatPct(stock.changePercent)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const tabStyle = (active) => ({
     background: active ? '#F0A500' : 'none',
@@ -195,7 +198,6 @@ export default function HeatmapCard() {
       boxShadow: 'var(--card-shadow)',
       width: '100%',
     }}>
-      {/* Header */}
       <div style={{
         padding: '8px 14px',
         borderBottom: expanded ? '1px solid var(--border-color)' : 'none',
@@ -240,7 +242,6 @@ export default function HeatmapCard() {
         </div>
       ) : expanded ? renderExpanded() : renderCollapsed()}
 
-      {/* Hover tooltip */}
       {hovered && (
         <div style={{
           position: 'fixed',
