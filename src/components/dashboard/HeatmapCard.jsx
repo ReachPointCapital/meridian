@@ -43,32 +43,30 @@ export default function HeatmapCard() {
       .catch(() => setLoading(false));
   }, []);
 
-  const { displayed, rankMap } = useMemo(() => {
+  const rankMap = useMemo(() => {
     const rm = {};
     data.forEach((s, i) => { rm[s.symbol] = i; });
-    let ordered;
-    if (sortMode === 'mktcap') {
-      ordered = [...data];
-    } else {
-      ordered = [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
-    }
-    return { displayed: ordered, rankMap: rm };
-  }, [data, sortMode]);
-
-  const collapsedSorted = useMemo(() => {
-    return [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
+    return rm;
   }, [data]);
+
+  const displayStocks = useMemo(() => {
+    if (sortMode === 'swing') {
+      return [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
+    }
+    return [...data];
+  }, [data, sortMode]);
 
   const handleMouseMove = (e) => {
     setMousePos({ x: e.clientX, y: e.clientY });
   };
 
   const renderCollapsed = () => {
-    const perRow = Math.ceil(collapsedSorted.length / 3);
+    const sorted = [...displayStocks].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
+    const perRow = Math.ceil(sorted.length / 3);
     const rows = [
-      collapsedSorted.slice(0, perRow),
-      collapsedSorted.slice(perRow, perRow * 2),
-      collapsedSorted.slice(perRow * 2),
+      sorted.slice(0, perRow),
+      sorted.slice(perRow, perRow * 2),
+      sorted.slice(perRow * 2),
     ];
     return (
       <div style={{ padding: '4px 0 6px', display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -101,8 +99,8 @@ export default function HeatmapCard() {
   const renderExpanded = () => {
     const isSwing = sortMode === 'swing';
     return (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0, margin: 0, padding: 0 }}>
-        {displayed.map((stock) => {
+      <div key={`heatmap-${sortMode}`} style={{ display: 'flex', flexWrap: 'wrap', width: '100%', alignContent: 'flex-start', margin: 0, padding: 0 }}>
+        {displayStocks.map((stock) => {
           const rank = rankMap[stock.symbol] ?? 999;
           let w, h, showTicker, showPct;
 

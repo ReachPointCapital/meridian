@@ -442,13 +442,14 @@ function FearGreedPanel() {
   };
 
   const INDICATOR_TOOLTIPS = {
-    stock_price_strength: 'Compares S&P 500 to its 125-day moving average. Above average = greed.',
-    stock_price_breadth: 'Measures NYSE advancing vs declining volume. More advancers = greed.',
-    market_momentum: 'Compares S&P 500 to its 125-day moving average. Above average = greed.',
-    put_call_options: 'High put buying relative to calls signals fear. Low put buying signals greed.',
-    junk_bond_demand: 'Investors accepting lower yields on junk bonds signals greed (risk appetite).',
-    market_volatility: 'VIX measures expected S&P 500 volatility. High VIX = fear.',
-    safe_haven_demand: 'Stocks outperforming Treasury bonds signals greed.',
+    stock_price_strength: { title: 'Market Momentum', desc: 'Compares the S&P 500 to its 125-day moving average. High values mean the market is trading well above its trend \u2014 a sign of bullish momentum.' },
+    stock_price_breadth: { title: 'Stock Breadth', desc: 'Measures how many stocks are advancing vs declining on the NYSE. Broad participation in rallies signals healthy market sentiment.' },
+    market_momentum: { title: 'Market Momentum', desc: 'Compares the S&P 500 to its 125-day moving average. High values mean the market is trading well above its trend \u2014 a sign of bullish momentum.' },
+    put_call_options: { title: 'Put/Call Ratio', desc: 'Tracks options market activity. A high put/call ratio means traders are buying more downside protection \u2014 a sign of fear. Low values signal complacency or greed.' },
+    junk_bond_demand: { title: 'Junk Bond Demand', desc: 'Measures the yield spread between investment-grade and high-yield bonds. Tight spreads mean investors are willing to take risk \u2014 a greed signal.' },
+    market_volatility: { title: 'Volatility', desc: 'VIX measures expected S&P 500 volatility. High VIX = fear.' },
+    safe_haven_demand: { title: 'Safe Haven Demand', desc: 'Compares returns of stocks vs Treasury bonds. When investors pile into bonds over stocks, it signals fear. Stock outperformance signals greed.' },
+    overall: { title: 'Overall Index', desc: 'A composite of all 5 indicators, equally weighted. Ranges from 0 (Extreme Fear) to 100 (Extreme Greed). Historically, extreme fear can signal buying opportunities.' },
   };
 
   const INDICATOR_LABELS = {
@@ -539,19 +540,43 @@ function FearGreedPanel() {
           {/* COMPONENTS GRID */}
           {componentCards.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '4px' }}>
-              {componentCards.map(ind => (
-                <div key={ind.key} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '8px' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                    {ind.name}
+              {componentCards.map(ind => {
+                const tip = INDICATOR_TOOLTIPS[ind.key];
+                return (
+                  <div key={ind.key}
+                    onMouseEnter={() => setHoveredIndicator(ind.key)}
+                    onMouseLeave={() => setHoveredIndicator(null)}
+                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '8px', position: 'relative', cursor: 'help' }}
+                  >
+                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      {ind.name}<span style={{ opacity: 0.3, fontSize: '9px', marginLeft: '3px' }}>ⓘ</span>
+                    </div>
+                    <div style={{ color: 'white', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '4px' }}>
+                      {Math.round(ind.score)}
+                    </div>
+                    <div style={{ width: '100%', height: '4px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                      <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: '#F0A500', borderRadius: '9999px', transition: 'width 600ms ease' }} />
+                    </div>
+                    {hoveredIndicator === ind.key && tip && (
+                      <div style={{
+                        position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
+                        width: '200px', backgroundColor: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '6px', padding: '10px 12px', zIndex: 50, pointerEvents: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                      }}>
+                        <div style={{ color: 'white', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>{tip.title}</div>
+                        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px', lineHeight: 1.5 }}>{tip.desc}</div>
+                        <div style={{
+                          position: 'absolute', bottom: '-4px', left: '50%',
+                          width: '8px', height: '8px', backgroundColor: '#1a1f2e',
+                          border: '1px solid rgba(255,255,255,0.1)', borderTop: 'none', borderLeft: 'none',
+                          transform: 'translateX(-50%) rotate(45deg)',
+                        }} />
+                      </div>
+                    )}
                   </div>
-                  <div style={{ color: 'white', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '4px' }}>
-                    {Math.round(ind.score)}
-                  </div>
-                  <div style={{ width: '100%', height: '4px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                    <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: '#F0A500', borderRadius: '9999px', transition: 'width 600ms ease' }} />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
