@@ -15,6 +15,7 @@ import {
   CommoditiesDashboard, CurrencyStrengthIndex, RecentEconomicReleases,
 } from '../terminal/MacroPage';
 import DetailPanel from '../ui/DetailPanel';
+import HeatmapCard from './HeatmapCard';
 
 // ── Unified Market Snapshot ──
 const SNAPSHOT_GROUPS = [
@@ -1366,7 +1367,12 @@ export default function Dashboard({ setActiveTab }) {
       </div>
 
       <AIDailyBrief />
-      <MarketSnapshot />
+
+      {/* Market Snapshot + Heatmap side by side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '16px', marginBottom: '16px' }}>
+        <MarketSnapshot />
+        <HeatmapCard />
+      </div>
 
       {/* Index Performance */}
       <IndexPerformancePanel />

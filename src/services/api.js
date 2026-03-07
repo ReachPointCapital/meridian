@@ -39,4 +39,5 @@ export const api = {
   m2: () => get(`${BASE}/api/m2`),
   insiderTradingFeed: () => get(`${BASE}/api/insider-trading-feed`),
   dailyBrief: () => get(`${BASE}/api/daily-brief`),
+  heatmap: () => get(`${BASE}/api/heatmap`),
 };
