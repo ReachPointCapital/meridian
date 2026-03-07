@@ -329,7 +329,7 @@ function CommoditiesDashboard({ onItemClick }) {
   }, [commodities]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Commodities Dashboard</span>
       </div>
@@ -389,7 +389,7 @@ function CurrencyStrengthIndex({ onItemClick }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Currency Strength Index</span>
       </div>
@@ -410,7 +410,7 @@ function CurrencyStrengthIndex({ onItemClick }) {
             return (
               <div key={pair.ticker || pair.pair || pair.symbol || i}
                 onClick={() => onItemClick && onItemClick(pair)}
-                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: i < forex.length - 1 ? '1px solid var(--border-color)' : 'none', cursor: 'pointer' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: i < forex.length - 1 ? '1px solid var(--border-color)' : 'none', cursor: 'pointer' }}>
                 <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600, fontFamily: 'monospace', width: '80px' }}>{pair.ticker || pair.pair || pair.symbol}</span>
                 <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', width: '70px', textAlign: 'right' }}>
                   {displayRate != null ? Number(displayRate).toFixed(4) : '\u2014'}

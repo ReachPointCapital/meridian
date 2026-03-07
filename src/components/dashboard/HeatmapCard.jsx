@@ -108,13 +108,13 @@ export default function HeatmapCard() {
 
           if (isSwing) {
             // Uniform cells in swing mode
-            w = 32; h = 24; showTicker = true; showPct = false;
+            w = 64; h = 48; showTicker = true; showPct = true;
           } else {
-            if (rank < 10) { w = 68; h = 44; showTicker = true; showPct = true; }
-            else if (rank < 30) { w = 50; h = 36; showTicker = true; showPct = true; }
-            else if (rank < 70) { w = 36; h = 28; showTicker = true; showPct = false; }
-            else if (rank < 200) { w = 24; h = 20; showTicker = false; showPct = false; }
-            else { w = 16; h = 14; showTicker = false; showPct = false; }
+            if (rank < 10) { w = 136; h = 88; showTicker = true; showPct = true; }
+            else if (rank < 30) { w = 100; h = 72; showTicker = true; showPct = true; }
+            else if (rank < 70) { w = 72; h = 56; showTicker = true; showPct = true; }
+            else if (rank < 200) { w = 48; h = 40; showTicker = true; showPct = false; }
+            else { w = 32; h = 28; showTicker = false; showPct = false; }
           }
 
           const textCol = getTextColor(stock.changePercent);
@@ -146,7 +146,7 @@ export default function HeatmapCard() {
             >
               {showTicker && (
                 <div style={{
-                  fontSize: w >= 68 ? '10px' : w >= 50 ? '9px' : w >= 36 ? '8px' : '7px',
+                  fontSize: w >= 136 ? '14px' : w >= 100 ? '12px' : w >= 72 ? '11px' : w >= 48 ? '9px' : '8px',
                   fontWeight: 700,
                   color: textCol,
                   lineHeight: 1,
@@ -160,7 +160,7 @@ export default function HeatmapCard() {
               )}
               {showPct && (
                 <div style={{
-                  fontSize: w >= 68 ? '9px' : '8px',
+                  fontSize: w >= 136 ? '12px' : w >= 100 ? '10px' : w >= 72 ? '10px' : '9px',
                   color: textCol,
                   opacity: 0.8,
                   marginTop: '1px',

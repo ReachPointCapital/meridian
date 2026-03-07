@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, LabelList,
 } from 'recharts';
 import {
   getSectorPerformance, getEconomicCalendar,
@@ -367,29 +367,37 @@ function YieldCurvePanel() {
       ) : yields.length === 0 ? (
         <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px' }}>No yield data available.</p>
       ) : (
-        <div style={{ padding: '12px' }}>
-          <ResponsiveContainer width="100%" height={120}>
-            <LineChart data={yields} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-              <XAxis dataKey="maturity" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis domain={yDomain} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} tickFormatter={v => `${v.toFixed(1)}%`} axisLine={false} tickLine={false} width={40} />
-              <Tooltip content={({ active, payload }) => {
-                if (!active || !payload || !payload.length) return null;
-                const d = payload[0].payload;
-                return (
-                  <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
-                    <div style={{ color: 'var(--text-primary)' }}>{d.maturity}: {d.yield?.toFixed(3)}%</div>
-                  </div>
-                );
-              }} />
-              <Line type="monotone" dataKey="yield" stroke={inverted ? 'var(--red)' : 'var(--gold)'} strokeWidth={2} dot={{ fill: inverted ? 'var(--red)' : 'var(--gold)', r: 4 }} />
-            </LineChart>
-          </ResponsiveContainer>
-          <div style={{ marginTop: '8px' }}>
+        <div style={{ padding: '12px', display: 'flex', gap: '16px' }}>
+          <div style={{ flex: 1 }}>
+            <ResponsiveContainer width="100%" height={140}>
+              <LineChart data={yields} margin={{ top: 18, right: 12, left: 0, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                <XAxis dataKey="maturity" hide />
+                <YAxis domain={yDomain} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} tickFormatter={v => `${v.toFixed(1)}%`} axisLine={false} tickLine={false} width={40} />
+                <Tooltip content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null;
+                  const d = payload[0].payload;
+                  return (
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
+                      <div style={{ color: 'var(--text-primary)' }}>{d.maturity}: {d.yield?.toFixed(3)}%</div>
+                    </div>
+                  );
+                }} />
+                <Line type="monotone" dataKey="yield" stroke={inverted ? 'var(--red)' : 'var(--gold)'} strokeWidth={2} dot={{ fill: inverted ? 'var(--red)' : 'var(--gold)', r: 4 }}>
+                  <LabelList dataKey="maturity" position="top" offset={8} style={{ fill: 'rgba(255,255,255,0.6)', fontSize: '10px', fontWeight: 500 }} />
+                </Line>
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ width: '120px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Term</span>
+              <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Yield</span>
+            </div>
             {yields.map(y => (
-              <div key={y.maturity} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-color)' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>{y.maturity}</span>
-                <span style={{ color: 'var(--text-primary)', fontSize: '11px', fontFamily: 'monospace' }}>{y.yield?.toFixed(3)}%</span>
+              <div key={y.maturity} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{y.maturity}</span>
+                <span style={{ color: '#F0A500', fontSize: '12px', fontFamily: 'monospace' }}>{y.yield?.toFixed(3)}%</span>
               </div>
             ))}
           </div>
@@ -488,79 +496,71 @@ function FearGreedPanel() {
       ) : overallScore == null ? (
         <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px' }}>Unavailable</p>
       ) : (
-        <div style={{ padding: '16px' }}>
-          {/* Overall score */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '48px', fontWeight: 700, fontFamily: 'monospace', color: overallLabel.color, lineHeight: 1 }}>
-              {Math.round(overallScore)}
-            </span>
-            <div>
-              <div style={{ color: overallLabel.color, fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em' }}>{overallLabel.text}</div>
-              <div style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>
-                Overall Index{previousClose != null ? ` | Prev: ${Math.round(previousClose)}` : ''}
+        <div style={{ padding: '16px', display: 'flex', gap: '16px' }}>
+          {/* LEFT: SVG half-circle gauge */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <svg viewBox="0 0 200 110" width="100%" style={{ maxWidth: '220px' }}>
+              {/* Background arc segments */}
+              {[
+                { start: 180, end: 135, color: '#ef4444' },
+                { start: 135, end: 99, color: '#f97316' },
+                { start: 99, end: 81, color: '#eab308' },
+                { start: 81, end: 45, color: '#84cc16' },
+                { start: 45, end: 0, color: '#16a34a' },
+              ].map((seg, i) => {
+                const r = 80;
+                const cx = 100, cy = 100;
+                const x1 = cx + r * Math.cos((seg.start * Math.PI) / 180);
+                const y1 = cy - r * Math.sin((seg.start * Math.PI) / 180);
+                const x2 = cx + r * Math.cos((seg.end * Math.PI) / 180);
+                const y2 = cy - r * Math.sin((seg.end * Math.PI) / 180);
+                const largeArc = seg.start - seg.end > 180 ? 1 : 0;
+                return (
+                  <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 0 ${x2} ${y2}`}
+                    fill="none" stroke={seg.color} strokeWidth="10" strokeLinecap="round" opacity="0.3" />
+                );
+              })}
+              {/* Needle */}
+              {(() => {
+                const angle = 180 - (overallScore / 100) * 180;
+                const rad = (angle * Math.PI) / 180;
+                const nx = 100 + 65 * Math.cos(rad);
+                const ny = 100 - 65 * Math.sin(rad);
+                return <line x1="100" y1="100" x2={nx} y2={ny} stroke={overallLabel.color} strokeWidth="2.5" strokeLinecap="round" />;
+              })()}
+              <circle cx="100" cy="100" r="4" fill={overallLabel.color} />
+              {/* Score text */}
+              <text x="100" y="82" textAnchor="middle" fill="white" fontSize="32" fontWeight="700" fontFamily="monospace">
+                {Math.round(overallScore)}
+              </text>
+              <text x="100" y="98" textAnchor="middle" fill={overallLabel.color} fontSize="10" fontWeight="700" letterSpacing="0.08em">
+                {overallLabel.text}
+              </text>
+            </svg>
+            {previousClose != null && (
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', marginTop: '2px' }}>
+                Prev: {Math.round(previousClose)}
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Progress bar */}
-          <div style={{ height: '8px', borderRadius: '4px', background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #16a34a)', position: 'relative', marginBottom: '0' }}>
-            <div style={{
-              position: 'absolute', top: '50%', left: `${overallScore}%`, transform: 'translate(-50%, -50%)',
-              width: '14px', height: '14px', borderRadius: '50%', backgroundColor: overallLabel.color,
-              border: '2px solid var(--bg-secondary)', boxShadow: '0 0 4px rgba(0,0,0,0.3)',
-            }} />
-          </div>
-
-          {/* Sub-indicators */}
+          {/* RIGHT: Sub-indicators compact list */}
           {indicators.length > 0 && (
-            <div style={{ display: 'flex', gap: '6px', justifyContent: 'space-between', marginBottom: '12px' }}>
-              {indicators.map(ind => (
-                <div key={ind.key} style={{ flex: 1, textAlign: 'center', position: 'relative', cursor: 'help' }}
-                  onMouseEnter={() => setHoveredIndicator(ind.key)}
-                  onMouseLeave={() => setHoveredIndicator(null)}
-                >
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.06em', marginBottom: '2px' }}>{ind.abbr}</div>
-                  <div style={{ height: '60px', position: 'relative', backgroundColor: 'var(--bg-primary)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0,
-                      height: `${ind.score}%`,
-                      backgroundColor: getBarColor(ind.score),
-                      borderRadius: '3px',
-                      transition: 'height 600ms ease',
-                    }} />
+            <div style={{ width: '180px', flexShrink: 0 }}>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Components
+              </div>
+              {indicators.map((ind, i) => (
+                <div key={ind.key} style={{ padding: '6px 0', borderBottom: i < indicators.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px' }}>{ind.name}</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{Math.round(ind.score)}</span>
                   </div>
-                  <div style={{ color: getBarColor(ind.score), fontSize: '8px', fontWeight: 600, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ind.name}</div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontFamily: 'monospace', fontWeight: 600, marginTop: '2px' }}>{Math.round(ind.score)}</div>
-
-                  {/* Hover tooltip */}
-                  {hoveredIndicator === ind.key && (
-                    <div style={{
-                      position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
-                      backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-                      borderRadius: '6px', padding: '8px 10px', fontSize: '10px', color: 'var(--text-secondary)',
-                      width: '180px', textAlign: 'left', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                      marginBottom: '4px', lineHeight: 1.4,
-                    }}>
-                      {INDICATOR_TOOLTIPS[ind.key]}
-                    </div>
-                  )}
+                  <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--bg-primary)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: getBarColor(ind.score), borderRadius: '2px', transition: 'width 600ms ease' }} />
+                  </div>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Score scale legend */}
-          <div style={{ display: 'flex', gap: '2px', fontSize: '8px', fontWeight: 600, letterSpacing: '0.04em', marginTop: '4px' }}>
-            <span style={{ flex: 1, textAlign: 'center', padding: '3px 0', backgroundColor: '#ef444422', color: '#ef4444', borderRadius: '2px' }}>0-25 Extreme Fear</span>
-            <span style={{ flex: 1, textAlign: 'center', padding: '3px 0', backgroundColor: '#f9731622', color: '#f97316', borderRadius: '2px' }}>25-45 Fear</span>
-            <span style={{ flex: 1, textAlign: 'center', padding: '3px 0', backgroundColor: '#eab30822', color: '#eab308', borderRadius: '2px' }}>45-55 Neutral</span>
-            <span style={{ flex: 1, textAlign: 'center', padding: '3px 0', backgroundColor: '#22c55e22', color: '#22c55e', borderRadius: '2px' }}>55-75 Greed</span>
-            <span style={{ flex: 1, textAlign: 'center', padding: '3px 0', backgroundColor: '#16a34a22', color: '#16a34a', borderRadius: '2px' }}>75-100 Extreme</span>
-          </div>
-
-          {lastUpdated && (
-            <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', textAlign: 'right', marginTop: '6px' }}>
-              Last updated: {formatDate(lastUpdated)}
             </div>
           )}
         </div>
@@ -676,17 +676,14 @@ function SectorHeatmap() {
     return '#374151';
   };
 
-  // Ensure we have 12 sectors for a clean 4×3 grid
+  // 11 sectors (no Transportation), 4-column grid
   const displaySectors = useMemo(() => {
-    const list = [...sectors];
+    const list = sectors.filter(s => !(s.sector || '').toLowerCase().includes('transportation'));
     const names = list.map(s => (s.sector || '').toLowerCase());
     if (!names.some(n => n.includes('real estate'))) {
       list.push({ sector: 'Real Estate', changesPercentage: 0 });
     }
-    if (list.length < 12 && !names.some(n => n.includes('transportation'))) {
-      list.push({ sector: 'Transportation', changesPercentage: 0 });
-    }
-    return list.slice(0, 12);
+    return list.slice(0, 11);
   }, [sectors]);
 
   return (
@@ -1040,7 +1037,7 @@ function ForexPanel() {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Currency Exchange Rates</span>
       </div>
@@ -1090,7 +1087,7 @@ function MostShortedPanel({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Most Shorted</span>
       </div>
@@ -1102,7 +1099,7 @@ function MostShortedPanel({ onNavigate }) {
         <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '20px' }}>No data</p>
       ) : (
         <div>
-          {stocks.slice(0, 8).map((s, i) => {
+          {stocks.slice(0, 10).map((s, i) => {
             const pct = s.changePercent ?? 0;
             const isPos = pct >= 0;
             return (
@@ -1387,14 +1384,14 @@ export default function Dashboard({ setActiveTab }) {
         <SectorHeatmap />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px', alignItems: 'stretch' }}>
         <ForexPanel />
         <CurrencyStrengthIndex onItemClick={handleItemClick} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-        <MostShortedPanel onNavigate={handleNavigate} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px', alignItems: 'stretch' }}>
         <CommoditiesDashboard onItemClick={handleItemClick} />
+        <MostShortedPanel onNavigate={handleNavigate} />
       </div>
 
       <div style={{ marginTop: '12px' }}>
