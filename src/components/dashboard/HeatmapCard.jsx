@@ -54,9 +54,9 @@ export default function HeatmapCard() {
       // Keep original market cap order
       ordered = [...data];
     } else {
-      // Sort by absolute % change descending (biggest movers first)
+      // Sort by raw % change descending (green→red, biggest gains first)
       ordered = [...data].sort((a, b) =>
-        Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0)
+        (b.changePercent ?? -999) - (a.changePercent ?? -999)
       );
     }
     return { displayed: ordered, rankMap: rm };
