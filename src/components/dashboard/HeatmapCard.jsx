@@ -27,22 +27,44 @@ export default function HeatmapCard() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [sortMode, setSortMode] = useState('mktcap'); // 'mktcap' | 'swing'
   const [hovered, setHovered] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     fetch('/api/heatmap')
       .then(r => r.json())
-      .then(d => { if (Array.isArray(d)) setData(d); setLoading(false); })
+      .then(d => {
+        if (Array.isArray(d)) {
+          // Filter to only stocks with valid data
+          setData(d.filter(s => s.price != null && s.changePercent != null));
+        }
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
-  // Build rank map (original index = market cap rank) and sort by % change desc
-  const { sorted, rankMap } = useMemo(() => {
+  // Build rank map and sorted arrays for both modes
+  const { displayed, rankMap } = useMemo(() => {
     const rm = {};
     data.forEach((s, i) => { rm[s.symbol] = i; });
-    const s = [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
-    return { sorted: s, rankMap: rm };
+
+    let ordered;
+    if (sortMode === 'mktcap') {
+      // Keep original market cap order
+      ordered = [...data];
+    } else {
+      // Sort by absolute % change descending (biggest movers first)
+      ordered = [...data].sort((a, b) =>
+        Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0)
+      );
+    }
+    return { displayed: ordered, rankMap: rm };
+  }, [data, sortMode]);
+
+  // For collapsed view, always sort green→red
+  const collapsedSorted = useMemo(() => {
+    return [...data].sort((a, b) => (b.changePercent ?? -999) - (a.changePercent ?? -999));
   }, [data]);
 
   const handleMouseMove = (e) => {
@@ -51,11 +73,11 @@ export default function HeatmapCard() {
 
   // Collapsed: 3 equal rows of colored squares, sorted green→red
   const renderCollapsed = () => {
-    const perRow = Math.ceil(sorted.length / 3);
+    const perRow = Math.ceil(collapsedSorted.length / 3);
     const rows = [
-      sorted.slice(0, perRow),
-      sorted.slice(perRow, perRow * 2),
-      sorted.slice(perRow * 2),
+      collapsedSorted.slice(0, perRow),
+      collapsedSorted.slice(perRow, perRow * 2),
+      collapsedSorted.slice(perRow * 2),
     ];
     return (
       <div style={{ padding: '4px 10px 6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -82,26 +104,24 @@ export default function HeatmapCard() {
     );
   };
 
+  const getCellSize = (stock) => {
+    // In swing mode, rank by absolute move; in mktcap mode, rank by original index
+    const rank = sortMode === 'swing'
+      ? displayed.indexOf(stock)
+      : (rankMap[stock.symbol] ?? 999);
+
+    if (rank < 10) return { w: 70, h: 46, showTicker: true, showPct: true };
+    if (rank < 30) return { w: 52, h: 36, showTicker: true, showPct: true };
+    if (rank < 70) return { w: 36, h: 28, showTicker: true, showPct: false };
+    if (rank < 150) return { w: 24, h: 20, showTicker: false, showPct: false };
+    return { w: 16, h: 14, showTicker: false, showPct: false };
+  };
+
   const renderExpanded = () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
-      {sorted.map((stock) => {
-        const rank = rankMap[stock.symbol] ?? 999;
-        let w, h, showTicker, showPct;
-        if (rank < 10) {
-          w = 70; h = 46; showTicker = true; showPct = true;
-        } else if (rank < 30) {
-          w = 52; h = 36; showTicker = true; showPct = true;
-        } else if (rank < 70) {
-          w = 36; h = 28; showTicker = true; showPct = false;
-        } else if (rank < 150) {
-          w = 24; h = 20; showTicker = false; showPct = false;
-        } else {
-          w = 16; h = 14; showTicker = false; showPct = false;
-        }
-
+      {displayed.map((stock) => {
+        const { w, h, showTicker, showPct } = getCellSize(stock);
         const textCol = getTextColor(stock.changePercent);
-        const isMega = rank < 10;
-        const isLarge = rank < 30;
 
         return (
           <div
@@ -113,7 +133,7 @@ export default function HeatmapCard() {
               width: `${w}px`,
               height: `${h}px`,
               backgroundColor: getHeatColor(stock.changePercent),
-              borderRadius: rank < 70 ? '3px' : '2px',
+              borderRadius: w >= 36 ? '3px' : '2px',
               padding: showTicker ? '3px 4px' : '0',
               display: 'flex',
               flexDirection: 'column',
@@ -125,7 +145,7 @@ export default function HeatmapCard() {
           >
             {showTicker && (
               <div style={{
-                fontSize: isMega ? '10px' : isLarge ? '9px' : '8px',
+                fontSize: w >= 70 ? '10px' : w >= 52 ? '9px' : '8px',
                 fontWeight: 700,
                 color: textCol,
                 lineHeight: 1,
@@ -138,7 +158,7 @@ export default function HeatmapCard() {
             )}
             {showPct && (
               <div style={{
-                fontSize: isMega ? '9px' : '8px',
+                fontSize: w >= 70 ? '9px' : '8px',
                 color: textCol,
                 opacity: 0.8,
                 marginTop: '1px',
@@ -154,6 +174,18 @@ export default function HeatmapCard() {
     </div>
   );
 
+  const tabStyle = (active) => ({
+    background: active ? '#F0A500' : 'none',
+    color: active ? '#000' : 'rgba(255,255,255,0.4)',
+    border: active ? '1px solid #F0A500' : '1px solid rgba(255,255,255,0.2)',
+    fontSize: '10px',
+    fontWeight: active ? 600 : 400,
+    padding: '2px 8px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    lineHeight: 1.4,
+  });
+
   return (
     <div style={{
       background: 'var(--bg-secondary)',
@@ -164,18 +196,14 @@ export default function HeatmapCard() {
       width: '100%',
     }}>
       {/* Header */}
-      <div
-        onClick={() => !loading && data.length > 0 && setExpanded(!expanded)}
-        style={{
-          padding: '8px 14px',
-          borderBottom: expanded ? '1px solid var(--border-color)' : 'none',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          cursor: data.length > 0 ? 'pointer' : 'default',
-          userSelect: 'none',
-        }}
-      >
+      <div style={{
+        padding: '8px 14px',
+        borderBottom: expanded ? '1px solid var(--border-color)' : 'none',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        userSelect: 'none',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
             S&P 500 Heatmap
@@ -184,11 +212,22 @@ export default function HeatmapCard() {
             {data.length} stocks · 15min delay
           </span>
         </div>
-        {!loading && data.length > 0 && (
-          <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 600 }}>
-            {expanded ? '▲ Collapse' : '▼ Expand'}
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {!loading && data.length > 0 && expanded && (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); setSortMode('mktcap'); }} style={tabStyle(sortMode === 'mktcap')}>Mkt Cap</button>
+              <button onClick={(e) => { e.stopPropagation(); setSortMode('swing'); }} style={tabStyle(sortMode === 'swing')}>Daily Swing</button>
+            </>
+          )}
+          {!loading && data.length > 0 && (
+            <span
+              onClick={() => setExpanded(!expanded)}
+              style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 600, cursor: 'pointer', marginLeft: '4px' }}
+            >
+              {expanded ? '▲ Collapse' : '▼ Expand'}
+            </span>
+          )}
+        </div>
       </div>
 
       {loading ? (

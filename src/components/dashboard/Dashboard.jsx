@@ -41,14 +41,14 @@ const SNAPSHOT_GROUPS = [
     items: [
       { symbol: 'GC=F', label: 'Gold' },
       { symbol: 'CL=F', label: 'WTI Oil' },
-      { symbol: 'HG=F', label: 'Copper' },
-      { symbol: '^TNX', label: '10Y Yield' },
-      { symbol: 'EURUSD=X', label: 'EUR/USD' },
+      { symbol: 'BZ=F', label: 'Brent Crude' },
       { symbol: 'SI=F', label: 'Silver' },
       { symbol: 'NG=F', label: 'Nat Gas' },
-      { symbol: 'BZ=F', label: 'Brent Crude' },
+      { symbol: 'HG=F', label: 'Copper' },
+      { symbol: '^TNX', label: '10Y Yield' },
       { symbol: '^IRX', label: '2Y Yield' },
       { symbol: '^TYX', label: '30Y Yield' },
+      { symbol: 'EURUSD=X', label: 'EUR/USD' },
       { symbol: 'GBPUSD=X', label: 'GBP/USD' },
       { symbol: 'JPY=X', label: 'USD/JPY' },
     ],
@@ -64,31 +64,13 @@ const SNAPSHOT_GROUPS = [
       { symbol: 'DOGE-USD', label: 'Dogecoin' },
       { symbol: 'BNB-USD', label: 'BNB' },
       { symbol: 'AVAX-USD', label: 'Avalanche' },
+      { symbol: 'LINK-USD', label: 'Chainlink' },
+      { symbol: 'DOT-USD', label: 'Polkadot' },
+      { symbol: 'LTC-USD', label: 'Litecoin' },
+      { symbol: 'XLM-USD', label: 'Stellar' },
     ],
   },
 ];
-
-function SnapshotTile({ label, price, changePercent }) {
-  return (
-    <div style={{
-      background: 'var(--bg-secondary)',
-      border: '1px solid var(--border-color)',
-      borderRadius: '4px',
-      padding: '6px 8px',
-      cursor: 'default',
-    }}>
-      <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.6, marginBottom: '2px', lineHeight: 1 }}>
-        {label}
-      </div>
-      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', lineHeight: 1.3 }}>
-        {price != null ? formatPrice(price) : '\u2014'}
-      </div>
-      <div style={{ fontSize: '11px', fontWeight: 500, lineHeight: 1.2, color: changePercent != null ? (changePercent >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-tertiary)' }}>
-        {changePercent != null ? `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%` : '\u2014'}
-      </div>
-    </div>
-  );
-}
 
 function MarketSnapshot() {
   const [prices, setPrices] = useState({});
@@ -113,57 +95,55 @@ function MarketSnapshot() {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
-    return (
-      <div>
-        {SNAPSHOT_GROUPS.map(g => (
-          <div key={g.label} style={{ marginBottom: '8px' }}>
-            <div className="skeleton" style={{ height: '10px', width: '80px', marginBottom: '4px' }} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-              {g.items.map((_, i) => (
-                <div key={i} className="skeleton" style={{ height: '44px', borderRadius: '4px' }} />
-              ))}
-            </div>
-          </div>
-        ))}
+  const renderColumn = (group) => (
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
+        <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{group.label}</span>
       </div>
-    );
-  }
+      {loading ? (
+        <div style={{ padding: '10px' }}>
+          {Array.from({ length: 12 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '32px', marginBottom: '4px' }} />)}
+        </div>
+      ) : (
+        <div>
+          {group.items.map((item) => {
+            const d = prices[item.symbol];
+            const pct = d?.changePercent ?? d?.changesPercentage ?? null;
+            const isPos = (pct || 0) >= 0;
+            return (
+              <div
+                key={item.symbol}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '8px 14px', borderBottom: '1px solid var(--border-color)',
+                }}
+              >
+                <div>
+                  <span style={{ color: 'var(--gold)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{item.label}</span>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', opacity: 0.5, marginTop: '1px' }}>{item.symbol}</div>
+                </div>
+                <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600, fontFamily: 'monospace' }}>
+                    {d?.price != null ? formatPrice(d.price) : '\u2014'}
+                  </span>
+                  <span style={{ color: pct != null ? (isPos ? 'var(--green)' : 'var(--red)') : 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace', minWidth: '55px', textAlign: 'right' }}>
+                    {pct != null ? `${isPos ? '+' : ''}${pct.toFixed(2)}%` : '\u2014'}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
       {SNAPSHOT_GROUPS.map(group => (
-        <div key={group.label} style={{ marginBottom: '8px' }}>
-          <div style={{
-            fontSize: '13px',
-            fontWeight: 600,
-            letterSpacing: '3px',
-            color: 'rgba(255,255,255,0.7)',
-            textTransform: 'uppercase',
-            marginBottom: '8px',
-            paddingBottom: '4px',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            borderLeft: '2px solid #F0A500',
-            paddingLeft: '8px',
-            display: 'block',
-            width: '100%',
-          }}>
-            {group.label}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-            {group.items.map(item => {
-              const data = prices[item.symbol];
-              return (
-                <SnapshotTile
-                  key={item.symbol}
-                  label={item.label}
-                  price={data?.price ?? null}
-                  changePercent={data?.changePercent ?? data?.changesPercentage ?? null}
-                />
-              );
-            })}
-          </div>
-        </div>
+        <React.Fragment key={group.label}>
+          {renderColumn(group)}
+        </React.Fragment>
       ))}
     </div>
   );

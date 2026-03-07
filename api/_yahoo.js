@@ -297,6 +297,8 @@ async function yahooMacro() {
     { symbol: 'ADA-USD', label: 'Cardano' },
     { symbol: 'DOGE-USD', label: 'Dogecoin' }, { symbol: 'BNB-USD', label: 'BNB' },
     { symbol: 'AVAX-USD', label: 'Avalanche' },
+    { symbol: 'LINK-USD', label: 'Chainlink' }, { symbol: 'DOT-USD', label: 'Polkadot' },
+    { symbol: 'LTC-USD', label: 'Litecoin' }, { symbol: 'XLM-USD', label: 'Stellar' },
   ];
   const results = await Promise.allSettled(instruments.map(inst => yahooFinance.quote(inst.symbol)));
   return instruments.map((inst, i) => {
