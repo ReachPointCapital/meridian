@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root,
+[data-theme="dark"] {
+  --bg-primary: #0A0E1A;
+  --bg-secondary: #0F1623;
+  --bg-tertiary: #151C2C;
+  --border-color: #1E2A3E;
+  --gold: #C9A84C;
+  --gold-hover: #E2BC5A;
+  --gold-muted: #8B6914;
+  --text-primary: #F0F2F5;
+  --text-secondary: #8A95A3;
+  --text-tertiary: #4A5568;
+  --green: #22C55E;
+  --red: #EF4444;
+  --green-muted: #052E16;
+  --red-muted: #2D0A0A;
+  --card-bg: #0F1623;
+  --card-shadow: 0 0 0 transparent;
+  --scrollbar-track: #0A0E1A;
+  --scrollbar-thumb: #1E2A3E;
+  --scrollbar-hover: #2A3A54;
+}
+
+[data-theme="light"] {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F9FA;
+  --bg-tertiary: #EEF0F2;
+  --border-color: #DEE2E6;
+  --gold: #C9A84C;
+  --gold-hover: #B8952F;
+  --gold-muted: #8B6914;
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A5568;
+  --text-tertiary: #8A95A3;
+  --green: #16A34A;
+  --red: #DC2626;
+  --green-muted: #DCFCE7;
+  --red-muted: #FEE2E2;
+  --card-bg: #F8F9FA;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --scrollbar-track: #F8F9FA;
+  --scrollbar-thumb: #DEE2E6;
+  --scrollbar-hover: #CED4DA;
+}
+
+@theme {
+  --color-bg-primary: #0A0E1A;
+  --color-bg-secondary: #0F1623;
+  --color-bg-tertiary: #151C2C;
+  --color-border: #1E2A3E;
+  --color-gold: #C9A84C;
+  --color-gold-hover: #E2BC5A;
+  --color-gold-muted: #8B6914;
+  --color-text-primary: #F0F2F5;
+  --color-text-secondary: #8A95A3;
+  --color-text-tertiary: #4A5568;
+  --color-green: #22C55E;
+  --color-red: #EF4444;
+  --color-green-muted: #052E16;
+  --color-red-muted: #2D0A0A;
+
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-mono: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes pulse-skeleton {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton {
+  animation: pulse-skeleton 1.5s ease-in-out infinite;
+  background-color: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.gold-underline-active {
+  border-bottom: 2px solid var(--gold);
+}
+
+.transition-fast {
+  transition: all 150ms ease;
+}
+
+.transition-panel {
+  transition: all 200ms ease;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes scrollTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.page-fade-in {
+  animation: fadeIn 150ms ease;
+}
+
+/* Tooltip styles */
+.tooltip-container {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip-container .tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 999;
+  pointer-events: none;
+  transition: opacity 150ms ease, visibility 150ms ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Print / PDF export styles */
+@media print {
+  nav, .macro-sidebar-desktop, .macro-sidebar-mobile, .macro-mobile-toggle,
+  footer, button, input, select {
+    display: none !important;
+  }
+
+  .main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body {
+    background-color: #fff !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  * {
+    box-shadow: none !important;
+  }
+}
