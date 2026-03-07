@@ -81,7 +81,7 @@ function MarketSnapshot() {
       </div>
       {loading ? (
         <div style={{ padding: '10px' }}>
-          {Array.from({ length: 12 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '32px', marginBottom: '4px' }} />)}
+          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '32px', marginBottom: '4px' }} />)}
         </div>
       ) : (
         <div>
@@ -95,18 +95,21 @@ function MarketSnapshot() {
                 style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '8px 14px', borderBottom: '1px solid var(--border-color)',
+                  cursor: 'pointer', transition: 'background 150ms ease',
                 }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div>
-                  <span style={{ color: 'var(--gold)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{item.label}</span>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', opacity: 0.5, marginTop: '1px' }}>{item.symbol}</div>
+                  <span style={{ color: 'var(--gold)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{item.symbol}</span>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', marginLeft: '8px' }}>{item.label}</span>
                 </div>
                 <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600, fontFamily: 'monospace' }}>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace' }}>
                     {d?.price != null ? formatPrice(d.price) : '\u2014'}
                   </span>
                   <span style={{ color: pct != null ? (isPos ? 'var(--green)' : 'var(--red)') : 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace', minWidth: '55px', textAlign: 'right' }}>
-                    {pct != null ? `${isPos ? '+' : ''}${pct.toFixed(2)}%` : '\u2014'}
+                    {pct != null ? formatPercent(pct) : '\u2014'}
                   </span>
                 </div>
               </div>
@@ -683,17 +686,17 @@ function SectorHeatmap() {
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Sector Performance</span>
       </div>
-      <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '6px' }}>
+      <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
         {loading ? (
-          Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '52px', borderRadius: '6px' }} />)
+          Array.from({ length: 12 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '72px', borderRadius: '6px' }} />)
         ) : sectors.length === 0 ? (
           <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', gridColumn: '1 / -1', textAlign: 'center', padding: '16px' }}>No sector data available.</p>
         ) : sectors.map((s, i) => {
           const pctNum = typeof s.changesPercentage === 'number' ? s.changesPercentage : parseFloat(s.changesPercentage || '0');
           return (
-            <div key={i} style={{ backgroundColor: getColor(pctNum), borderRadius: '6px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div key={i} style={{ backgroundColor: getColor(pctNum), borderRadius: '6px', padding: '12px', height: '72px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' }}>
               <span style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: 500 }}>{(s.sector || '').replace(/_/g, ' ')}</span>
-              <span style={{ color: '#FFFFFF', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>
+              <span style={{ color: '#FFFFFF', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
                 {pctNum >= 0 ? '+' : ''}{pctNum.toFixed(2)}%
               </span>
             </div>

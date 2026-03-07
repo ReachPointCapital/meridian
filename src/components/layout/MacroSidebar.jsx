@@ -9,7 +9,10 @@ const INSTRUMENTS = [
   { symbol: 'QQQ', label: 'NASDAQ', group: null },
   { symbol: 'DIA', label: 'Dow Jones', group: null },
   { symbol: 'IWM', label: 'Russell 2000', group: null },
-  { symbol: '^VIX', label: 'VIX', group: null },
+  // Futures
+  { symbol: 'ES=F', label: 'S&P Futures', group: 'FUTURES' },
+  { symbol: 'NQ=F', label: 'Nasdaq Futures', group: null },
+  { symbol: 'YM=F', label: 'Dow Futures', group: null },
   // Global
   { symbol: '^FTSE', label: 'FTSE 100', group: 'GLOBAL' },
   { symbol: '^N225', label: 'Nikkei 225', group: null },
@@ -17,23 +20,29 @@ const INSTRUMENTS = [
   { symbol: '^HSI', label: 'Hang Seng', group: null },
   // Commodities
   { symbol: 'GC=F', label: 'Gold', group: 'COMMODITIES' },
+  { symbol: 'SI=F', label: 'Silver', group: null },
   { symbol: 'CL=F', label: 'WTI Oil', group: null },
   { symbol: 'BZ=F', label: 'Brent', group: null },
-  { symbol: 'SI=F', label: 'Silver', group: null },
   { symbol: 'NG=F', label: 'Nat Gas', group: null },
+  { symbol: 'HG=F', label: 'Copper', group: null },
   // Crypto
   { symbol: 'BTC-USD', label: 'Bitcoin', group: 'CRYPTO' },
   { symbol: 'ETH-USD', label: 'Ethereum', group: null },
   { symbol: 'SOL-USD', label: 'Solana', group: null },
-  // Rates
-  { symbol: '^TNX', label: '10Y Yield', group: 'RATES' },
-  { symbol: '^IRX', label: '3M Yield', group: null },
-  { symbol: '^TYX', label: '30Y Yield', group: null },
+  // Volatility
+  { symbol: '^VIX', label: 'VIX', group: 'VOLATILITY' },
+  { symbol: '^VIX9D', label: 'VIX 9D', group: null },
+  { symbol: '^VVIX', label: 'VVIX', group: null },
   // FX
   { symbol: 'EURUSD=X', label: 'EUR/USD', group: 'FX' },
   { symbol: 'GBPUSD=X', label: 'GBP/USD', group: null },
   { symbol: 'USDJPY=X', label: 'USD/JPY', group: null },
   { symbol: 'USDCNY=X', label: 'USD/CNY', group: null },
+  // Bonds
+  { symbol: '^IRX', label: '2Y Yield', group: 'BONDS' },
+  { symbol: '^FVX', label: '5Y Yield', group: null },
+  { symbol: '^TNX', label: '10Y Yield', group: null },
+  { symbol: '^TYX', label: '30Y Yield', group: null },
 ];
 
 function MacroItem({ item, onSelect }) {
