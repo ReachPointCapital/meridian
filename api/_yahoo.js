@@ -279,14 +279,22 @@ async function yahooMacro() {
     { symbol: 'SPY', label: 'S&P 500' }, { symbol: 'QQQ', label: 'NASDAQ 100' },
     { symbol: 'DIA', label: 'Dow Jones' }, { symbol: 'IWM', label: 'Russell 2000' },
     { symbol: '^VIX', label: 'VIX' },
+    { symbol: 'ES=F', label: 'S&P Futures' }, { symbol: 'NQ=F', label: 'Nasdaq Futures' },
+    { symbol: '^SP600', label: 'S&P 600' }, { symbol: '^NYA', label: 'NYSE Composite' },
     // Commodities & Rates
     { symbol: 'GC=F', label: 'Gold' }, { symbol: 'CL=F', label: 'WTI Oil' },
     { symbol: 'HG=F', label: 'Copper' }, { symbol: '^TNX', label: '10Y Yield' },
     { symbol: 'EURUSD=X', label: 'EUR/USD' },
+    { symbol: 'SI=F', label: 'Silver' }, { symbol: 'NG=F', label: 'Natural Gas' },
+    { symbol: 'BZ=F', label: 'Brent Crude' },
+    { symbol: '^IRX', label: '2Y Yield' }, { symbol: '^TYX', label: '30Y Yield' },
+    { symbol: 'GBPUSD=X', label: 'GBP/USD' }, { symbol: 'JPY=X', label: 'USD/JPY' },
     // Digital Assets
     { symbol: 'BTC-USD', label: 'Bitcoin' }, { symbol: 'ETH-USD', label: 'Ethereum' },
     { symbol: 'SOL-USD', label: 'Solana' }, { symbol: 'XRP-USD', label: 'XRP' },
     { symbol: 'ADA-USD', label: 'Cardano' },
+    { symbol: 'DOGE-USD', label: 'Dogecoin' }, { symbol: 'BNB-USD', label: 'BNB' },
+    { symbol: 'AVAX-USD', label: 'Avalanche' },
   ];
   const results = await Promise.allSettled(instruments.map(inst => yahooFinance.quote(inst.symbol)));
   return instruments.map((inst, i) => {

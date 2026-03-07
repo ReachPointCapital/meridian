@@ -27,6 +27,10 @@ const SNAPSHOT_GROUPS = [
       { symbol: 'DIA', label: 'Dow Jones' },
       { symbol: 'IWM', label: 'Russell 2000' },
       { symbol: '^VIX', label: 'VIX' },
+      { symbol: 'ES=F', label: 'S&P Futures' },
+      { symbol: 'NQ=F', label: 'Nasdaq Futures' },
+      { symbol: '^SP600', label: 'S&P 600' },
+      { symbol: '^NYA', label: 'NYSE Comp' },
     ],
   },
   {
@@ -37,6 +41,13 @@ const SNAPSHOT_GROUPS = [
       { symbol: 'HG=F', label: 'Copper' },
       { symbol: '^TNX', label: '10Y Yield' },
       { symbol: 'EURUSD=X', label: 'EUR/USD' },
+      { symbol: 'SI=F', label: 'Silver' },
+      { symbol: 'NG=F', label: 'Nat Gas' },
+      { symbol: 'BZ=F', label: 'Brent Crude' },
+      { symbol: '^IRX', label: '2Y Yield' },
+      { symbol: '^TYX', label: '30Y Yield' },
+      { symbol: 'GBPUSD=X', label: 'GBP/USD' },
+      { symbol: 'JPY=X', label: 'USD/JPY' },
     ],
   },
   {
@@ -47,6 +58,9 @@ const SNAPSHOT_GROUPS = [
       { symbol: 'SOL-USD', label: 'Solana' },
       { symbol: 'XRP-USD', label: 'XRP' },
       { symbol: 'ADA-USD', label: 'Cardano' },
+      { symbol: 'DOGE-USD', label: 'Dogecoin' },
+      { symbol: 'BNB-USD', label: 'BNB' },
+      { symbol: 'AVAX-USD', label: 'Avalanche' },
     ],
   },
 ];
@@ -56,18 +70,17 @@ function SnapshotTile({ label, price, changePercent }) {
     <div style={{
       background: 'var(--bg-secondary)',
       border: '1px solid var(--border-color)',
-      borderRadius: '8px',
-      padding: '12px 14px',
-      minWidth: '110px',
+      borderRadius: '4px',
+      padding: '6px 8px',
       cursor: 'default',
     }}>
-      <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+      <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.6, marginBottom: '2px', lineHeight: 1 }}>
         {label}
       </div>
-      <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', marginBottom: '2px' }}>
+      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', lineHeight: 1.3 }}>
         {price != null ? formatPrice(price) : '\u2014'}
       </div>
-      <div style={{ fontSize: '12px', fontWeight: 500, color: changePercent != null ? (changePercent >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-tertiary)' }}>
+      <div style={{ fontSize: '11px', fontWeight: 500, lineHeight: 1.2, color: changePercent != null ? (changePercent >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-tertiary)' }}>
         {changePercent != null ? `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%` : '\u2014'}
       </div>
     </div>
@@ -99,13 +112,13 @@ function MarketSnapshot() {
 
   if (loading) {
     return (
-      <div style={{ marginBottom: '16px' }}>
+      <div>
         {SNAPSHOT_GROUPS.map(g => (
-          <div key={g.label} style={{ marginBottom: '20px' }}>
-            <div className="skeleton" style={{ height: '10px', width: '100px', marginBottom: '8px' }} />
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div key={g.label} style={{ marginBottom: '8px' }}>
+            <div className="skeleton" style={{ height: '10px', width: '80px', marginBottom: '4px' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
               {g.items.map((_, i) => (
-                <div key={i} className="skeleton" style={{ height: '72px', width: '130px', borderRadius: '8px' }} />
+                <div key={i} className="skeleton" style={{ height: '44px', borderRadius: '4px' }} />
               ))}
             </div>
           </div>
@@ -115,20 +128,20 @@ function MarketSnapshot() {
   }
 
   return (
-    <div style={{ marginBottom: '16px' }}>
+    <div>
       {SNAPSHOT_GROUPS.map(group => (
-        <div key={group.label} style={{ marginBottom: '20px' }}>
+        <div key={group.label} style={{ marginBottom: '8px' }}>
           <div style={{
             fontSize: '10px',
             fontWeight: 700,
-            letterSpacing: '1.5px',
+            letterSpacing: '2px',
             color: '#F0A500',
             textTransform: 'uppercase',
-            marginBottom: '8px',
+            marginBottom: '4px',
           }}>
             {group.label}
           </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
             {group.items.map(item => {
               const data = prices[item.symbol];
               return (
@@ -232,7 +245,7 @@ function IndexPerformancePanel() {
   }, [chartData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Index Performance</span>
         <div style={{ display: 'flex', gap: '4px' }}>
@@ -362,7 +375,7 @@ function YieldCurvePanel() {
   }, [yields]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
           Yield Curve
@@ -492,7 +505,7 @@ function FearGreedPanel() {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Fear & Greed Index</span>
       </div>
@@ -519,7 +532,7 @@ function FearGreedPanel() {
           </div>
 
           {/* Progress bar */}
-          <div style={{ height: '8px', borderRadius: '4px', background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #16a34a)', position: 'relative', marginBottom: '16px' }}>
+          <div style={{ height: '8px', borderRadius: '4px', background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #16a34a)', position: 'relative', marginBottom: '0' }}>
             <div style={{
               position: 'absolute', top: '50%', left: `${overallScore}%`, transform: 'translate(-50%, -50%)',
               width: '14px', height: '14px', borderRadius: '50%', backgroundColor: overallLabel.color,
@@ -659,7 +672,7 @@ function TopMovers({ onNavigate }) {
   );
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '0' }}>
       {renderColumn('Top Gainers', gainers)}
       {renderColumn('Top Losers', losers)}
       {renderColumn('Most Active', actives, true)}
@@ -698,7 +711,7 @@ function SectorHeatmap() {
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Sector Performance</span>
       </div>
@@ -809,7 +822,7 @@ function NewsAndEarnings({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '60fr 40fr', gap: '12px', marginBottom: '16px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '60fr 40fr', gap: '12px', marginBottom: '0' }}>
       <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
         <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
           <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Market News</span>
@@ -904,7 +917,7 @@ function EconomicCalendarPanel() {
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Economic Calendar</span>
       </div>
@@ -971,7 +984,7 @@ function IPOCalendarPanel() {
   const displayIpos = expanded ? ipos : ipos.slice(0, 10);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Upcoming IPOs</span>
         {!loading && ipos.length > 0 && (
@@ -1048,7 +1061,7 @@ function ForexPanel() {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Currency Exchange Rates</span>
       </div>
@@ -1098,7 +1111,7 @@ function MostShortedPanel({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Most Shorted</span>
       </div>
@@ -1171,7 +1184,7 @@ function AIDailyBrief() {
   if (!loading && !brief?.brief && !error) return null;
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: brief?.brief ? '1px solid var(--border-color)' : 'none' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI Market Daily Brief</span>
         {brief?.generatedAt && <span style={{ color: 'var(--text-tertiary)', fontSize: '9px' }}>{new Date(brief.generatedAt).toLocaleTimeString()}</span>}
@@ -1211,7 +1224,7 @@ function InsiderTradingFeed({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Insider Trading Feed</span>
       </div>
@@ -1293,7 +1306,7 @@ function GlobalExchangeStatus() {
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Global Exchange Status</span>
       </div>
@@ -1340,7 +1353,7 @@ export default function Dashboard({ setActiveTab }) {
           {item.price != null ? `$${Number(item.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
         </div>
         {(item.changePercent ?? item.changesPercentage) != null && (
-          <div style={{ color: (item.changePercent ?? item.changesPercentage) >= 0 ? 'var(--green)' : 'var(--red)', fontSize: '14px', fontWeight: 600, fontFamily: 'monospace', marginBottom: '16px' }}>
+          <div style={{ color: (item.changePercent ?? item.changesPercentage) >= 0 ? 'var(--green)' : 'var(--red)', fontSize: '14px', fontWeight: 600, fontFamily: 'monospace', marginBottom: '0' }}>
             {formatPercent(item.changePercent ?? item.changesPercentage)}
           </div>
         )}
@@ -1356,8 +1369,8 @@ export default function Dashboard({ setActiveTab }) {
   };
 
   return (
-    <div className="page-fade-in">
-      <div style={{ marginBottom: '20px' }}>
+    <div className="page-fade-in" style={{ paddingTop: '12px' }}>
+      <div style={{ marginBottom: '8px' }}>
         <h2 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
           Market Intelligence
         </h2>
@@ -1368,58 +1381,74 @@ export default function Dashboard({ setActiveTab }) {
 
       <AIDailyBrief />
 
-      {/* Market Snapshot + Heatmap side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '16px', marginBottom: '24px', alignItems: 'start' }}>
-        <MarketSnapshot />
-        <HeatmapCard />
-      </div>
+      {/* Two-column layout: tiles+charts left, heatmap right */}
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+        {/* Left column: tiles + all chart sections */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <MarketSnapshot />
 
-      {/* Index Performance */}
-      <IndexPerformancePanel />
+          <div style={{ marginTop: '12px' }}>
+            <IndexPerformancePanel />
+          </div>
 
-      {/* Yield Curve + Fear & Greed side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '0' }}>
-        <YieldCurvePanel />
-        <FearGreedPanel />
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+            <YieldCurvePanel />
+            <FearGreedPanel />
+          </div>
 
-      <TopMovers onNavigate={handleNavigate} />
-      <SectorHeatmap />
+          <div style={{ marginTop: '12px' }}>
+            <TopMovers onNavigate={handleNavigate} />
+          </div>
+          <div style={{ marginTop: '12px' }}>
+            <SectorHeatmap />
+          </div>
 
-      {/* Forex + Most Shorted side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '0' }}>
-        <ForexPanel />
-        <MostShortedPanel onNavigate={handleNavigate} />
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+            <ForexPanel />
+            <MostShortedPanel onNavigate={handleNavigate} />
+          </div>
 
-      {/* Global Exchange Status */}
-      <GlobalExchangeStatus />
+          <div style={{ marginTop: '12px' }}>
+            <GlobalExchangeStatus />
+          </div>
 
-      {/* Global Markets Overview (from Terminal) */}
-      <GlobalMarketsOverview onRowClick={handleItemClick} />
+          <div style={{ marginTop: '12px' }}>
+            <GlobalMarketsOverview onRowClick={handleItemClick} />
+          </div>
 
-      {/* Central Banks + M2 Money Supply */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '0' }}>
-        <CentralBankTracker onRowClick={handleItemClick} />
-        <M2MoneySupply />
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+            <CentralBankTracker onRowClick={handleItemClick} />
+            <M2MoneySupply />
+          </div>
 
-      {/* Commodities + Currency Strength */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '0' }}>
-        <CommoditiesDashboard onItemClick={handleItemClick} />
-        <CurrencyStrengthIndex onItemClick={handleItemClick} />
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+            <CommoditiesDashboard onItemClick={handleItemClick} />
+            <CurrencyStrengthIndex onItemClick={handleItemClick} />
+          </div>
 
-      <InsiderTradingFeed onNavigate={handleNavigate} />
-      <NewsAndEarnings onNavigate={handleNavigate} />
+          <div style={{ marginTop: '12px' }}>
+            <InsiderTradingFeed onNavigate={handleNavigate} />
+          </div>
+          <div style={{ marginTop: '12px' }}>
+            <NewsAndEarnings onNavigate={handleNavigate} />
+          </div>
 
-      {/* Recent Economic Releases */}
-      <RecentEconomicReleases onRowClick={handleItemClick} />
+          <div style={{ marginTop: '12px' }}>
+            <RecentEconomicReleases onRowClick={handleItemClick} />
+          </div>
 
-      {/* IPO + Economic Calendar side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '0' }}>
-        <IPOCalendarPanel />
-        <EconomicCalendarPanel />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+            <IPOCalendarPanel />
+            <EconomicCalendarPanel />
+          </div>
+        </div>
+
+        {/* Right column: heatmap pinned */}
+        <div style={{ width: '420px', flexShrink: 0 }}>
+          <div style={{ position: 'sticky', top: '16px' }}>
+            <HeatmapCard />
+          </div>
+        </div>
       </div>
 
       {/* Detail Panel */}
