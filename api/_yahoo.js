@@ -275,10 +275,18 @@ async function yahooCrypto() {
 
 async function yahooMacro() {
   const instruments = [
-    { symbol: 'SPY', label: 'S&P 500' }, { symbol: 'QQQ', label: 'NASDAQ' },
+    // US Indices
+    { symbol: 'SPY', label: 'S&P 500' }, { symbol: 'QQQ', label: 'NASDAQ 100' },
     { symbol: 'DIA', label: 'Dow Jones' }, { symbol: 'IWM', label: 'Russell 2000' },
-    { symbol: 'VXX', label: 'VIX' }, { symbol: 'GLD', label: 'Gold' },
-    { symbol: 'USO', label: 'Oil' }, { symbol: 'BTC-USD', label: 'Bitcoin' }
+    { symbol: '^VIX', label: 'VIX' },
+    // Commodities & Rates
+    { symbol: 'GC=F', label: 'Gold' }, { symbol: 'CL=F', label: 'WTI Oil' },
+    { symbol: 'HG=F', label: 'Copper' }, { symbol: '^TNX', label: '10Y Yield' },
+    { symbol: 'EURUSD=X', label: 'EUR/USD' },
+    // Digital Assets
+    { symbol: 'BTC-USD', label: 'Bitcoin' }, { symbol: 'ETH-USD', label: 'Ethereum' },
+    { symbol: 'SOL-USD', label: 'Solana' }, { symbol: 'XRP-USD', label: 'XRP' },
+    { symbol: 'ADA-USD', label: 'Cardano' },
   ];
   const results = await Promise.allSettled(instruments.map(inst => yahooFinance.quote(inst.symbol)));
   return instruments.map((inst, i) => {

@@ -16,74 +16,132 @@ import {
 } from '../terminal/MacroPage';
 import DetailPanel from '../ui/DetailPanel';
 
-// ── Section 1: Market Pulse Bar ──
-function MarketPulseBar({ onNavigate }) {
-  const [data, setData] = useState([]);
+// ── Unified Market Snapshot ──
+const SNAPSHOT_GROUPS = [
+  {
+    label: 'US INDICES',
+    items: [
+      { symbol: 'SPY', label: 'S&P 500' },
+      { symbol: 'QQQ', label: 'NASDAQ 100' },
+      { symbol: 'DIA', label: 'Dow Jones' },
+      { symbol: 'IWM', label: 'Russell 2000' },
+      { symbol: '^VIX', label: 'VIX' },
+    ],
+  },
+  {
+    label: 'COMMODITIES & RATES',
+    items: [
+      { symbol: 'GC=F', label: 'Gold' },
+      { symbol: 'CL=F', label: 'WTI Oil' },
+      { symbol: 'HG=F', label: 'Copper' },
+      { symbol: '^TNX', label: '10Y Yield' },
+      { symbol: 'EURUSD=X', label: 'EUR/USD' },
+    ],
+  },
+  {
+    label: 'DIGITAL ASSETS',
+    items: [
+      { symbol: 'BTC-USD', label: 'Bitcoin' },
+      { symbol: 'ETH-USD', label: 'Ethereum' },
+      { symbol: 'SOL-USD', label: 'Solana' },
+      { symbol: 'XRP-USD', label: 'XRP' },
+      { symbol: 'ADA-USD', label: 'Cardano' },
+    ],
+  },
+];
+
+function SnapshotTile({ label, price, changePercent }) {
+  return (
+    <div style={{
+      background: 'var(--bg-secondary)',
+      border: '1px solid var(--border-color)',
+      borderRadius: '8px',
+      padding: '12px 14px',
+      minWidth: '110px',
+      cursor: 'default',
+    }}>
+      <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+        {label}
+      </div>
+      <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', marginBottom: '2px' }}>
+        {price != null ? formatPrice(price) : '\u2014'}
+      </div>
+      <div style={{ fontSize: '12px', fontWeight: 500, color: changePercent != null ? (changePercent >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-tertiary)' }}>
+        {changePercent != null ? `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%` : '\u2014'}
+      </div>
+    </div>
+  );
+}
+
+function MarketSnapshot() {
+  const [prices, setPrices] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    const load = async () => {
       try {
         const result = await getMacroData();
-        const mapped = Array.isArray(result)
-          ? result.map(q => ({
-              symbol: q.symbol,
-              label: q.label || q.symbol,
-              price: q.price,
-              changePct: q.changePercent ?? q.changesPercentage,
-            }))
-          : [];
-        setData(mapped);
+        if (Array.isArray(result)) {
+          const map = {};
+          result.forEach(item => { map[item.symbol] = item; });
+          setPrices(map);
+        }
       } catch (e) {
-        console.error('MarketPulseBar error:', e);
+        console.error('MarketSnapshot error:', e);
       }
       setLoading(false);
-    })();
+    };
+    load();
+    const interval = setInterval(load, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="skeleton" style={{ flex: 1, height: '64px', borderRadius: '8px' }} />
+      <div style={{ marginBottom: '16px' }}>
+        {SNAPSHOT_GROUPS.map(g => (
+          <div key={g.label} style={{ marginBottom: '20px' }}>
+            <div className="skeleton" style={{ height: '10px', width: '100px', marginBottom: '8px' }} />
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {g.items.map((_, i) => (
+                <div key={i} className="skeleton" style={{ height: '72px', width: '130px', borderRadius: '8px' }} />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto' }}>
-      {data.map(item => {
-        const isPos = (item.changePct || 0) >= 0;
-        return (
-          <div
-            key={item.symbol}
-            onClick={() => onNavigate(item.symbol)}
-            style={{
-              flex: '1 0 120px',
-              backgroundColor: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              padding: '12px',
-              cursor: 'pointer',
-              transition: 'all 150ms ease',
-              boxShadow: 'var(--card-shadow)',
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
-          >
-            <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 500, letterSpacing: '0.05em', marginBottom: '4px' }}>
-              {item.label}
-            </div>
-            <div style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', marginBottom: '2px' }}>
-              {formatPrice(item.price)}
-            </div>
-            <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-              {formatPercent(item.changePct)}
-            </div>
+    <div style={{ marginBottom: '16px' }}>
+      {SNAPSHOT_GROUPS.map(group => (
+        <div key={group.label} style={{ marginBottom: '20px' }}>
+          <div style={{
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '1.5px',
+            color: '#F0A500',
+            textTransform: 'uppercase',
+            marginBottom: '8px',
+          }}>
+            {group.label}
           </div>
-        );
-      })}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {group.items.map(item => {
+              const data = prices[item.symbol];
+              return (
+                <SnapshotTile
+                  key={item.symbol}
+                  label={item.label}
+                  price={data?.price ?? null}
+                  changePercent={data?.changePercent ?? data?.changesPercentage ?? null}
+                />
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -352,75 +410,6 @@ function YieldCurvePanel() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// ── Crypto Panel — Compact Tiles ──
-function CryptoPanel({ onNavigate }) {
-  const [coins, setCoins] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await api.crypto();
-        setCoins(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.error('Crypto panel error:', e);
-      }
-      setLoading(false);
-    })();
-  }, []);
-
-  const LABELS = { 'BTC-USD': { name: 'Bitcoin', ticker: 'BTC' }, 'ETH-USD': { name: 'Ethereum', ticker: 'ETH' }, 'SOL-USD': { name: 'Solana', ticker: 'SOL' }, 'XRP-USD': { name: 'XRP', ticker: 'XRP' }, 'ADA-USD': { name: 'Cardano', ticker: 'ADA' } };
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="skeleton" style={{ flex: 1, height: '64px', borderRadius: '8px' }} />
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto' }}>
-      {coins.map((coin, i) => {
-        const pct = coin.changePercent ?? coin.changesPercentage ?? 0;
-        const isPos = pct >= 0;
-        const info = LABELS[coin.symbol] || { name: coin.name || coin.symbol, ticker: coin.ticker || coin.symbol };
-        return (
-          <div
-            key={coin.symbol || i}
-            onClick={() => onNavigate && onNavigate(coin.symbol)}
-            style={{
-              flex: '1 0 120px',
-              backgroundColor: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              padding: '12px',
-              cursor: 'pointer',
-              transition: 'all 150ms ease',
-              boxShadow: 'var(--card-shadow)',
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 500 }}>{info.name}</span>
-              <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontFamily: 'monospace' }}>{info.ticker}</span>
-            </div>
-            <div style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', marginBottom: '2px' }}>
-              {formatPrice(coin.price)}
-            </div>
-            <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-              {formatPercent(pct)}
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -1201,66 +1190,6 @@ function AIDailyBrief() {
   );
 }
 
-// ── Mini Macro Strip (WTI, Gold, Copper, EUR/USD, 10Y Yield) ──
-function MiniMacroStrip() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [macroData, forexData, yieldData] = await Promise.allSettled([
-          api.commodities(),
-          api.forex(),
-          api.yields(),
-        ]);
-        const commodities = macroData.status === 'fulfilled' && Array.isArray(macroData.value) ? macroData.value : [];
-        const forex = forexData.status === 'fulfilled' && Array.isArray(forexData.value) ? forexData.value : [];
-        const yields = yieldData.status === 'fulfilled' && Array.isArray(yieldData.value) ? yieldData.value : [];
-
-        const wti = commodities.find(c => c.symbol === 'CL=F' || c.name?.includes('Crude'));
-        const gold = commodities.find(c => c.symbol === 'GC=F' || c.name?.includes('Gold'));
-        const copper = commodities.find(c => c.symbol === 'HG=F' || c.name?.includes('Copper'));
-        const eur = forex.find(f => f.pair === 'EUR/USD' || f.ticker === 'EUR/USD');
-        const tenY = yields.find(y => y.maturity === '10Y');
-
-        const strip = [];
-        if (wti) strip.push({ label: 'WTI', price: wti.price, change: wti.changePercent });
-        if (gold) strip.push({ label: 'Gold', price: gold.price, change: gold.changePercent });
-        if (copper) strip.push({ label: 'Copper', price: copper.price, change: copper.changePercent });
-        if (eur) strip.push({ label: 'EUR/USD', price: eur.rate || eur.price, change: eur.changePercent || eur.changesPercentage });
-        if (tenY) strip.push({ label: '10Y Yield', price: tenY.yield, change: tenY.change, suffix: '%' });
-        setItems(strip);
-      } catch {}
-      setLoading(false);
-    })();
-  }, []);
-
-  if (loading || items.length === 0) return null;
-
-  return (
-    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto' }}>
-      {items.map(item => {
-        const isPos = (item.change ?? 0) >= 0;
-        return (
-          <div key={item.label} style={{
-            flex: '1 0 100px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-            borderRadius: '6px', padding: '8px 12px', textAlign: 'center', boxShadow: 'var(--card-shadow)',
-          }}>
-            <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>{item.label}</div>
-            <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>
-              {item.price != null ? (item.suffix ? `${Number(item.price).toFixed(2)}${item.suffix}` : formatPrice(item.price)) : '\u2014'}
-            </div>
-            <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '10px', fontWeight: 600, fontFamily: 'monospace' }}>
-              {item.change != null ? formatPercent(item.change) : ''}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 // ── Insider Trading Feed ──
 function InsiderTradingFeed({ onNavigate }) {
   const [trades, setTrades] = useState([]);
@@ -1437,9 +1366,7 @@ export default function Dashboard({ setActiveTab }) {
       </div>
 
       <AIDailyBrief />
-      <MiniMacroStrip />
-      <MarketPulseBar onNavigate={handleNavigate} />
-      <CryptoPanel onNavigate={handleNavigate} />
+      <MarketSnapshot />
 
       {/* Index Performance */}
       <IndexPerformancePanel />
