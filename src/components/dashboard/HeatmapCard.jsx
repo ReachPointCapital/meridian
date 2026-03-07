@@ -1,20 +1,34 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function getHeatColor(changePercent) {
-  if (changePercent == null) return '#374151';
-  if (changePercent <= -2) return '#7f1d1d';
-  if (changePercent <= -1) return '#dc2626';
-  if (changePercent < 0) return '#ef4444';
-  if (changePercent === 0) return '#374151';
-  if (changePercent < 1) return '#16a34a';
-  if (changePercent < 2) return '#15803d';
+function getHeatColor(pct) {
+  if (pct == null) return '#374151';
+  if (pct <= -3) return '#7f1d1d';
+  if (pct <= -2) return '#991b1b';
+  if (pct <= -1) return '#b91c1c';
+  if (pct <= -0.5) return '#dc2626';
+  if (pct < 0.5) return '#374151';
+  if (pct < 1) return '#166534';
+  if (pct < 2) return '#15803d';
+  if (pct < 3) return '#16a34a';
   return '#14532d';
+}
+
+function getTextColor(pct) {
+  if (pct != null && pct >= 3) return '#4ade80';
+  return 'white';
+}
+
+function formatPct(pct) {
+  if (pct == null) return '—';
+  return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
 }
 
 export default function HeatmapCard() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hoveredStock, setHoveredStock] = useState(null);
+  const [expanded, setExpanded] = useState(false);
+  const [hovered, setHovered] = useState(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     fetch('/api/heatmap')
@@ -23,7 +37,82 @@ export default function HeatmapCard() {
       .catch(() => setLoading(false));
   }, []);
 
-  const totalCap = useMemo(() => data.reduce((s, st) => s + (st.marketCap || 0), 0), [data]);
+  const handleMouseMove = (e) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const renderCollapsed = () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
+      {data.map((stock, i) => (
+        <div
+          key={stock.symbol}
+          onMouseEnter={() => setHovered(stock)}
+          onMouseLeave={() => setHovered(null)}
+          onMouseMove={handleMouseMove}
+          style={{
+            width: '16px',
+            height: '16px',
+            borderRadius: '2px',
+            backgroundColor: getHeatColor(stock.changePercent),
+            cursor: 'pointer',
+          }}
+        />
+      ))}
+    </div>
+  );
+
+  const renderExpanded = () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 10px' }}>
+      {data.map((stock, i) => {
+        let minW, minH, showTicker, showPct;
+        if (i < 10) {
+          minW = 80; minH = 52; showTicker = true; showPct = true;
+        } else if (i < 30) {
+          minW = 56; minH = 40; showTicker = true; showPct = true;
+        } else if (i < 60) {
+          minW = 40; minH = 32; showTicker = true; showPct = false;
+        } else {
+          minW = 28; minH = 24; showTicker = false; showPct = false;
+        }
+
+        const textCol = getTextColor(stock.changePercent);
+
+        return (
+          <div
+            key={stock.symbol}
+            onMouseEnter={() => setHovered(stock)}
+            onMouseLeave={() => setHovered(null)}
+            onMouseMove={handleMouseMove}
+            style={{
+              minWidth: `${minW}px`,
+              minHeight: `${minH}px`,
+              flex: i < 10 ? '1 1 80px' : i < 30 ? '1 1 56px' : i < 60 ? '0 1 40px' : '0 0 28px',
+              maxWidth: i < 10 ? '120px' : i < 30 ? '80px' : i < 60 ? '56px' : '36px',
+              backgroundColor: getHeatColor(stock.changePercent),
+              borderRadius: '3px',
+              padding: showTicker ? '4px 6px' : '2px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              overflow: 'hidden',
+            }}
+          >
+            {showTicker && (
+              <div style={{ fontSize: i < 10 ? '11px' : '10px', fontWeight: 700, color: textCol, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {stock.symbol}
+              </div>
+            )}
+            {showPct && (
+              <div style={{ fontSize: i < 10 ? '10px' : '9px', color: textCol, opacity: 0.8, marginTop: '2px', lineHeight: 1, fontFamily: 'monospace' }}>
+                {formatPct(stock.changePercent)}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div style={{
@@ -32,120 +121,70 @@ export default function HeatmapCard() {
       borderRadius: '8px',
       overflow: 'hidden',
       boxShadow: 'var(--card-shadow)',
+      width: '100%',
     }}>
       {/* Header */}
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-        <div>
+      <div
+        onClick={() => !loading && data.length > 0 && setExpanded(!expanded)}
+        style={{
+          padding: '8px 14px',
+          borderBottom: expanded ? '1px solid var(--border-color)' : 'none',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: data.length > 0 ? 'pointer' : 'default',
+          userSelect: 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
             S&P 500 Heatmap
           </span>
-          <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', marginLeft: '8px' }}>
-            Top 80 stocks · 15min delay
+          <span style={{ color: 'var(--text-tertiary)', fontSize: '9px' }}>
+            Top 100 · 15min delay
           </span>
         </div>
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', fontSize: '9px', color: 'var(--text-tertiary)' }}>
-          <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#7f1d1d' }} />
-          <span>-2%+</span>
-          <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#ef4444' }} />
-          <span>-1%</span>
-          <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#374151' }} />
-          <span>0</span>
-          <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#16a34a' }} />
-          <span>+1%</span>
-          <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#14532d' }} />
-          <span>+2%+</span>
-        </div>
+        {!loading && data.length > 0 && (
+          <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 600 }}>
+            {expanded ? '▲ Collapse' : '▼ Expand'}
+          </span>
+        )}
       </div>
 
       {loading ? (
-        <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px', color: 'var(--text-tertiary)', fontSize: '12px' }}>
-          Loading heatmap...
+        <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '40px', color: 'var(--text-tertiary)', fontSize: '11px' }}>
+          Loading heatmap…
         </div>
       ) : data.length === 0 ? (
-        <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px', height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '11px' }}>
           Heatmap data unavailable.
         </div>
-      ) : (
-        <div style={{
-          width: '100%',
-          height: '420px',
-          position: 'relative',
-          overflow: 'hidden',
-          padding: '4px',
-        }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(12, 1fr)',
-            gridAutoRows: '52px',
-            gap: '2px',
-            width: '100%',
-            height: '100%',
-          }}>
-            {data.map(stock => {
-              const weight = totalCap > 0 ? (stock.marketCap || 0) / totalCap * 100 : 1;
-              const colSpan = weight > 8 ? 4 : weight > 4 ? 3 : weight > 2 ? 2 : 1;
-
-              return (
-                <div
-                  key={stock.symbol}
-                  onMouseEnter={() => setHoveredStock(stock)}
-                  onMouseLeave={() => setHoveredStock(null)}
-                  style={{
-                    gridColumn: `span ${colSpan}`,
-                    background: getHeatColor(stock.changePercent),
-                    borderRadius: '3px',
-                    padding: '6px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    transition: 'opacity 0.15s',
-                    opacity: hoveredStock && hoveredStock.symbol !== stock.symbol ? 0.7 : 1,
-                  }}
-                >
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'white', lineHeight: 1 }}>
-                    {stock.symbol}
-                  </div>
-                  {colSpan > 1 && (
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.75)', marginTop: '2px', lineHeight: 1 }}>
-                      {stock.changePercent != null
-                        ? `${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%`
-                        : '\u2014'}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      ) : expanded ? renderExpanded() : renderCollapsed()}
 
       {/* Hover tooltip */}
-      {hoveredStock && (
+      {hovered && (
         <div style={{
           position: 'fixed',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: mousePos.x + 12,
+          top: mousePos.y - 30,
           background: 'var(--bg-secondary)',
           border: '1px solid var(--border-color)',
-          borderRadius: '6px',
-          padding: '8px 14px',
+          borderRadius: '4px',
+          padding: '4px 8px',
           zIndex: 1000,
-          fontSize: '12px',
+          fontSize: '11px',
           color: 'var(--text-primary)',
           pointerEvents: 'none',
           whiteSpace: 'nowrap',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+          fontFamily: 'monospace',
         }}>
-          <strong style={{ color: 'var(--gold)' }}>{hoveredStock.symbol}</strong>
-          <span style={{ color: 'var(--text-secondary)', marginLeft: '6px' }}>{hoveredStock.name}</span>
-          <span style={{ marginLeft: '10px', fontFamily: 'monospace' }}>
-            {hoveredStock.price ? `$${hoveredStock.price.toFixed(2)}` : '\u2014'}
+          <strong style={{ color: 'var(--gold)' }}>{hovered.symbol}</strong>
+          <span style={{ marginLeft: '6px' }}>
+            {hovered.price != null ? `$${hovered.price.toFixed(2)}` : '—'}
           </span>
-          <span style={{ marginLeft: '8px', fontWeight: 600, color: (hoveredStock.changePercent || 0) >= 0 ? '#22c55e' : '#ef4444' }}>
-            {hoveredStock.changePercent != null ? `${hoveredStock.changePercent >= 0 ? '+' : ''}${hoveredStock.changePercent.toFixed(2)}%` : '\u2014'}
+          <span style={{ marginLeft: '6px', fontWeight: 600, color: (hovered.changePercent || 0) >= 0 ? '#22c55e' : '#ef4444' }}>
+            {formatPct(hovered.changePercent)}
           </span>
         </div>
       )}
