@@ -346,8 +346,8 @@ function YieldCurvePanel() {
   }, [yields]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
           Yield Curve
         </span>
@@ -361,15 +361,15 @@ function YieldCurvePanel() {
         )}
       </div>
       {loading ? (
-        <div style={{ padding: '16px' }}>
-          <div className="skeleton" style={{ height: '120px', marginBottom: '8px' }} />
+        <div style={{ padding: '16px', flex: 1 }}>
+          <div className="skeleton" style={{ height: '100%', minHeight: '120px' }} />
         </div>
       ) : yields.length === 0 ? (
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px' }}>No yield data available.</p>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px', flex: 1 }}>No yield data available.</p>
       ) : (
-        <div style={{ padding: '12px', display: 'flex', gap: '16px' }}>
-          <div style={{ flex: 1 }}>
-            <ResponsiveContainer width="100%" height={140}>
+        <div style={{ padding: '12px', display: 'flex', gap: '16px', alignItems: 'stretch', flex: 1, minHeight: '200px' }}>
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={yields} margin={{ top: 18, right: 12, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="maturity" hide />
@@ -389,8 +389,8 @@ function YieldCurvePanel() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div style={{ width: '120px', flexShrink: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <div style={{ width: '120px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Term</span>
               <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Yield</span>
             </div>
@@ -483,81 +483,72 @@ function FearGreedPanel() {
     }
   }
 
+  // Build 6 component cards (5 indicators + Overall)
+  const componentCards = [
+    ...indicators,
+    ...(overallScore != null ? [{ key: 'overall', name: 'Overall', score: overallScore }] : []),
+  ];
+
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Fear & Greed Index</span>
       </div>
       {loading ? (
-        <div style={{ padding: '16px' }}>
+        <div style={{ padding: '16px', flex: 1 }}>
           <div className="skeleton" style={{ height: '48px', marginBottom: '12px' }} />
           <div className="skeleton" style={{ height: '80px' }} />
         </div>
       ) : overallScore == null ? (
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px' }}>Unavailable</p>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px', flex: 1 }}>Unavailable</p>
       ) : (
-        <div style={{ padding: '16px', display: 'flex', gap: '16px' }}>
-          {/* LEFT: SVG half-circle gauge */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <svg viewBox="0 0 200 110" width="100%" style={{ maxWidth: '220px' }}>
-              {/* Background arc segments */}
-              {[
-                { start: 180, end: 135, color: '#ef4444' },
-                { start: 135, end: 99, color: '#f97316' },
-                { start: 99, end: 81, color: '#eab308' },
-                { start: 81, end: 45, color: '#84cc16' },
-                { start: 45, end: 0, color: '#16a34a' },
-              ].map((seg, i) => {
-                const r = 80;
-                const cx = 100, cy = 100;
-                const x1 = cx + r * Math.cos((seg.start * Math.PI) / 180);
-                const y1 = cy - r * Math.sin((seg.start * Math.PI) / 180);
-                const x2 = cx + r * Math.cos((seg.end * Math.PI) / 180);
-                const y2 = cy - r * Math.sin((seg.end * Math.PI) / 180);
-                const largeArc = seg.start - seg.end > 180 ? 1 : 0;
-                return (
-                  <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 0 ${x2} ${y2}`}
-                    fill="none" stroke={seg.color} strokeWidth="10" strokeLinecap="round" opacity="0.3" />
-                );
-              })}
-              {/* Needle */}
-              {(() => {
-                const angle = 180 - (overallScore / 100) * 180;
-                const rad = (angle * Math.PI) / 180;
-                const nx = 100 + 65 * Math.cos(rad);
-                const ny = 100 - 65 * Math.sin(rad);
-                return <line x1="100" y1="100" x2={nx} y2={ny} stroke={overallLabel.color} strokeWidth="2.5" strokeLinecap="round" />;
-              })()}
-              <circle cx="100" cy="100" r="4" fill={overallLabel.color} />
-              {/* Score text */}
-              <text x="100" y="82" textAnchor="middle" fill="white" fontSize="32" fontWeight="700" fontFamily="monospace">
-                {Math.round(overallScore)}
-              </text>
-              <text x="100" y="98" textAnchor="middle" fill={overallLabel.color} fontSize="10" fontWeight="700" letterSpacing="0.08em">
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+          {/* TOP ROW: Score + Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontSize: '48px', fontWeight: 900, color: 'white', fontFamily: 'monospace', lineHeight: 1 }}>
+              {Math.round(overallScore)}
+            </span>
+            <div>
+              <span style={{
+                display: 'inline-block', padding: '4px 12px', borderRadius: '9999px',
+                backgroundColor: overallLabel.color, color: 'white', fontSize: '14px', fontWeight: 700,
+              }}>
                 {overallLabel.text}
-              </text>
-            </svg>
-            {previousClose != null && (
-              <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', marginTop: '2px' }}>
-                Prev: {Math.round(previousClose)}
+              </span>
+              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', marginTop: '4px' }}>
+                Overall Index{previousClose != null ? ` · Prev: ${Math.round(previousClose)}` : ''}
               </div>
-            )}
+            </div>
           </div>
 
-          {/* RIGHT: Sub-indicators compact list */}
-          {indicators.length > 0 && (
-            <div style={{ width: '180px', flexShrink: 0 }}>
-              <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Components
-              </div>
-              {indicators.map((ind, i) => (
-                <div key={ind.key} style={{ padding: '6px 0', borderBottom: i < indicators.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px' }}>{ind.name}</span>
-                    <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{Math.round(ind.score)}</span>
+          {/* GRADIENT BAR */}
+          <div>
+            <div style={{ position: 'relative', width: '100%', height: '8px', borderRadius: '9999px', background: 'linear-gradient(to right, #7f1d1d, #dc2626, #f59e0b, #16a34a, #14532d)' }}>
+              <div style={{
+                position: 'absolute', left: `${overallScore}%`, top: '-4px', transform: 'translateX(-50%)',
+                width: '2px', height: '16px', backgroundColor: 'white', borderRadius: '1px',
+              }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+              {['Extreme Fear', 'Fear', 'Neutral', 'Greed', 'Extreme Greed'].map(z => (
+                <span key={z} style={{ color: 'rgba(255,255,255,0.3)', fontSize: '9px' }}>{z}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* COMPONENTS GRID */}
+          {componentCards.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '4px' }}>
+              {componentCards.map(ind => (
+                <div key={ind.key} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '8px' }}>
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                    {ind.name}
                   </div>
-                  <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--bg-primary)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: getBarColor(ind.score), borderRadius: '2px', transition: 'width 600ms ease' }} />
+                  <div style={{ color: 'white', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '4px' }}>
+                    {Math.round(ind.score)}
+                  </div>
+                  <div style={{ width: '100%', height: '4px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                    <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: '#F0A500', borderRadius: '9999px', transition: 'width 600ms ease' }} />
                   </div>
                 </div>
               ))}
@@ -1363,7 +1354,7 @@ export default function Dashboard({ setActiveTab }) {
 
       <IndexPerformancePanel />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px', alignItems: 'stretch' }}>
         <YieldCurvePanel />
         <FearGreedPanel />
       </div>
