@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, LabelList,
 } from 'recharts';
@@ -9,7 +9,7 @@ import {
 import { api } from '../../services/api';
 import { formatPrice, formatPercent, formatDate, formatVolume, formatTimeAgo } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Maximize2, Minimize2, Plus, X } from 'lucide-react';
 import {
   GlobalMarketsOverview, CentralBankTracker, M2MoneySupply,
   CommoditiesDashboard, CurrencyStrengthIndex, RecentEconomicReleases,
@@ -132,6 +132,8 @@ function MarketSnapshot() {
 }
 
 // ── Index Performance Panel ──
+const CUSTOM_COLORS = ['#00bcd4', '#9c27b0', '#ff5722', '#4caf50', '#e91e63'];
+
 function IndexPerformancePanel() {
   const INDICES = [
     { symbol: 'SPY', label: 'S&P 500', color: '#F0A500' },
@@ -145,26 +147,90 @@ function IndexPerformancePanel() {
   const [chartData, setChartData] = useState({});
   const [loading, setLoading] = useState(true);
 
+  // Draggable divider
+  const containerRef = useRef(null);
+  const [chartWidth, setChartWidth] = useState(65);
+  const [handleHovered, setHandleHovered] = useState(false);
+
+  // Fullscreen
+  const sectionRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Custom tickers
+  const [customTickers, setCustomTickers] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('meridian-custom-tickers')) || []; } catch { return []; }
+  });
+  const [showAddPopover, setShowAddPopover] = useState(false);
+  const [addInput, setAddInput] = useState('');
+  const popoverRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Persist custom tickers
+  useEffect(() => {
+    localStorage.setItem('meridian-custom-tickers', JSON.stringify(customTickers));
+  }, [customTickers]);
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      sectionRef.current?.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  };
+
+  // Close popover on Escape or click outside
+  useEffect(() => {
+    if (!showAddPopover) return;
+    const onKey = (e) => { if (e.key === 'Escape') setShowAddPopover(false); };
+    const onClick = (e) => { if (popoverRef.current && !popoverRef.current.contains(e.target)) setShowAddPopover(false); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onClick);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onClick); };
+  }, [showAddPopover]);
+
+  // Auto-focus input when popover opens
+  useEffect(() => {
+    if (showAddPopover && inputRef.current) inputRef.current.focus();
+  }, [showAddPopover]);
+
+  // Fetch data for all symbols (indices + custom)
+  const allSymbols = useMemo(() => [
+    ...INDICES.map(i => i.symbol),
+    ...customTickers,
+  ], [customTickers]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     (async () => {
       setLoading(true);
       const results = {};
       const fetches = await Promise.allSettled(
-        INDICES.map(idx => api.chart(idx.symbol, timeframe))
+        allSymbols.map(sym => api.chart(sym, timeframe))
       );
-      INDICES.forEach((idx, i) => {
+      allSymbols.forEach((sym, i) => {
         if (fetches[i].status === 'fulfilled') {
-          results[idx.symbol] = fetches[i].value;
+          results[sym] = fetches[i].value;
         }
       });
       setChartData(results);
       setLoading(false);
     })();
-  }, [timeframe]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timeframe, allSymbols]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // All renderable items (indices + custom)
+  const allItems = useMemo(() => [
+    ...INDICES,
+    ...customTickers.map((sym, i) => ({ symbol: sym, label: sym, color: CUSTOM_COLORS[i % CUSTOM_COLORS.length] })),
+  ], [customTickers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const normalizedData = useMemo(() => {
     if (Object.keys(chartData).length === 0) return [];
-    // Find the longest array for timestamps
     let longestKey = null;
     let longestLen = 0;
     for (const sym of selected) {
@@ -198,10 +264,9 @@ function IndexPerformancePanel() {
 
   const timeframes = ['1W', '1M', '3M', '1Y'];
 
-  // Get latest quotes for the index cards
   const latestQuotes = useMemo(() => {
     const quotes = {};
-    INDICES.forEach(idx => {
+    allItems.forEach(idx => {
       const arr = chartData[idx.symbol];
       if (arr && arr.length > 0) {
         const last = arr[arr.length - 1];
@@ -213,30 +278,112 @@ function IndexPerformancePanel() {
       }
     });
     return quotes;
-  }, [chartData]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [chartData, allItems]);
+
+  // Draggable divider handler
+  const handleDragStart = useCallback((e) => {
+    e.preventDefault();
+    const container = containerRef.current;
+    if (!container) return;
+    const startX = e.clientX;
+    const startWidth = chartWidth;
+    const onMove = (moveEvent) => {
+      const containerWidth = container.getBoundingClientRect().width;
+      const delta = moveEvent.clientX - startX;
+      const newPct = Math.min(85, Math.max(30, startWidth + (delta / containerWidth * 100)));
+      setChartWidth(newPct);
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [chartWidth]);
+
+  // Add custom ticker
+  const addCustomTicker = (ticker) => {
+    const sym = ticker.trim().toUpperCase();
+    if (!sym) return;
+    if (customTickers.includes(sym) || INDICES.some(i => i.symbol === sym)) return;
+    setCustomTickers(prev => [...prev, sym]);
+    setSelected(prev => [...prev, sym]);
+    setAddInput('');
+    setShowAddPopover(false);
+  };
+
+  const removeCustomTicker = (sym) => {
+    setCustomTickers(prev => prev.filter(s => s !== sym));
+    setSelected(prev => prev.filter(s => s !== sym));
+  };
+
+  const tabBtnStyle = (active) => ({
+    background: active ? 'var(--bg-tertiary)' : 'none',
+    border: '1px solid', borderColor: active ? 'var(--gold)' : 'var(--border-color)',
+    color: active ? 'var(--gold)' : 'var(--text-secondary)',
+    fontSize: '10px', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer',
+  });
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div ref={sectionRef} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Index Performance</span>
-        <div style={{ display: 'flex', gap: '4px' }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           {timeframes.map(tf => (
-            <button key={tf} onClick={() => setTimeframe(tf)} style={{
-              background: timeframe === tf ? 'var(--bg-tertiary)' : 'none',
-              border: '1px solid', borderColor: timeframe === tf ? 'var(--gold)' : 'var(--border-color)',
-              color: timeframe === tf ? 'var(--gold)' : 'var(--text-secondary)',
-              fontSize: '10px', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer',
-            }}>{tf}</button>
+            <button key={tf} onClick={() => setTimeframe(tf)} style={tabBtnStyle(timeframe === tf)}>{tf}</button>
           ))}
+          <button onClick={() => setShowAddPopover(!showAddPopover)} style={{
+            background: showAddPopover ? 'var(--bg-tertiary)' : 'none',
+            border: '1px solid var(--border-color)', color: 'var(--text-secondary)',
+            fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '2px',
+          }}>
+            <Plus size={10} /> Add
+          </button>
+          <button onClick={toggleFullscreen} style={{
+            background: 'none', border: '1px solid var(--border-color)',
+            color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center',
+          }}>
+            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+          </button>
         </div>
+        {/* Add ticker popover */}
+        {showAddPopover && (
+          <div ref={popoverRef} style={{
+            position: 'absolute', top: '100%', right: '60px', zIndex: 60,
+            backgroundColor: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '8px', padding: '8px', marginTop: '4px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          }}>
+            <form onSubmit={(e) => { e.preventDefault(); addCustomTicker(addInput); }}>
+              <input
+                ref={inputRef}
+                value={addInput}
+                onChange={e => setAddInput(e.target.value)}
+                placeholder="Ticker (e.g. AAPL)"
+                style={{
+                  width: '200px', backgroundColor: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '4px', padding: '6px 10px', fontSize: '12px', color: 'white', outline: 'none',
+                }}
+              />
+            </form>
+            {customTickers.length > 0 && (
+              <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--text-tertiary)' }}>
+                Added: {customTickers.join(', ')}
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      <div style={{ display: 'flex', gap: '0' }}>
-        {/* Left: Chart 65% */}
-        <div style={{ flex: '0 0 65%', padding: '12px', borderRight: '1px solid var(--border-color)' }}>
+      <div ref={containerRef} style={{ display: 'flex' }}>
+        {/* Left: Chart */}
+        <div style={{ width: `${chartWidth}%`, padding: '12px', minWidth: 0 }}>
           {/* Toggle buttons */}
           <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-            {INDICES.map(idx => {
+            {allItems.map(idx => {
               const isActive = selected.includes(idx.symbol);
+              const isCustom = customTickers.includes(idx.symbol);
               const lastVal = normalizedData.length > 0 ? normalizedData[normalizedData.length - 1]?.[idx.symbol] : null;
               return (
                 <button key={idx.symbol} onClick={() => toggleIndex(idx.symbol)} style={{
@@ -244,19 +391,26 @@ function IndexPerformancePanel() {
                   border: `1px solid ${isActive ? idx.color : 'var(--border-color)'}`,
                   color: isActive ? idx.color : 'var(--text-tertiary)',
                   fontSize: '10px', fontWeight: 600, padding: '4px 10px', borderRadius: '4px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '4px',
                 }}>
                   {idx.label} {lastVal != null ? `${lastVal >= 0 ? '+' : ''}${lastVal.toFixed(2)}%` : ''}
+                  {isCustom && (
+                    <span onClick={(e) => { e.stopPropagation(); removeCustomTicker(idx.symbol); }}
+                      style={{ marginLeft: '2px', opacity: 0.6, cursor: 'pointer', display: 'inline-flex' }}>
+                      <X size={10} />
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
           {loading ? (
-            <div className="skeleton" style={{ height: '280px' }} />
+            <div className="skeleton" style={{ height: isFullscreen ? 'calc(100vh - 200px)' : '280px' }} />
           ) : normalizedData.length === 0 ? (
             <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px' }}>No data</p>
           ) : (
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={isFullscreen ? window.innerHeight - 200 : 280}>
               <LineChart data={normalizedData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="t" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} axisLine={false} tickLine={false}
@@ -274,7 +428,7 @@ function IndexPerformancePanel() {
                   </div>
                 );
               }} />
-              {INDICES.filter(idx => selected.includes(idx.symbol)).map(idx => (
+              {allItems.filter(idx => selected.includes(idx.symbol)).map(idx => (
                 <Line key={idx.symbol} type="monotone" dataKey={idx.symbol} stroke={idx.color} strokeWidth={1.5} dot={false} />
               ))}
             </LineChart>
@@ -282,9 +436,21 @@ function IndexPerformancePanel() {
         )}
         </div>
 
-        {/* Right: Index Cards 35% */}
-        <div style={{ flex: '0 0 35%', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center' }}>
-          {INDICES.map(idx => {
+        {/* Draggable divider */}
+        <div
+          onMouseDown={handleDragStart}
+          onMouseEnter={() => setHandleHovered(true)}
+          onMouseLeave={() => setHandleHovered(false)}
+          style={{
+            width: '6px', cursor: 'col-resize', flexShrink: 0,
+            backgroundColor: handleHovered ? 'rgba(240,165,0,0.4)' : 'rgba(255,255,255,0.05)',
+            borderRadius: '2px', transition: 'background 0.15s',
+          }}
+        />
+
+        {/* Right: Index Cards */}
+        <div style={{ width: `${100 - chartWidth - 0.5}%`, minWidth: '160px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center', overflowY: 'auto' }}>
+          {allItems.map(idx => {
             const q = latestQuotes[idx.symbol];
             const pct = q?.changePct ?? 0;
             const isPos = pct >= 0;
@@ -311,6 +477,10 @@ function IndexPerformancePanel() {
           })}
         </div>
       </div>
+
+      <style>{`
+        :fullscreen { background: #0D1117; padding: 24px; display: flex; flex-direction: column; }
+      `}</style>
     </div>
   );
 }
