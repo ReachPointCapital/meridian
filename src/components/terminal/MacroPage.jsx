@@ -447,18 +447,36 @@ function RecentEconomicReleases({ onRowClick }) {
   useEffect(() => {
     (async () => {
       try {
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
+        const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0];
         const today = new Date().toISOString().split('T')[0];
-        const result = await api.economicCalendar(thirtyDaysAgo, today);
-        // Filter to only events with actual values (already released)
+        const result = await api.economicCalendar(fourteenDaysAgo, today);
+        console.log('[RecentEcon UI] received:', Array.isArray(result) ? `${result.length} events` : typeof result);
+        // Filter to only events with actual values (already released), date <= today
         const released = (Array.isArray(result) ? result : [])
-          .filter(e => e.actual != null && e.actual !== '')
-          .slice(0, 20);
+          .filter(e => e.actual != null && e.actual !== '' && e.date <= today)
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .slice(0, 15);
         setData(released);
-      } catch {}
+      } catch (e) {
+        console.error('[RecentEcon UI] fetch error:', e);
+      }
       setLoading(false);
     })();
   }, []);
+
+  const fmtDate = (d) => {
+    if (!d) return '\u2014';
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const impactStyle = (impact) => {
+    if (!impact) return { bg: 'rgba(255,255,255,0.05)', color: 'var(--text-tertiary)', label: 'LOW' };
+    const i = impact.toLowerCase();
+    if (i === 'high') return { bg: 'rgba(239,68,68,0.15)', color: '#EF4444', label: 'HIGH' };
+    if (i === 'medium') return { bg: 'rgba(245,158,11,0.15)', color: '#F59E0B', label: 'MED' };
+    return { bg: 'rgba(255,255,255,0.05)', color: 'var(--text-tertiary)', label: 'LOW' };
+  };
 
   return (
     <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
@@ -469,43 +487,39 @@ function RecentEconomicReleases({ onRowClick }) {
         <div style={{ padding: '12px' }}>{Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '32px', marginBottom: '4px' }} />)}</div>
       ) : data.length === 0 ? (
         <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>
-          Economic release data temporarily unavailable
+          No data for this period
         </div>
       ) : (
-        <div style={{ overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, backgroundColor: 'var(--bg-secondary)' }}>
-                {['Event', 'Date', 'Actual', 'Estimate', 'Previous', 'Surprise'].map(h => (
-                  <th key={h} style={{ padding: '8px 12px', textAlign: h === 'Event' ? 'left' : 'right', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '10px', textTransform: 'uppercase' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((evt, i) => {
-                const surprise = evt.actual != null && evt.estimate != null
-                  ? Number(evt.actual) - Number(evt.estimate)
-                  : null;
-                const surpriseColor = surprise != null ? (surprise >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-tertiary)';
-                return (
-                  <tr key={`${evt.event}-${evt.date}-${i}`}
-                    onClick={() => onRowClick && onRowClick(evt)}
-                    style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <td style={{ padding: '8px 12px', color: 'var(--text-primary)', fontWeight: 500, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.event}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-secondary)', whiteSpace: 'nowrap', fontSize: '11px' }}>{evt.date}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 600 }}>{evt.actual ?? '\u2014'}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{evt.estimate ?? '\u2014'}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{evt.previous ?? '\u2014'}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: surpriseColor, fontFamily: 'monospace', fontWeight: 600 }}>
-                      {surprise != null ? (surprise >= 0 ? '+' : '') + surprise.toFixed(2) : '\u2014'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          {data.map((evt, i) => {
+            const imp = impactStyle(evt.impact);
+            return (
+              <div key={`${evt.event}-${evt.date}-${i}`}
+                onClick={() => onRowClick && onRowClick(evt)}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 100ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {evt.country && <span style={{ fontSize: '10px' }}>{evt.country}</span>}
+                    <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.event}</span>
+                  </div>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>{fmtDate(evt.date)}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ color: 'var(--gold)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{evt.actual ?? '\u2014'}</span>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', marginLeft: '4px' }}>
+                      {evt.estimate != null ? `(est: ${evt.estimate})` : ''}
+                    </span>
+                  </div>
+                  <span style={{ display: 'inline-block', padding: '1px 4px', borderRadius: '3px', fontSize: '9px', fontWeight: 700, backgroundColor: imp.bg, color: imp.color, letterSpacing: '0.04em' }}>
+                    {imp.label}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

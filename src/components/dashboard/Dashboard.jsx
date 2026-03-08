@@ -984,8 +984,9 @@ function NewsAndEarnings({ onNavigate }) {
     (async () => {
       try {
         const today = new Date().toISOString().split('T')[0];
-        const thirtyDays = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-        const data = await getEarningsCalendar(today, thirtyDays);
+        const fourteenDays = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+        const data = await getEarningsCalendar(today, fourteenDays);
+        console.log('[Earnings UI] received:', Array.isArray(data) ? `${data.length} earnings` : typeof data);
         setEarnings(Array.isArray(data) ? data.slice(0, 15) : []);
       } catch (e) {
         console.error('Earnings error:', e);
@@ -1051,21 +1052,30 @@ function NewsAndEarnings({ onNavigate }) {
           <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px' }}>No upcoming earnings found.</p>
         ) : (
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            {earnings.map((row, i) => (
-              <div key={`${row.symbol}-${i}`} onClick={() => onNavigate(row.symbol)}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 150ms ease' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <div>
-                  <span style={{ color: 'var(--gold)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{row.symbol}</span>
-                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', marginLeft: '8px' }}>{formatDate(row.date)}</span>
+            {earnings.map((row, i) => {
+              const timeLabel = row.time === 'bmo' ? 'BMO' : row.time === 'amc' ? 'AMC' : '\u2014';
+              return (
+                <div key={`${row.symbol}-${i}`} onClick={() => onNavigate(row.symbol)}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 150ms ease' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                    <span style={{ color: 'var(--gold)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{row.symbol}</span>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
+                      {(row.name && row.name !== row.symbol) ? row.name.slice(0, 20) : ''}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>{formatDate(row.date)}</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'monospace', minWidth: '70px', textAlign: 'right' }}>
+                      {row.epsEstimate != null ? `Est: $${Number(row.epsEstimate).toFixed(2)}` : row.epsEstimated != null ? `Est: $${Number(row.epsEstimated).toFixed(2)}` : '\u2014'}
+                    </span>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', minWidth: '24px', textAlign: 'right' }}>{timeLabel}</span>
+                  </div>
                 </div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'monospace' }}>
-                  {row.epsEstimate != null ? `Est: $${Number(row.epsEstimate).toFixed(2)}` : row.epsEstimated != null ? `Est: $${Number(row.epsEstimated).toFixed(2)}` : '\u2014'}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -1082,9 +1092,12 @@ function EconomicCalendarPanel() {
     (async () => {
       try {
         const today = new Date().toISOString().split('T')[0];
-        const thirtyDays = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-        const data = await getEconomicCalendar(today, thirtyDays);
-        setEvents(Array.isArray(data) ? data.slice(0, 50) : []);
+        const fourteenDays = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+        const data = await getEconomicCalendar(today, fourteenDays);
+        console.log('[EconCal UI] received:', Array.isArray(data) ? `${data.length} events` : typeof data);
+        // Filter to upcoming only (date >= today)
+        const upcoming = (Array.isArray(data) ? data : []).filter(e => e.date >= today);
+        setEvents(upcoming.slice(0, 50));
       } catch (e) {
         console.error('Economic calendar error:', e);
       }
@@ -1400,15 +1413,22 @@ function InsiderTradingFeed({ onNavigate }) {
     (async () => {
       try {
         const data = await api.insiderTradingFeed();
+        console.log('[InsiderFeed UI] received:', Array.isArray(data) ? `${data.length} trades` : typeof data);
         if (Array.isArray(data)) {
           setTrades(data.slice(0, 15));
-        } else if (data?.data) {
-          setTrades([]);
         }
-      } catch {}
+      } catch (e) {
+        console.error('[InsiderFeed UI] fetch error:', e);
+      }
       setLoading(false);
     })();
   }, []);
+
+  const fmtDate = (d) => {
+    if (!d) return '\u2014';
+    const dt = new Date(d);
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   return (
     <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
@@ -1418,28 +1438,41 @@ function InsiderTradingFeed({ onNavigate }) {
       {loading ? (
         <div style={{ padding: '12px' }}>{Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '32px', marginBottom: '4px' }} />)}</div>
       ) : trades.length === 0 ? (
-        <div style={{ padding: '12px 14px', color: 'var(--text-tertiary)', fontSize: '11px' }}>No recent insider activity.</div>
+        <div style={{ padding: '16px 14px', color: 'var(--text-tertiary)', fontSize: '11px', textAlign: 'center' }}>No recent insider activity.</div>
       ) : (
-        <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
           {trades.map((t, i) => {
-            const isBuy = (t.transactionType || '').toLowerCase().includes('buy') || (t.transactionType || '').toLowerCase().includes('purchase');
+            const txType = (t.transactionType || '').toLowerCase();
+            const isBuy = txType.includes('buy') || txType.includes('purchase') || txType === 'p-purchase';
+            const isSell = txType.includes('sale') || txType.includes('sell') || txType === 's-sale';
+            const badgeLabel = isBuy ? 'BUY' : isSell ? 'SELL' : (t.transactionType || 'N/A').toUpperCase();
+            const badgeColor = isBuy ? 'var(--green)' : isSell ? 'var(--red)' : 'var(--text-tertiary)';
+            const badgeBg = isBuy ? 'rgba(34,197,94,0.15)' : isSell ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)';
             return (
               <div key={`${t.symbol}-${t.date}-${i}`}
                 onClick={() => onNavigate && onNavigate(t.symbol)}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 100ms' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <div>
-                  <span style={{ color: 'var(--gold)', fontFamily: 'monospace', fontWeight: 600, fontSize: '12px' }}>{t.symbol}</span>
-                  <span style={{ color: isBuy ? 'var(--green)' : 'var(--red)', fontSize: '10px', fontWeight: 600, marginLeft: '8px', textTransform: 'uppercase' }}>
-                    {t.transactionType || 'N/A'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                  <span style={{ color: 'var(--gold)', fontFamily: 'monospace', fontWeight: 700, fontSize: '12px' }}>{t.symbol}</span>
+                  <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 700, backgroundColor: badgeBg, color: badgeColor, letterSpacing: '0.04em' }}>
+                    {badgeLabel}
+                  </span>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
+                    {t.owner || '\u2014'}
                   </span>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>
-                    {t.value != null ? `$${Number(t.value).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '\u2014'}
-                  </div>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>{t.owner}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'monospace' }}>
+                    {t.shares != null ? Number(t.shares).toLocaleString() : '\u2014'} shs
+                  </span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600, minWidth: '80px', textAlign: 'right' }}>
+                    {t.value != null && t.value > 0 ? `$${Number(t.value).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '\u2014'}
+                  </span>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', minWidth: '70px', textAlign: 'right' }}>
+                    {fmtDate(t.date)}
+                  </span>
                 </div>
               </div>
             );

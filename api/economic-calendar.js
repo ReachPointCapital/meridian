@@ -1,5 +1,5 @@
 const { getCached, setCached } = require('./_cache');
-const { FMP_KEY } = require('./_helpers');
+const { FMP_KEY, FMP_BASE } = require('./_helpers');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,47 +13,63 @@ module.exports = async (req, res) => {
   const cached = getCached(cacheKey);
   if (cached) return res.json(cached);
 
-  // Try FMP stable
+  // Tier 1: FMP stable
   try {
-    const url = `https://financialmodelingprep.com/stable/economic_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
-    console.log('Fetching economic calendar:', url);
+    const url = `${FMP_BASE}/economic_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
+    console.log('[EconCal] Tier 1:', url);
     const response = await fetch(url);
+    console.log('[EconCal] Tier 1 status:', response.status);
+    if (response.status === 401 || response.status === 403) {
+      console.error('[EconCal] FMP auth error on Tier 1');
+    }
     const text = await response.text();
-    console.log('Economic calendar raw:', text.substring(0, 300));
+    console.log('[EconCal] Tier 1 raw:', text.substring(0, 500));
     const data = JSON.parse(text);
     if (Array.isArray(data) && data.length > 0) {
       setCached(cacheKey, data, 21600);
       return res.json(data);
     }
   } catch (e) {
-    console.error('FMP economic calendar failed:', e.message);
+    console.error('[EconCal] Tier 1 failed:', e.message);
   }
 
-  // Try FMP v3
+  // Tier 2: FMP v3
   try {
     const url = `https://financialmodelingprep.com/api/v3/economic_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
+    console.log('[EconCal] Tier 2:', url);
     const response = await fetch(url);
-    const data = await response.json();
+    console.log('[EconCal] Tier 2 status:', response.status);
+    if (response.status === 401 || response.status === 403) {
+      console.error('[EconCal] FMP auth error on Tier 2');
+    }
+    const text = await response.text();
+    console.log('[EconCal] Tier 2 raw:', text.substring(0, 500));
+    const data = JSON.parse(text);
     if (Array.isArray(data) && data.length > 0) {
       setCached(cacheKey, data, 21600);
       return res.json(data);
     }
   } catch (e) {
-    console.error('FMP v3 economic calendar failed:', e.message);
+    console.error('[EconCal] Tier 2 failed:', e.message);
   }
 
-  // Try FMP v3 alternate spelling
+  // Tier 3: FMP v3 without date params (returns recent)
   try {
-    const url = `https://financialmodelingprep.com/api/v3/economic-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
+    const url = `https://financialmodelingprep.com/api/v3/economic_calendar?apikey=${FMP_KEY}`;
+    console.log('[EconCal] Tier 3 (no dates):', url);
     const response = await fetch(url);
-    const data = await response.json();
+    console.log('[EconCal] Tier 3 status:', response.status);
+    const text = await response.text();
+    console.log('[EconCal] Tier 3 raw:', text.substring(0, 500));
+    const data = JSON.parse(text);
     if (Array.isArray(data) && data.length > 0) {
       setCached(cacheKey, data, 21600);
       return res.json(data);
     }
   } catch (e) {
-    console.error('FMP v3 economic-calendar (hyphen) failed:', e.message);
+    console.error('[EconCal] Tier 3 failed:', e.message);
   }
 
+  console.log('[EconCal] All tiers exhausted, returning empty');
   res.json([]);
 };

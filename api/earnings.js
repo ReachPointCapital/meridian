@@ -1,5 +1,5 @@
 const { getCached, setCached } = require('./_cache');
-const { FMP_KEY } = require('./_helpers');
+const { FMP_KEY, FMP_BASE } = require('./_helpers');
 const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 
@@ -8,8 +8,8 @@ module.exports = async (req, res) => {
 
   const today = new Date();
   const from = req.query.from || today.toISOString().split('T')[0];
-  const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-  const to = req.query.to || thirtyDays.toISOString().split('T')[0];
+  const fourteenDays = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const to = req.query.to || fourteenDays.toISOString().split('T')[0];
   console.log(`[Earnings] Fetching from=${from} to=${to}`);
 
   const cacheKey = `earnings_${from}_${to}`;
@@ -28,33 +28,73 @@ module.exports = async (req, res) => {
     fiscalDateEnding: e.fiscalDateEnding
   });
 
-  // Tier 1-6: FMP endpoints (various spellings/versions)
-  const fmpUrls = [
-    `https://financialmodelingprep.com/stable/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
-    `https://financialmodelingprep.com/stable/earning-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
-    `https://financialmodelingprep.com/api/v3/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
-    `https://financialmodelingprep.com/api/v3/earning-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
-    `https://financialmodelingprep.com/api/v3/earnings-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
-    `https://financialmodelingprep.com/api/v4/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
-  ];
+  // Tier 1: FMP stable earning_calendar
+  try {
+    const url = `${FMP_BASE}/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
+    console.log('[Earnings] Tier 1:', url);
+    const response = await fetch(url);
+    console.log('[Earnings] Tier 1 status:', response.status);
+    if (response.status === 401 || response.status === 403) {
+      console.error('[Earnings] FMP auth error on Tier 1');
+    }
+    const text = await response.text();
+    console.log('[Earnings] Tier 1 raw:', text.substring(0, 500));
+    const data = JSON.parse(text);
+    if (Array.isArray(data) && data.length > 0) {
+      const mapped = data.map(mapFMP);
+      setCached(cacheKey, mapped, 21600);
+      return res.json(mapped);
+    }
+  } catch (e) {
+    console.error('[Earnings] Tier 1 failed:', e.message);
+  }
 
-  for (let i = 0; i < fmpUrls.length; i++) {
-    try {
-      const response = await fetch(fmpUrls[i]);
-      const data = await response.json();
-      console.log(`[Earnings] FMP Tier ${i + 1}: status=${response.status}, results=${Array.isArray(data) ? data.length : 'not array'}`);
-      if (Array.isArray(data) && data.length > 0) {
-        const mapped = data.map(mapFMP);
+  // Tier 2: FMP v3 earning_calendar
+  try {
+    const url = `https://financialmodelingprep.com/api/v3/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
+    console.log('[Earnings] Tier 2:', url);
+    const response = await fetch(url);
+    console.log('[Earnings] Tier 2 status:', response.status);
+    if (response.status === 401 || response.status === 403) {
+      console.error('[Earnings] FMP auth error on Tier 2');
+    }
+    const text = await response.text();
+    console.log('[Earnings] Tier 2 raw:', text.substring(0, 500));
+    const data = JSON.parse(text);
+    if (Array.isArray(data) && data.length > 0) {
+      const mapped = data.map(mapFMP);
+      setCached(cacheKey, mapped, 21600);
+      return res.json(mapped);
+    }
+  } catch (e) {
+    console.error('[Earnings] Tier 2 failed:', e.message);
+  }
+
+  // Tier 3: FMP v3 without date params (returns upcoming)
+  try {
+    const url = `https://financialmodelingprep.com/api/v3/earning_calendar?apikey=${FMP_KEY}`;
+    console.log('[Earnings] Tier 3 (no dates):', url);
+    const response = await fetch(url);
+    console.log('[Earnings] Tier 3 status:', response.status);
+    const text = await response.text();
+    console.log('[Earnings] Tier 3 raw:', text.substring(0, 500));
+    const data = JSON.parse(text);
+    if (Array.isArray(data) && data.length > 0) {
+      // Filter to only upcoming dates
+      const upcoming = data.filter(e => e.date >= from);
+      if (upcoming.length > 0) {
+        const mapped = upcoming.map(mapFMP);
         setCached(cacheKey, mapped, 21600);
         return res.json(mapped);
       }
-    } catch (e) {
-      console.error(`Earnings FMP Tier ${i + 1} failed:`, e.message);
     }
+  } catch (e) {
+    console.error('[Earnings] Tier 3 failed:', e.message);
   }
 
-  // Tier 6: Dynamic SPY top holdings from Yahoo
+  // Tier 4: Yahoo SPY top holdings calendar events
   try {
+    console.log('[Earnings] Tier 4: Yahoo SPY holdings');
     const spyHoldings = await yahooFinance.quoteSummary('SPY', { modules: ['topHoldings'] });
     const tickers = (spyHoldings?.topHoldings?.holdings || [])
       .map(h => h.symbol)
@@ -87,14 +127,16 @@ module.exports = async (req, res) => {
           }
         }
       });
+      console.log(`[Earnings] Tier 4: ${earnings.length} earnings found`);
       if (earnings.length > 0) {
         setCached(cacheKey, earnings, 21600);
         return res.json(earnings);
       }
     }
   } catch (e) {
-    console.error('Earnings Tier 6 (Yahoo SPY holdings) failed:', e.message);
+    console.error('[Earnings] Tier 4 (Yahoo) failed:', e.message);
   }
 
+  console.log('[Earnings] All tiers exhausted, returning empty');
   res.json([]);
 };
