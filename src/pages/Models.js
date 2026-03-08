@@ -2035,7 +2035,7 @@ function MasterModel({ data, quote }) {
         const capex = rev * a.capexPct / 100;
         const nwc = rev * a.nwcPct / 100;
         const fcff = nopat + daa - capex - nwc;
-        proj.push({ fcff, ni });
+        proj.push({ fcff, ni, ebitda });
       }
       const ce = a.riskFree + a.beta * a.erp;
       const atd = a.preTaxDebt * (1 - a.taxRate / 100);
@@ -2048,18 +2048,38 @@ function MasterModel({ data, quote }) {
       const dcf = sharesOut > 0 ? (tpv + pvt - netDebt) / sharesOut : 0;
       const eps = sharesOut > 0 ? proj[0].ni / sharesOut : 0;
       const comp = eps * a.targetPE;
-      return { dcf, comp };
+      return { dcf, comp, y5Ebitda: proj[4].ebitda };
     });
 
     const dcfPrices = scenarioPrices.map(s => s.dcf);
     const compPrices = scenarioPrices.map(s => s.comp);
 
-    return [
-      { name: 'DCF', low: Math.min(...dcfPrices), high: Math.max(...dcfPrices), base: [Math.min(...dcfPrices), Math.max(...dcfPrices)] },
-      { name: 'Comps', low: Math.min(...compPrices), high: Math.max(...compPrices), base: [Math.min(...compPrices), Math.max(...compPrices)] },
-      { name: '52W Range', low: fiftyTwoLow, high: fiftyTwoHigh, base: [fiftyTwoLow, fiftyTwoHigh] },
+    // LBO range: bear/base/bull using current assumptions with exit multiple variation
+    const a = assumptions;
+    const y5Ebitda = scenarioPrices[2]?.y5Ebitda || 0; // base scenario Y5 EBITDA
+    const lboBearEV = y5Ebitda * Math.max(1, a.exitMultiple - 2);
+    const lboBearEquity = Math.max(0, lboBearEV - Math.abs(netDebt));
+    const lboBearPrice = sharesOut > 0 ? lboBearEquity / sharesOut : 0;
+    const lboBaseEV = y5Ebitda * a.exitMultiple;
+    const lboBaseEquity = Math.max(0, lboBaseEV - Math.abs(netDebt));
+    const lboBasePrice = sharesOut > 0 ? lboBaseEquity / sharesOut : 0;
+    const lboBullEV = y5Ebitda * (a.exitMultiple + 2);
+    const lboBullEquity = Math.max(0, lboBullEV - Math.abs(netDebt) * 0.7);
+    const lboBullPrice = sharesOut > 0 ? lboBullEquity / sharesOut : 0;
+    const lboValid = lboBasePrice > 0 && isFinite(lboBasePrice);
+
+    const result = [
+      { name: 'DCF', base: [Math.min(...dcfPrices), Math.max(...dcfPrices)] },
     ];
-  }, [lastRev, sharesOut, netDebt, fiftyTwoLow, fiftyTwoHigh]);
+    if (lboValid) {
+      result.push({ name: 'LBO', base: [Math.min(lboBearPrice, lboBasePrice), Math.max(lboBullPrice, lboBasePrice)] });
+    }
+    result.push(
+      { name: 'Comps', base: [Math.min(...compPrices), Math.max(...compPrices)] },
+      { name: '52W Range', base: [fiftyTwoLow, fiftyTwoHigh] },
+    );
+    return result;
+  }, [lastRev, sharesOut, netDebt, fiftyTwoLow, fiftyTwoHigh, assumptions]);
 
   // Scenario comparison
   const computeScenarioRow = useCallback((a) => {
@@ -2123,7 +2143,7 @@ function MasterModel({ data, quote }) {
   ];
 
   const scenarioColors = ['var(--accent-red)', '#f59e0b', 'var(--gold)', 'var(--accent-green)', '#a855f7', '#9ca3af'];
-  const barColors = ['var(--gold)', '#3b82f6', 'var(--text-tertiary)'];
+  const barColorMap = { 'DCF': 'var(--gold)', 'LBO': '#6366f1', 'Comps': '#3b82f6', '52W Range': 'var(--text-tertiary)' };
 
   return (
     <div>
@@ -2328,11 +2348,11 @@ function MasterModel({ data, quote }) {
       <div style={CARD}>
         <h3 style={HEADER}>Valuation Range (Football Field)</h3>
         <div style={{ padding: '16px' }}>
-          <ResponsiveContainer width="100%" height={180}>
+          <ResponsiveContainer width="100%" height={footballData.length * 50 + 40}>
             <BarChart data={footballData} layout="vertical" margin={{ left: 60, right: 30, top: 10, bottom: 10 }}>
               <XAxis type="number" domain={['auto', 'auto']} tickFormatter={v => `$${v.toFixed(0)}`}
                 tick={{ fill: 'var(--text-faint)', fontSize: 10 }} axisLine={{ stroke: 'var(--row-border)' }} tickLine={false} />
-              <YAxis type="category" dataKey="name" width={55}
+              <YAxis type="category" dataKey="name" width={65}
                 tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
               <Tooltip
                 formatter={(value) => {
@@ -2344,7 +2364,7 @@ function MasterModel({ data, quote }) {
                 itemStyle={{ color: 'var(--text-secondary)' }}
               />
               <Bar dataKey="base" barSize={20} radius={[4, 4, 4, 4]}>
-                {footballData.map((_, i) => <Cell key={i} fill={barColors[i]} fillOpacity={0.6} />)}
+                {footballData.map((entry, i) => <Cell key={i} fill={barColorMap[entry.name] || 'var(--text-tertiary)'} fillOpacity={0.6} />)}
               </Bar>
               {currentPrice > 0 && (
                 <ReferenceLine x={currentPrice} stroke="var(--gold)" strokeWidth={2} strokeDasharray="4 4"
