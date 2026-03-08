@@ -53,20 +53,20 @@ const SECTION_ROW = {
   display: 'grid',
   height: '28px',
   alignItems: 'center',
-  backgroundColor: 'rgba(255,255,255,0.04)',
-  borderBottom: '1px solid rgba(255,255,255,0.05)',
+  backgroundColor: 'var(--row-section-bg)',
+  borderBottom: '1px solid var(--row-border)',
   fontSize: '11px',
   fontWeight: 600,
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.5)',
+  color: 'var(--text-muted)',
 };
 
 const DATA_ROW = {
   display: 'grid',
   height: '32px',
   alignItems: 'center',
-  borderBottom: '1px solid rgba(255,255,255,0.05)',
+  borderBottom: '1px solid var(--row-border)',
   fontSize: '12px',
   fontFamily: 'monospace',
   transition: 'background 100ms',
@@ -74,7 +74,7 @@ const DATA_ROW = {
 
 const LABEL_CELL = {
   paddingLeft: '16px',
-  color: 'rgba(255,255,255,0.7)',
+  color: 'var(--text-label)',
   fontSize: '12px',
   whiteSpace: 'nowrap',
   position: 'sticky',
@@ -94,13 +94,13 @@ const VAL_CELL = {
 
 const INPUT_CELL = {
   ...VAL_CELL,
-  color: '#93c5fd',
-  backgroundColor: 'rgba(147,197,253,0.08)',
+  color: 'var(--input-text)',
+  backgroundColor: 'var(--input-bg)',
 };
 
 const GOLD_CELL = {
   ...VAL_CELL,
-  color: '#F0A500',
+  color: 'var(--gold)',
   fontWeight: 700,
 };
 
@@ -136,7 +136,7 @@ function CellInput({ value, onChange, suffix = '%' }) {
           border: 'none',
           borderBottom: '2px solid var(--gold)',
           background: 'transparent',
-          color: '#93c5fd',
+          color: 'var(--input-text)',
           textAlign: 'right',
           width: '100%',
           fontFamily: 'monospace',
@@ -186,7 +186,7 @@ function ModelsEmptyState({ onSearch }) {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '40px', gap: '32px', maxWidth: '860px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center' }}>
         <h2 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>Financial Models</h2>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: 0 }}>Build institutional-grade valuation models for any stock</p>
+        <p style={{ color: 'var(--text-faint)', fontSize: '14px', margin: 0 }}>Build institutional-grade valuation models for any stock</p>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '580px' }}>
@@ -227,10 +227,10 @@ function ModelsEmptyState({ onSearch }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%' }}>
         {descriptions.map(d => (
           <div key={d.title} style={{
-            backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '16px',
+            backgroundColor: 'var(--row-section-bg)', borderRadius: '8px', padding: '16px',
           }}>
             <div style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>{d.title}</div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', lineHeight: 1.4 }}>{d.desc}</div>
+            <div style={{ color: 'var(--text-faint)', fontSize: '11px', lineHeight: 1.4 }}>{d.desc}</div>
           </div>
         ))}
       </div>
@@ -327,7 +327,7 @@ function DCFModel({ data, quote }) {
 
   const cols = `220px repeat(${actualYears.length + projYears}, minmax(90px, 1fr))`;
 
-  const valCell = (v, isNeg) => ({ ...VAL_CELL, color: isNeg ? '#f87171' : '#ffffff' });
+  const valCell = (v, isNeg) => ({ ...VAL_CELL, color: isNeg ? 'var(--accent-red)' : 'var(--text-strong)' });
 
   return (
     <div>
@@ -339,7 +339,7 @@ function DCFModel({ data, quote }) {
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...SECTION_ROW }}>
             <div style={LABEL_CELL}>Line Item</div>
             {actualYears.map(y => <div key={y} style={VAL_CELL}>{y}A</div>)}
-            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: '#93c5fd' }}>{y}</div>)}
+            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: 'var(--input-text)' }}>{y}</div>)}
           </div>
 
           {/* Revenue */}
@@ -432,7 +432,7 @@ function DCFModel({ data, quote }) {
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...SECTION_ROW }}>
             <div style={LABEL_CELL}>Line Item</div>
             {actualYears.map(y => <div key={y} style={VAL_CELL}>{y}A</div>)}
-            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: '#93c5fd' }}>{y}</div>)}
+            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: 'var(--input-text)' }}>{y}</div>)}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
@@ -470,7 +470,7 @@ function DCFModel({ data, quote }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
             <div style={LABEL_CELL}>Capex</div>
-            {cf.map((d, i) => <div key={i} style={{ ...VAL_CELL, color: '#f87171' }}>{fmtB(d.capitalExpenditure)}</div>)}
+            {cf.map((d, i) => <div key={i} style={{ ...VAL_CELL, color: 'var(--accent-red)' }}>{fmtB(d.capitalExpenditure)}</div>)}
             {income.length > cf.length && Array.from({ length: income.length - cf.length }).map((_, i) => <div key={`pad-${i}`} style={VAL_CELL}>{'\u2014'}</div>)}
             <CellInput value={capexPct} onChange={setCapexPct} />
             {projYearLabels.slice(1).map((_, i) => <div key={i} style={VAL_CELL}>{fmtPct(capexPct)}</div>)}
@@ -484,8 +484,8 @@ function DCFModel({ data, quote }) {
             {projYearLabels.slice(1).map((_, i) => <div key={i} style={VAL_CELL}>{fmtPct(nwcPct)}</div>)}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW, backgroundColor: 'rgba(240,165,0,0.04)' }} className="hover-row">
-            <div style={{ ...LABEL_CELL, color: '#F0A500', fontWeight: 700 }}>Free Cash Flow (FCFF)</div>
+          <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW, backgroundColor: 'var(--gold-row-bg)' }} className="hover-row">
+            <div style={{ ...LABEL_CELL, color: 'var(--gold)', fontWeight: 700 }}>Free Cash Flow (FCFF)</div>
             {cf.map((d, i) => <div key={i} style={GOLD_CELL}>{fmtB(d.freeCashFlow)}</div>)}
             {income.length > cf.length && Array.from({ length: income.length - cf.length }).map((_, i) => <div key={`pad-${i}`} style={GOLD_CELL}>{'\u2014'}</div>)}
             {projected.map((p, i) => <div key={i} style={GOLD_CELL}>{fmtB(p.fcff)}</div>)}
@@ -507,23 +507,23 @@ function DCFModel({ data, quote }) {
               { label: 'Tax Rate %', val: taxRate, set: setTaxRate },
               { label: 'Debt / (Debt + Equity) %', val: debtPct, set: setDebtPct },
             ].map(r => (
-              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{r.label}</span>
+              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--row-border)' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{r.label}</span>
                 <input type="number" step="0.1" value={r.val} onChange={e => r.set(parseFloat(e.target.value) || 0)}
-                  style={{ background: 'rgba(147,197,253,0.08)', border: 'none', borderRadius: '4px', color: '#93c5fd', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
+                  style={{ background: 'var(--input-bg)', border: 'none', borderRadius: '4px', color: 'var(--input-text)', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
                 />
               </div>
             ))}
-            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '6px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
-                <span>Cost of Equity</span><span style={{ color: '#F0A500' }}>{costEquity.toFixed(2)}%</span>
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--row-section-bg)', borderRadius: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                <span>Cost of Equity</span><span style={{ color: 'var(--gold)' }}>{costEquity.toFixed(2)}%</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
-                <span>After-tax Cost of Debt</span><span style={{ color: '#F0A500' }}>{afterTaxDebt.toFixed(2)}%</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                <span>After-tax Cost of Debt</span><span style={{ color: 'var(--gold)' }}>{afterTaxDebt.toFixed(2)}%</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600 }}>WACC</span>
-                <span style={{ color: '#F0A500', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{wacc.toFixed(2)}%</span>
+                <span style={{ color: 'var(--text-label)', fontSize: '13px', fontWeight: 600 }}>WACC</span>
+                <span style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{wacc.toFixed(2)}%</span>
               </div>
             </div>
           </div>
@@ -543,24 +543,24 @@ function DCFModel({ data, quote }) {
               { label: 'Equity Value', val: fmtB(equityValue), gold: true },
               { label: 'Shares Outstanding', val: sharesOut.toLocaleString(), gold: false },
             ].map(r => (
-              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{r.label}</span>
+              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--row-border)' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{r.label}</span>
                 {r.input ? (
                   <input type="number" step="0.1" value={r.inputVal} onChange={e => r.inputSet(parseFloat(e.target.value) || 0)}
-                    style={{ background: 'rgba(147,197,253,0.08)', border: 'none', borderRadius: '4px', color: '#93c5fd', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
+                    style={{ background: 'var(--input-bg)', border: 'none', borderRadius: '4px', color: 'var(--input-text)', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
                   />
                 ) : (
-                  <span style={{ color: r.gold ? '#F0A500' : '#ffffff', fontSize: '12px', fontWeight: r.gold ? 700 : 400, fontFamily: 'monospace' }}>{r.val}</span>
+                  <span style={{ color: r.gold ? 'var(--gold)' : 'var(--text-strong)', fontSize: '12px', fontWeight: r.gold ? 700 : 400, fontFamily: 'monospace' }}>{r.val}</span>
                 )}
               </div>
             ))}
 
-            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(240,165,0,0.06)', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Implied Share Price</div>
-              <div style={{ color: '#F0A500', fontSize: '32px', fontWeight: 900, fontFamily: 'monospace' }}>{fmtPS(impliedPrice)}</div>
-              <div style={{ marginTop: '4px', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Implied Share Price</div>
+              <div style={{ color: 'var(--gold)', fontSize: '32px', fontWeight: 900, fontFamily: 'monospace' }}>{fmtPS(impliedPrice)}</div>
+              <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-faint)' }}>
                 Current: {fmtPS(currentPrice)} |{' '}
-                <span style={{ color: upside >= 0 ? '#4ade80' : '#f87171', fontWeight: 600 }}>{upside >= 0 ? '+' : ''}{upside.toFixed(1)}%</span>
+                <span style={{ color: upside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{upside >= 0 ? '+' : ''}{upside.toFixed(1)}%</span>
               </div>
             </div>
           </div>
@@ -574,25 +574,25 @@ function DCFModel({ data, quote }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '11px' }}>
             <thead>
               <tr>
-                <th style={{ padding: '6px 10px', color: 'rgba(255,255,255,0.4)', fontSize: '10px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>WACC \ TGR</th>
+                <th style={{ padding: '6px 10px', color: 'var(--text-faint)', fontSize: '10px', textAlign: 'left', borderBottom: '1px solid var(--row-border)' }}>WACC \ TGR</th>
                 {sensGrowths.map(g => (
-                  <th key={g} style={{ padding: '6px 10px', color: g === termGrowth ? '#F0A500' : 'rgba(255,255,255,0.4)', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '10px' }}>{g.toFixed(1)}%</th>
+                  <th key={g} style={{ padding: '6px 10px', color: g === termGrowth ? 'var(--gold)' : 'var(--text-faint)', textAlign: 'right', borderBottom: '1px solid var(--row-border)', fontSize: '10px' }}>{g.toFixed(1)}%</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {sensWaccs.map((w, wi) => (
                 <tr key={w}>
-                  <td style={{ padding: '6px 10px', color: w === wacc ? '#F0A500' : 'rgba(255,255,255,0.4)', fontWeight: w === wacc ? 700 : 400, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{w.toFixed(1)}%</td>
+                  <td style={{ padding: '6px 10px', color: w === wacc ? 'var(--gold)' : 'var(--text-faint)', fontWeight: w === wacc ? 700 : 400, borderBottom: '1px solid var(--row-border)' }}>{w.toFixed(1)}%</td>
                   {sensTable[wi].map((price, gi) => {
                     const isCenter = wi === 2 && gi === 2;
                     return (
                       <td key={gi} style={{
                         padding: '6px 10px', textAlign: 'right',
-                        color: price >= currentPrice ? '#4ade80' : '#f87171',
+                        color: price >= currentPrice ? 'var(--accent-green)' : 'var(--accent-red)',
                         fontWeight: isCenter ? 700 : 400,
-                        backgroundColor: isCenter ? 'rgba(240,165,0,0.1)' : 'transparent',
-                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                        backgroundColor: isCenter ? 'var(--gold-active-bg)' : 'transparent',
+                        borderBottom: '1px solid var(--row-border)',
                       }}>{fmtPS(price)}</td>
                     );
                   })}
@@ -639,7 +639,7 @@ function EPSModel({ data, quote }) {
   const lastYear = parseInt(actualYears[actualYears.length - 1]) || new Date().getFullYear();
   const projYearLabels = Array.from({ length: projYears }, (_, i) => `${lastYear + i + 1}E`);
   const cols = `220px repeat(${actualYears.length + projYears}, minmax(90px, 1fr))`;
-  const valCell = (v, isNeg) => ({ ...VAL_CELL, color: isNeg ? '#f87171' : '#ffffff' });
+  const valCell = (v, isNeg) => ({ ...VAL_CELL, color: isNeg ? 'var(--accent-red)' : 'var(--text-strong)' });
   const currentPrice = quote?.price || 0;
 
   return (
@@ -650,7 +650,7 @@ function EPSModel({ data, quote }) {
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...SECTION_ROW }}>
             <div style={LABEL_CELL}>Line Item</div>
             {actualYears.map(y => <div key={y} style={VAL_CELL}>{y}A</div>)}
-            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: '#93c5fd' }}>{y}</div>)}
+            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: 'var(--input-text)' }}>{y}</div>)}
           </div>
 
           {[
@@ -704,7 +704,7 @@ function EPSModel({ data, quote }) {
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...SECTION_ROW }}>
             <div style={LABEL_CELL}>Line Item</div>
             {actualYears.map(y => <div key={y} style={VAL_CELL}>{y}A</div>)}
-            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: '#93c5fd' }}>{y}</div>)}
+            {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: 'var(--input-text)' }}>{y}</div>)}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
@@ -714,8 +714,8 @@ function EPSModel({ data, quote }) {
             {projected.slice(1).map((p, i) => <div key={i} style={VAL_CELL}>{(p.shares / 1e6).toFixed(0)}M</div>)}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW, backgroundColor: 'rgba(240,165,0,0.04)' }} className="hover-row">
-            <div style={{ ...LABEL_CELL, color: '#F0A500', fontWeight: 700 }}>EPS (Diluted)</div>
+          <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW, backgroundColor: 'var(--gold-row-bg)' }} className="hover-row">
+            <div style={{ ...LABEL_CELL, color: 'var(--gold)', fontWeight: 700 }}>EPS (Diluted)</div>
             {income.map((d, i) => <div key={i} style={GOLD_CELL}>{d.eps != null ? fmtPS(d.eps) : '\u2014'}</div>)}
             {projected.map((p, i) => <div key={i} style={GOLD_CELL}>{fmtPS(p.eps)}</div>)}
           </div>
@@ -727,8 +727,8 @@ function EPSModel({ data, quote }) {
             {projYearLabels.slice(1).map((_, i) => <div key={i} style={VAL_CELL}>{fmtX(targetPE)}</div>)}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW, backgroundColor: 'rgba(240,165,0,0.04)' }} className="hover-row">
-            <div style={{ ...LABEL_CELL, color: '#F0A500', fontWeight: 700 }}>Implied Price</div>
+          <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW, backgroundColor: 'var(--gold-row-bg)' }} className="hover-row">
+            <div style={{ ...LABEL_CELL, color: 'var(--gold)', fontWeight: 700 }}>Implied Price</div>
             {actualYears.map((_, i) => <div key={i} style={VAL_CELL}>{'\u2014'}</div>)}
             {projected.map((p, i) => <div key={i} style={GOLD_CELL}>{fmtPS(p.impliedPrice)}</div>)}
           </div>
@@ -738,7 +738,7 @@ function EPSModel({ data, quote }) {
             {actualYears.map((_, i) => <div key={i} style={VAL_CELL}>{'\u2014'}</div>)}
             {projected.map((p, i) => {
               const up = currentPrice > 0 ? ((p.impliedPrice - currentPrice) / currentPrice * 100) : 0;
-              return <div key={i} style={{ ...VAL_CELL, color: up >= 0 ? '#4ade80' : '#f87171', fontWeight: 600 }}>{up >= 0 ? '+' : ''}{up.toFixed(1)}%</div>;
+              return <div key={i} style={{ ...VAL_CELL, color: up >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{up >= 0 ? '+' : ''}{up.toFixed(1)}%</div>;
             })}
           </div>
         </div>
@@ -790,18 +790,18 @@ function LBOModel({ data, quote }) {
   const irr = equityContrib > 0 ? (Math.pow(moic, 1 / exitYear) - 1) * 100 : 0;
 
   const inputRow = (label, val, set, suffix = '%') => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{label}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--row-border)' }}>
+      <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{label}</span>
       <input type="number" step="0.1" value={val} onChange={e => set(parseFloat(e.target.value) || 0)}
-        style={{ background: 'rgba(147,197,253,0.08)', border: 'none', borderRadius: '4px', color: '#93c5fd', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
+        style={{ background: 'var(--input-bg)', border: 'none', borderRadius: '4px', color: 'var(--input-text)', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
       />
     </div>
   );
 
   const outputRow = (label, val, gold = false) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{label}</span>
-      <span style={{ color: gold ? '#F0A500' : '#ffffff', fontSize: '12px', fontWeight: gold ? 700 : 400, fontFamily: 'monospace' }}>{val}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--row-border)' }}>
+      <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{label}</span>
+      <span style={{ color: gold ? 'var(--gold)' : 'var(--text-strong)', fontSize: '12px', fontWeight: gold ? 700 : 400, fontFamily: 'monospace' }}>{val}</span>
     </div>
   );
 
@@ -810,26 +810,26 @@ function LBOModel({ data, quote }) {
       <div style={CARD}>
         <h3 style={HEADER}>LBO Inputs</h3>
         <div style={{ padding: '16px' }}>
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>Transaction</div>
+          <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>Transaction</div>
           {outputRow('Entry Price', fmtPS(entryPrice))}
           {inputRow('Entry EV/EBITDA', entryMultiple, setEntryMultiple, 'x')}
           {inputRow('Transaction Fees %', fees, setFees)}
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Financing</div>
+          <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Financing</div>
           {inputRow('Debt / Total Cap %', debtPct, setDebtPct)}
           {inputRow('Interest Rate %', intRate, setIntRate)}
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Operations</div>
+          <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Operations</div>
           {inputRow('Revenue Growth %/yr', revGrowth, setRevGrowth)}
           {inputRow('EBITDA Margin %', ebitdaMarginInput, setEbitdaMarginInput)}
           {inputRow('Capex % of Revenue', capexPct, setCapexPct)}
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Exit</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>Exit Year</span>
+          <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Exit</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--row-border)' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Exit Year</span>
             <div style={{ display: 'flex', gap: '4px' }}>
               {[3, 4, 5].map(y => (
                 <button key={y} onClick={() => setExitYear(y)} style={{
                   padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                   border: exitYear === y ? '1px solid var(--gold)' : '1px solid var(--border-color)',
-                  background: exitYear === y ? 'rgba(234,179,8,0.12)' : 'transparent',
+                  background: exitYear === y ? 'var(--gold-active-bg)' : 'transparent',
                   color: exitYear === y ? 'var(--gold)' : 'var(--text-tertiary)',
                 }}>{y}yr</button>
               ))}
@@ -845,25 +845,25 @@ function LBOModel({ data, quote }) {
           {outputRow('Purchase EV', fmtB(purchaseEV), true)}
           {outputRow('Total Debt', fmtB(totalDebt))}
           {outputRow('Equity Contribution', fmtB(equityContrib))}
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Year-by-Year</div>
+          <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Year-by-Year</div>
           {years.map(yr => (
-            <div key={yr.y} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>Y{yr.y}</span>
-              <span style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'monospace' }}>EBITDA {fmtB(yr.ebitda)}</span>
-              <span style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>Debt {fmtB(yr.debtBalance)}</span>
+            <div key={yr.y} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontSize: '11px', borderBottom: '1px solid var(--row-border)' }}>
+              <span style={{ color: 'var(--text-faint)' }}>Y{yr.y}</span>
+              <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>EBITDA {fmtB(yr.ebitda)}</span>
+              <span style={{ color: 'var(--text-faint)', fontFamily: 'monospace' }}>Debt {fmtB(yr.debtBalance)}</span>
             </div>
           ))}
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Exit</div>
+          <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Exit</div>
           {outputRow('Exit EV', fmtB(exitEV), true)}
           {outputRow('Exit Equity Value', fmtB(exitEquity), true)}
-          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(240,165,0,0.06)', borderRadius: '8px', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
             <div>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>MOIC</div>
-              <div style={{ color: '#F0A500', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{moic.toFixed(2)}x</div>
+              <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>MOIC</div>
+              <div style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{moic.toFixed(2)}x</div>
             </div>
             <div>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>IRR</div>
-              <div style={{ color: irr >= 20 ? '#4ade80' : irr >= 15 ? '#eab308' : '#f87171', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{irr.toFixed(1)}%</div>
+              <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>IRR</div>
+              <div style={{ color: irr >= 20 ? 'var(--accent-green)' : irr >= 15 ? 'var(--gold)' : 'var(--accent-red)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{irr.toFixed(1)}%</div>
             </div>
           </div>
         </div>
@@ -911,8 +911,8 @@ function CompsModel({ data, quote }) {
     priceToBook: median(peerOnly, r => r.priceToBook),
   };
 
-  const COL = { padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '12px', fontFamily: 'monospace', whiteSpace: 'nowrap' };
-  const HEAD = { ...COL, color: 'rgba(255,255,255,0.4)', fontWeight: 600, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' };
+  const COL = { padding: '8px 12px', borderBottom: '1px solid var(--row-border)', fontSize: '12px', fontFamily: 'monospace', whiteSpace: 'nowrap' };
+  const HEAD = { ...COL, color: 'var(--text-faint)', fontWeight: 600, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' };
 
   return (
     <div style={CARD}>
@@ -938,8 +938,8 @@ function CompsModel({ data, quote }) {
             <tbody>
               {allRows.map(r => (
                 <tr key={r.symbol} style={{
-                  borderLeft: r._isSubject ? '3px solid #F0A500' : 'none',
-                  backgroundColor: r._isSubject ? 'rgba(240,165,0,0.04)' : 'transparent',
+                  borderLeft: r._isSubject ? '3px solid var(--gold)' : 'none',
+                  backgroundColor: r._isSubject ? 'var(--gold-row-bg)' : 'transparent',
                 }}>
                   <td style={{ ...COL, textAlign: 'left', color: 'var(--text-primary)', fontWeight: r._isSubject ? 700 : 400, fontFamily: 'inherit' }}>{r.name || r.symbol}</td>
                   <td style={{ ...COL, textAlign: 'left', color: 'var(--gold)', fontWeight: 600 }}>{r.symbol}</td>
@@ -947,16 +947,16 @@ function CompsModel({ data, quote }) {
                   <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{formatMarketCap(r.marketCap)}</td>
                   <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{r.pe != null ? r.pe.toFixed(1) : '\u2014'}</td>
                   <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{r.priceToBook != null ? r.priceToBook.toFixed(1) : '\u2014'}</td>
-                  <td style={{ ...COL, textAlign: 'right', color: (r.changesPercentage || 0) >= 0 ? '#4ade80' : '#f87171' }}>{r.changesPercentage != null ? `${r.changesPercentage >= 0 ? '+' : ''}${r.changesPercentage.toFixed(2)}%` : '\u2014'}</td>
+                  <td style={{ ...COL, textAlign: 'right', color: (r.changesPercentage || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>{r.changesPercentage != null ? `${r.changesPercentage >= 0 ? '+' : ''}${r.changesPercentage.toFixed(2)}%` : '\u2014'}</td>
                 </tr>
               ))}
-              <tr style={{ backgroundColor: 'rgba(234,179,8,0.06)' }}>
-                <td style={{ ...COL, textAlign: 'left', color: '#eab308', fontWeight: 700, fontFamily: 'inherit' }}>MEDIAN</td>
+              <tr style={{ backgroundColor: 'var(--gold-subtle-bg)' }}>
+                <td style={{ ...COL, textAlign: 'left', color: 'var(--gold)', fontWeight: 700, fontFamily: 'inherit' }}>MEDIAN</td>
                 <td style={COL}></td>
-                <td style={{ ...COL, textAlign: 'right', color: '#eab308' }}>{medians.price != null ? formatPrice(medians.price) : '\u2014'}</td>
-                <td style={{ ...COL, textAlign: 'right', color: '#eab308' }}>{medians.marketCap != null ? formatMarketCap(medians.marketCap) : '\u2014'}</td>
-                <td style={{ ...COL, textAlign: 'right', color: '#eab308' }}>{medians.pe != null ? medians.pe.toFixed(1) : '\u2014'}</td>
-                <td style={{ ...COL, textAlign: 'right', color: '#eab308' }}>{medians.priceToBook != null ? medians.priceToBook.toFixed(1) : '\u2014'}</td>
+                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.price != null ? formatPrice(medians.price) : '\u2014'}</td>
+                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.marketCap != null ? formatMarketCap(medians.marketCap) : '\u2014'}</td>
+                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.pe != null ? medians.pe.toFixed(1) : '\u2014'}</td>
+                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.priceToBook != null ? medians.priceToBook.toFixed(1) : '\u2014'}</td>
                 <td style={COL}></td>
               </tr>
             </tbody>
@@ -1153,9 +1153,9 @@ function ThreeStatementModel({ data, quote }) {
     return arr;
   }, [isProj, cfsProj, arDays, invDays, otherCAPct, intangibles, otherNonCAPct, apDays, accruedPct, shortTermDebt, otherCLPct, longTermDebt, deferredTaxPct, otherNonCLPct, commonStock, treasuryStock, lastBS]);
 
-  const valCell = (v, isNeg) => ({ ...VAL_CELL, color: isNeg ? '#f87171' : '#ffffff' });
-  const goldRow = { ...DATA_ROW, backgroundColor: 'rgba(240,165,0,0.04)' };
-  const goldLabel = { ...LABEL_CELL, color: '#F0A500', fontWeight: 700 };
+  const valCell = (v, isNeg) => ({ ...VAL_CELL, color: isNeg ? 'var(--accent-red)' : 'var(--text-strong)' });
+  const goldRow = { ...DATA_ROW, backgroundColor: 'var(--gold-row-bg)' };
+  const goldLabel = { ...LABEL_CELL, color: 'var(--gold)', fontWeight: 700 };
 
   // Summary metrics
   const rev2025 = isProj[0]?.rev;
@@ -1205,13 +1205,13 @@ function ThreeStatementModel({ data, quote }) {
     <div style={{ display: 'grid', gridTemplateColumns: cols, ...SECTION_ROW }}>
       <div style={LABEL_CELL}>Line Item</div>
       {actualYears.map(y => <div key={y} style={VAL_CELL}>{y}A</div>)}
-      {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: '#93c5fd' }}>{y}</div>)}
+      {projYearLabels.map(y => <div key={y} style={{ ...VAL_CELL, color: 'var(--input-text)' }}>{y}</div>)}
     </div>
   );
 
   const sectionLabel = (text) => (
     <div style={{ display: 'grid', gridTemplateColumns: cols, ...SECTION_ROW }}>
-      <div style={{ ...LABEL_CELL, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>{text}</div>
+      <div style={{ ...LABEL_CELL, color: 'var(--text-muted)', fontWeight: 600 }}>{text}</div>
     </div>
   );
 
@@ -1224,8 +1224,8 @@ function ThreeStatementModel({ data, quote }) {
             <button key={t.key} onClick={() => setSubTab(t.key)} style={{
               padding: '5px 14px', fontSize: '11px', fontWeight: 500, borderRadius: '20px', cursor: 'pointer', transition: 'all 150ms',
               border: 'none',
-              background: subTab === t.key ? 'rgba(255,255,255,0.12)' : 'transparent',
-              color: subTab === t.key ? '#ffffff' : 'rgba(255,255,255,0.4)',
+              background: subTab === t.key ? 'var(--bg-tertiary)' : 'transparent',
+              color: subTab === t.key ? 'var(--text-strong)' : 'var(--text-faint)',
             }}>{t.label}</button>
           ))}
         </div>
@@ -1244,9 +1244,9 @@ function ThreeStatementModel({ data, quote }) {
           { label: 'Net Income', value: fmtB(ni2025) },
           { label: 'FCF', value: fmtB(fcf2025) },
         ].map(s => (
-          <div key={s.label} style={{ backgroundColor: 'rgba(240,165,0,0.06)', borderRadius: '6px', padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>{s.label}</div>
-            <div style={{ color: '#F0A500', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>{s.value}</div>
+          <div key={s.label} style={{ backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '6px', padding: '10px 14px', textAlign: 'center' }}>
+            <div style={{ color: 'var(--text-faint)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>{s.label}</div>
+            <div style={{ color: 'var(--gold)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -1424,7 +1424,7 @@ function ThreeStatementModel({ data, quote }) {
               <div style={{ ...LABEL_CELL, fontSize: '11px', fontWeight: 700 }}>Balance Check</div>
               {actualYears.map((_, i) => <div key={i} style={VAL_CELL}></div>)}
               {bsProj.map((p, i) => (
-                <div key={i} style={{ ...VAL_CELL, color: p.balCheck < 1 ? '#4ade80' : '#f87171', fontWeight: 700, fontSize: '11px' }}>
+                <div key={i} style={{ ...VAL_CELL, color: p.balCheck < 1 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 700, fontSize: '11px' }}>
                   {p.balCheck < 1 ? '\u2713 BALANCED' : `\u2717 ${fmtB(p.balCheck)}`}
                 </div>
               ))}
@@ -1468,9 +1468,9 @@ function ThreeStatementModel({ data, quote }) {
             {sectionLabel('INVESTING ACTIVITIES')}
             <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
               <div style={LABEL_CELL}>Capital Expenditures</div>
-              {cfRaw.map((d, i) => <div key={i} style={{ ...VAL_CELL, color: '#f87171' }}>{fmtB(d.capitalExpenditure)}</div>)}
+              {cfRaw.map((d, i) => <div key={i} style={{ ...VAL_CELL, color: 'var(--accent-red)' }}>{fmtB(d.capitalExpenditure)}</div>)}
               <CellInput value={capexPct} onChange={setCapexPct} />
-              {projYearLabels.slice(1).map((_, i) => <div key={i} style={{ ...VAL_CELL, color: '#f87171' }}>{fmtB(cfsProj[i + 1]?.capex)}</div>)}
+              {projYearLabels.slice(1).map((_, i) => <div key={i} style={{ ...VAL_CELL, color: 'var(--accent-red)' }}>{fmtB(cfsProj[i + 1]?.capex)}</div>)}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
               <div style={LABEL_CELL}>Acquisitions</div>
@@ -1622,27 +1622,27 @@ function MergerModel() {
   }, [acqShares, tgtPrice, tgtShares, acqPrice, cashPct, stockPct, cashIntRate, maTaxRate, acqNI, tgtNI, synY1, daWriteups, standaloneEPS]);
 
   const infoRow = (label, val, opts = {}) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{label}</span>
-      <span style={{ color: opts.gold ? '#F0A500' : opts.color || '#ffffff', fontSize: '12px', fontWeight: opts.bold ? 700 : 400, fontFamily: 'monospace' }}>{val}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid var(--row-border)' }}>
+      <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{label}</span>
+      <span style={{ color: opts.gold ? 'var(--gold)' : opts.color || 'var(--text-strong)', fontSize: '12px', fontWeight: opts.bold ? 700 : 400, fontFamily: 'monospace' }}>{val}</span>
     </div>
   );
 
   const inputRowMA = (label, val, set, suffix = '%') => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{label}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid var(--row-border)' }}>
+      <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <input type="number" step="0.1" value={val} onChange={e => set(parseFloat(e.target.value) || 0)}
-          style={{ background: 'rgba(147,197,253,0.08)', border: 'none', borderRadius: '4px', color: '#93c5fd', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
+          style={{ background: 'var(--input-bg)', border: 'none', borderRadius: '4px', color: 'var(--input-text)', textAlign: 'right', width: '80px', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px', outline: 'none' }}
         />
-        {suffix && <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>{suffix}</span>}
+        {suffix && <span style={{ color: 'var(--text-faint)', fontSize: '11px' }}>{suffix}</span>}
       </div>
     </div>
   );
 
   const searchBox = (label, value, onChange, onSubmit) => (
     <form onSubmit={onSubmit} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-      <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', minWidth: '60px' }}>{label}</span>
+      <span style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', minWidth: '60px' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', flex: 1 }}>
         <Search size={12} color="var(--text-tertiary)" />
         <input value={value} onChange={e => onChange(e.target.value.toUpperCase())} placeholder="TICKER"
@@ -1658,7 +1658,7 @@ function MergerModel() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '40px', gap: '24px', maxWidth: '600px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center' }}>
           <h2 style={{ color: 'var(--text-primary)', fontSize: '20px', fontWeight: 700, margin: '0 0 4px' }}>Merger Model (M&A)</h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', margin: 0 }}>Analyze whether an acquisition is accretive or dilutive to the acquirer's EPS</p>
+          <p style={{ color: 'var(--text-faint)', fontSize: '13px', margin: 0 }}>Analyze whether an acquisition is accretive or dilutive to the acquirer's EPS</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
           <div>
@@ -1668,7 +1668,7 @@ function MergerModel() {
             {searchBox('Target', tgtTicker, setTgtTicker, handleTgtSearch)}
           </div>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>Enter both tickers and press Enter to load data</p>
+        <p style={{ color: 'var(--text-faint)', fontSize: '11px' }}>Enter both tickers and press Enter to load data</p>
       </div>
     );
   }
@@ -1738,15 +1738,15 @@ function MergerModel() {
             <div style={CARD}>
               <h3 style={HEADER}>Sources & Uses</h3>
               <div style={{ padding: '14px' }}>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Uses</div>
+                <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Uses</div>
                 {infoRow('Equity Purchase Price', fmtB(transactionValue))}
                 {infoRow('Transaction Fees (1%)', fmtB(fees))}
                 {infoRow('Total Uses', fmtB(totalUses), { gold: true, bold: true })}
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '6px' }}>Sources</div>
+                <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '6px' }}>Sources</div>
                 {infoRow('Cash', fmtB(cashPortion))}
                 {infoRow('Stock Issued', fmtB(stockPortion))}
                 {infoRow('Total Sources', fmtB(cashPortion + stockPortion), { gold: true, bold: true })}
-                {infoRow('Check', Math.abs(totalUses - (cashPortion + stockPortion)) < 1 ? '\u2713 Balanced' : '\u2717 Mismatch', { color: Math.abs(totalUses - (cashPortion + stockPortion)) < 1 ? '#4ade80' : '#f87171' })}
+                {infoRow('Check', Math.abs(totalUses - (cashPortion + stockPortion)) < 1 ? '\u2713 Balanced' : '\u2717 Mismatch', { color: Math.abs(totalUses - (cashPortion + stockPortion)) < 1 ? 'var(--accent-green)' : 'var(--accent-red)' })}
               </div>
             </div>
           </div>
@@ -1758,9 +1758,9 @@ function MergerModel() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '12px' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '8px 14px', textAlign: 'left', color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.1)' }}></th>
-                    <th style={{ padding: '8px 14px', textAlign: 'right', color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Standalone</th>
-                    <th style={{ padding: '8px 14px', textAlign: 'right', color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Pro Forma</th>
+                    <th style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', borderBottom: '1px solid var(--row-border)' }}></th>
+                    <th style={{ padding: '8px 14px', textAlign: 'right', color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', borderBottom: '1px solid var(--row-border)' }}>Standalone</th>
+                    <th style={{ padding: '8px 14px', textAlign: 'right', color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', borderBottom: '1px solid var(--row-border)' }}>Pro Forma</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1780,9 +1780,9 @@ function MergerModel() {
                     { label: 'Pro Forma EPS', standalone: '\u2014', proforma: fmtPS(proFormaEPS), gold: true },
                   ].map((r, i) => (
                     <tr key={i}>
-                      <td style={{ padding: '6px 14px', color: r.gold ? '#F0A500' : 'rgba(255,255,255,0.6)', fontWeight: r.gold ? 700 : 400, borderBottom: '1px solid rgba(255,255,255,0.05)', fontFamily: r.gold ? 'monospace' : 'inherit', fontSize: r.label ? '12px' : '4px' }}>{r.label}</td>
-                      <td style={{ padding: '6px 14px', textAlign: 'right', color: r.gold ? '#F0A500' : '#ffffff', fontWeight: r.gold ? 700 : 400, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{r.standalone}</td>
-                      <td style={{ padding: '6px 14px', textAlign: 'right', color: r.neg ? '#f87171' : r.gold ? '#F0A500' : '#ffffff', fontWeight: r.gold ? 700 : 400, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{r.proforma}</td>
+                      <td style={{ padding: '6px 14px', color: r.gold ? 'var(--gold)' : 'var(--text-muted)', fontWeight: r.gold ? 700 : 400, borderBottom: '1px solid var(--row-border)', fontFamily: r.gold ? 'monospace' : 'inherit', fontSize: r.label ? '12px' : '4px' }}>{r.label}</td>
+                      <td style={{ padding: '6px 14px', textAlign: 'right', color: r.gold ? 'var(--gold)' : 'var(--text-strong)', fontWeight: r.gold ? 700 : 400, borderBottom: '1px solid var(--row-border)' }}>{r.standalone}</td>
+                      <td style={{ padding: '6px 14px', textAlign: 'right', color: r.neg ? 'var(--accent-red)' : r.gold ? 'var(--gold)' : 'var(--text-strong)', fontWeight: r.gold ? 700 : 400, borderBottom: '1px solid var(--row-border)' }}>{r.proforma}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1796,39 +1796,39 @@ function MergerModel() {
             backgroundColor: isAccretive ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
             border: `2px solid ${isAccretive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
           }}>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
+            <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
               Accretion / (Dilution)
             </div>
-            <div style={{ color: isAccretive ? '#22C55E' : '#EF4444', fontSize: '36px', fontWeight: 900, fontFamily: 'monospace' }}>
+            <div style={{ color: isAccretive ? 'var(--green)' : 'var(--red)', fontSize: '36px', fontWeight: 900, fontFamily: 'monospace' }}>
               {isAccretive ? 'ACCRETIVE' : 'DILUTIVE'}
             </div>
-            <div style={{ color: isAccretive ? '#4ade80' : '#f87171', fontSize: '20px', fontWeight: 700, fontFamily: 'monospace', marginTop: '4px' }}>
+            <div style={{ color: isAccretive ? 'var(--accent-green)' : 'var(--accent-red)', fontSize: '20px', fontWeight: 700, fontFamily: 'monospace', marginTop: '4px' }}>
               {accDilAmt >= 0 ? '+' : ''}{fmtPS(accDilAmt)} ({accDilPct >= 0 ? '+' : ''}{accDilPct.toFixed(1)}%)
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '16px' }}>
               <div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', textTransform: 'uppercase' }}>Standalone EPS</div>
-                <div style={{ color: '#F0A500', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtPS(standaloneEPS)}</div>
+                <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase' }}>Standalone EPS</div>
+                <div style={{ color: 'var(--gold)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtPS(standaloneEPS)}</div>
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '20px', display: 'flex', alignItems: 'center' }}>{'\u2192'}</div>
+              <div style={{ color: 'var(--text-dim)', fontSize: '20px', display: 'flex', alignItems: 'center' }}>{'\u2192'}</div>
               <div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', textTransform: 'uppercase' }}>Pro Forma EPS</div>
-                <div style={{ color: '#F0A500', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtPS(proFormaEPS)}</div>
+                <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase' }}>Pro Forma EPS</div>
+                <div style={{ color: 'var(--gold)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtPS(proFormaEPS)}</div>
               </div>
             </div>
           </div>
 
           {/* Breakeven */}
-          <div style={{ marginTop: '16px', padding: '14px 18px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '8px', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+          <div style={{ marginTop: '16px', padding: '14px 18px', backgroundColor: 'var(--row-section-bg)', borderRadius: '8px', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Breakeven Synergies</div>
-              <div style={{ color: '#F0A500', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
+              <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Breakeven Synergies</div>
+              <div style={{ color: 'var(--gold)', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
                 {breakEvenSynergies != null ? `$${breakEvenSynergies.toFixed(1)}M / year` : '\u2014'}
               </div>
             </div>
             <div style={{ flex: 1, minWidth: '200px' }}>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Breakeven Premium</div>
-              <div style={{ color: '#F0A500', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
+              <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Breakeven Premium</div>
+              <div style={{ color: 'var(--gold)', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
                 {breakEvenPremium != null ? `${breakEvenPremium.toFixed(1)}%` : '\u2014'}
               </div>
             </div>
@@ -1926,7 +1926,7 @@ export default function Models() {
               textTransform: 'uppercase', cursor: 'pointer', transition: 'all 150ms',
               borderRadius: '4px',
               border: activeModel === t.key ? '1px solid var(--gold)' : '1px solid var(--border-color)',
-              background: activeModel === t.key ? 'rgba(234,179,8,0.12)' : 'transparent',
+              background: activeModel === t.key ? 'var(--gold-active-bg)' : 'transparent',
               color: activeModel === t.key ? 'var(--gold)' : 'var(--text-tertiary)',
             }}>{t.label}</button>
           ))}
@@ -1954,7 +1954,7 @@ export default function Models() {
       )}
 
       <style>{`
-        .hover-row:hover { background-color: rgba(255,255,255,0.03) !important; }
+        .hover-row:hover { background-color: var(--row-hover-bg) !important; }
       `}</style>
     </div>
   );

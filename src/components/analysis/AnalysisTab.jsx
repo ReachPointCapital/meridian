@@ -42,7 +42,7 @@ function scorePE(pe) { if (pe == null) return 3; if (pe < 10) return 5; if (pe <
 function scorePB(pb) { if (pb == null) return 3; if (pb < 1) return 5; if (pb < 2) return 4; if (pb < 3) return 3; if (pb < 5) return 2; return 1; }
 function scorePEG(peg) { if (peg == null) return 3; if (peg < 0.5) return 5; if (peg < 1) return 4; if (peg < 1.5) return 3; if (peg < 2) return 2; return 1; }
 function scoreDY(dy) { if (dy == null) return 3; if (dy > 4) return 5; if (dy > 2.5) return 4; if (dy > 1) return 3; if (dy > 0) return 2; return 1; }
-function scoreColor(s) { if (s >= 4) return '#22c55e'; if (s >= 3) return '#4ade80'; if (s >= 2) return '#eab308'; return '#ef4444'; }
+function scoreColor(s) { if (s >= 4) return 'var(--green)'; if (s >= 3) return 'var(--accent-green)'; if (s >= 2) return 'var(--gold)'; return 'var(--red)'; }
 function scoreLabel(a) { if (a >= 4) return 'Deep Value'; if (a >= 3) return 'Undervalued'; if (a >= 2) return 'Fair Value'; return 'Overvalued'; }
 function fmt(v) { return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(2); }
 
@@ -189,7 +189,7 @@ function EmptyState({ onSearch }) {
       {/* 1. Header */}
       <div style={{ textAlign: 'center' }}>
         <h2 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>Analysis</h2>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: 0 }}>Deep-dive any stock, ETF, commodity, or index</p>
+        <p style={{ color: 'var(--text-faint)', fontSize: '14px', margin: 0 }}>Deep-dive any stock, ETF, commodity, or index</p>
       </div>
 
       {/* 2. Hero Search */}
@@ -262,22 +262,22 @@ function EmptyState({ onSearch }) {
               const isPos = pctNum >= 0;
               return (
                 <div key={`${t.symbol}-${i}`} onClick={() => onSearch(t.symbol)} style={{
-                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  backgroundColor: 'var(--row-section-bg)',
                   borderRadius: '8px',
                   padding: '12px',
                   cursor: 'pointer',
                   transition: 'background 150ms ease',
                 }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--row-hover-bg)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--row-section-bg)'}
                 >
                   <div style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>{t.symbol}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '6px' }}>{t.name || t.companyName || ''}</div>
+                  <div style={{ color: 'var(--text-faint)', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '6px' }}>{t.name || t.companyName || ''}</div>
                   <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600, fontFamily: 'monospace' }}>{formatPrice(t.price)}</div>
                   <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
                     {isPos ? '+' : ''}{typeof pctNum === 'number' ? pctNum.toFixed(2) : pctNum}%
                   </div>
-                  <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', marginTop: '6px', textTransform: 'uppercase' }}>{t.badge}</div>
+                  <div style={{ color: 'var(--text-dim)', fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', marginTop: '6px', textTransform: 'uppercase' }}>{t.badge}</div>
                 </div>
               );
             })}
@@ -293,7 +293,7 @@ function EmptyState({ onSearch }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
           {SECTOR_ETFS.map(s => (
             <button key={s.ticker} onClick={() => onSearch(s.ticker)} style={{
-              backgroundColor: 'rgba(255,255,255,0.04)',
+              backgroundColor: 'var(--row-section-bg)',
               border: 'none',
               borderRadius: '8px',
               padding: '8px 14px',
@@ -301,8 +301,8 @@ function EmptyState({ onSearch }) {
               transition: 'background 150ms ease',
               textAlign: 'center',
             }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--row-hover-bg)'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--row-section-bg)'}
             >
               <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 500 }}>{s.label}</div>
               <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontFamily: 'monospace', marginTop: '2px' }}>{s.ticker}</div>
@@ -317,11 +317,11 @@ function EmptyState({ onSearch }) {
           <div style={{ ...SECTION_HEADER, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Recently Analyzed</span>
             <button onClick={clearRecent} style={{
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)',
+              background: 'none', border: 'none', color: 'var(--text-faint)',
               fontSize: '10px', cursor: 'pointer', padding: '0', transition: 'color 150ms',
             }}
-              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-muted)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
             >
               Clear
             </button>
@@ -505,11 +505,11 @@ function AnalystConsensus({ analyst, quote }) {
   const upside = currentPrice && meanTarget ? ((meanTarget - currentPrice) / currentPrice * 100) : null;
 
   const segments = [
-    { label: 'Strong Buy', count: strongBuy, color: '#22c55e' },
-    { label: 'Buy', count: buy, color: '#4ade80' },
-    { label: 'Hold', count: hold, color: '#eab308' },
+    { label: 'Strong Buy', count: strongBuy, color: 'var(--green)' },
+    { label: 'Buy', count: buy, color: 'var(--accent-green)' },
+    { label: 'Hold', count: hold, color: 'var(--gold)' },
     { label: 'Sell', count: sell, color: '#f97316' },
-    { label: 'Strong Sell', count: strongSell, color: '#ef4444' },
+    { label: 'Strong Sell', count: strongSell, color: 'var(--red)' },
   ];
 
   return (
@@ -538,23 +538,23 @@ function AnalystConsensus({ analyst, quote }) {
         </div>
         {/* Consensus summary boxes */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <div style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#4ade80', fontFamily: 'monospace' }}>{pctBullish}%</div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Bullish</div>
+          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-green)', fontFamily: 'monospace' }}>{pctBullish}%</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '2px' }}>Bullish</div>
           </div>
-          <div style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#eab308', fontFamily: 'monospace' }}>{pctNeutral}%</div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Neutral</div>
+          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gold)', fontFamily: 'monospace' }}>{pctNeutral}%</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '2px' }}>Neutral</div>
           </div>
-          <div style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#f87171', fontFamily: 'monospace' }}>{pctBearish}%</div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Bearish</div>
+          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-red)', fontFamily: 'monospace' }}>{pctBearish}%</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '2px' }}>Bearish</div>
           </div>
         </div>
         {/* Upside line */}
         {upside != null && (
-          <div style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px' }}>
-            Consensus implies <span style={{ color: upside >= 0 ? '#4ade80' : '#f87171', fontWeight: 600 }}>{upside >= 0 ? '+' : ''}{upside.toFixed(1)}%</span> upside to mean target of {formatPrice(meanTarget)}
+          <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+            Consensus implies <span style={{ color: upside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{upside >= 0 ? '+' : ''}{upside.toFixed(1)}%</span> upside to mean target of {formatPrice(meanTarget)}
           </div>
         )}
         {/* Price target section */}
@@ -1103,8 +1103,8 @@ function KeyRisks({ quote, analyst, technicals, profile, financials }) {
   if (risks.length === 0) return null;
 
   const severityStyles = {
-    High: { bg: 'rgba(239,68,68,0.12)', color: 'var(--red)', border: 'rgba(239,68,68,0.25)', badge: '#ef4444' },
-    Medium: { bg: 'rgba(234,179,8,0.12)', color: '#eab308', border: 'rgba(234,179,8,0.25)', badge: '#eab308' },
+    High: { bg: 'rgba(239,68,68,0.12)', color: 'var(--red)', border: 'rgba(239,68,68,0.25)', badge: 'var(--red)' },
+    Medium: { bg: 'rgba(234,179,8,0.12)', color: 'var(--gold)', border: 'rgba(234,179,8,0.25)', badge: 'var(--gold)' },
     Low: { bg: 'rgba(59,130,246,0.12)', color: '#3B82F6', border: 'rgba(59,130,246,0.25)', badge: '#3B82F6' },
   };
 
@@ -1377,12 +1377,12 @@ function KeyStatsGrid({ quote, analyst }) {
   if (!quote) return null;
 
   const getColor = (value) => {
-    if (value === '\u2014' || value == null) return 'rgba(255,255,255,0.25)';
+    if (value === '\u2014' || value == null) return 'var(--text-dim)';
     if (typeof value === 'string' && value.includes('%')) {
       const num = parseFloat(value);
-      if (!isNaN(num)) return num < 0 ? '#f87171' : '#4ade80';
+      if (!isNaN(num)) return num < 0 ? 'var(--accent-red)' : 'var(--accent-green)';
     }
-    return '#ffffff';
+    return 'var(--text-strong)';
   };
 
   // 4 rows × 6 columns = 24 stats
@@ -1431,8 +1431,8 @@ function KeyStatsGrid({ quote, analyst }) {
               <div key={s.label} title={s.tip} style={{
                 display: 'block',
                 padding: '10px 14px',
-                borderRight: colIdx < 5 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                borderBottom: rowIdx < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                borderRight: colIdx < 5 ? '1px solid var(--row-border)' : 'none',
+                borderBottom: rowIdx < 3 ? '1px solid var(--row-border)' : 'none',
                 overflow: 'hidden',
               }}>
                 <div style={{
@@ -1440,7 +1440,7 @@ function KeyStatsGrid({ quote, analyst }) {
                   fontSize: '9px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-faint)',
                   marginBottom: '6px',
                   whiteSpace: 'nowrap',
                 }}>
