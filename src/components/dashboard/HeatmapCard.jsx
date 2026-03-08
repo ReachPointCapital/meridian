@@ -29,7 +29,7 @@ export default function HeatmapCard({ onNavigate }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
-  const [sortMode, setSortMode] = useState('mktcap');
+  const [sortMode, setSortMode] = useState('swing');
   const [hovered, setHovered] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
