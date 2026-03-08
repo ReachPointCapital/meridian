@@ -3,6 +3,11 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { X, Printer, HelpCircle } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { ProProvider } from './context/ProContext';
+import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './components/Toast';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ResetPassword from './pages/ResetPassword';
 import Navbar from './components/layout/Navbar';
 import Layout from './components/layout/Layout';
 import EarningsCalendar from './components/terminal/EarningsCalendar';
@@ -419,15 +424,22 @@ function HomeWithLayout() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <ProProvider>
-        <DisclaimerModal />
-        <Routes>
-          <Route path="/" element={<HomeWithLayout />} />
-          <Route path="/disclaimer" element={<Disclaimer />} />
-          <Route path="/*" element={<AppContent />} />
-        </Routes>
-      </ProProvider>
-    </AppProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <AppProvider>
+          <ProProvider>
+            <DisclaimerModal />
+            <Routes>
+              <Route path="/" element={<HomeWithLayout />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/*" element={<AppContent />} />
+            </Routes>
+          </ProProvider>
+        </AppProvider>
+      </ToastProvider>
+    </AuthProvider>
   );
 }

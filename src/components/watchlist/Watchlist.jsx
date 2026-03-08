@@ -3,11 +3,14 @@ import { Plus, X, RefreshCw, GripVertical } from 'lucide-react';
 import { getQuotes } from '../../services/fmp';
 import { formatPrice, formatPercent, formatMarketCap, formatVolume } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 const DEFAULT_TICKERS = ['SPY', 'QQQ', 'AAPL', 'MSFT', 'TSLA', 'NVDA', 'BTC-USD'];
 
 export default function Watchlist({ setActiveTab }) {
   const { setActiveSymbol } = useApp();
+  const { user } = useAuth();
   const [tickers, setTickers] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('meridian-watchlist'));
@@ -20,9 +23,45 @@ export default function Watchlist({ setActiveTab }) {
   const [dragIdx, setDragIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
 
+  // Load watchlist from Supabase for logged-in users
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('watchlists')
+        .select('ticker')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+      if (data && data.length > 0) {
+        setTickers(data.map(r => r.ticker));
+      } else {
+        // Migrate localStorage to Supabase on first login
+        const local = JSON.parse(localStorage.getItem('meridian-watchlist') || '[]');
+        if (local.length > 0) {
+          const rows = local.map(t => ({ user_id: user.id, ticker: t }));
+          await supabase.from('watchlists').upsert(rows, { onConflict: 'user_id,ticker' });
+        }
+      }
+    })();
+  }, [user]);
+
+  // Persist tickers
   useEffect(() => {
     localStorage.setItem('meridian-watchlist', JSON.stringify(tickers));
   }, [tickers]);
+
+  // Sync to Supabase when tickers change (for logged-in users)
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      // Delete all and re-insert to preserve order
+      await supabase.from('watchlists').delete().eq('user_id', user.id);
+      if (tickers.length > 0) {
+        const rows = tickers.map(t => ({ user_id: user.id, ticker: t }));
+        await supabase.from('watchlists').insert(rows);
+      }
+    })();
+  }, [tickers, user]);
 
   const fetchAll = useCallback(async () => {
     if (tickers.length === 0) return;

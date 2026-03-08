@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, LogOut } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { usePro } from '../../context/ProContext';
+import { useAuth } from '../../context/AuthContext';
 import TickerSearch from '../TickerSearch';
+import AuthModal from '../auth/AuthModal';
 
 function isMarketOpen() {
   const now = new Date();
@@ -33,8 +35,12 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
   const { setActiveSymbol } = useApp();
   const { theme, toggleTheme } = useTheme();
   const { isPro, togglePro } = usePro();
+  const { user, signOut } = useAuth();
   const [now, setNow] = useState(new Date());
   const [open, setOpen] = useState(isMarketOpen());
+  const [authModal, setAuthModal] = useState(null); // 'signin' | 'signup' | null
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef = useRef(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,6 +49,16 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Close avatar dropdown on outside click
+  useEffect(() => {
+    if (!avatarOpen) return;
+    const handler = (e) => {
+      if (avatarRef.current && !avatarRef.current.contains(e.target)) setAvatarOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [avatarOpen]);
 
   const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', {
@@ -207,6 +223,79 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
           )}
         </div>
 
+        {/* Auth */}
+        {user ? (
+          <div ref={avatarRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => setAvatarOpen(!avatarOpen)}
+              style={{
+                width: '30px', height: '30px', borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--gold), #E2BC5A)',
+                border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 700,
+              }}
+              title={user.email}
+            >
+              {(user.email || '?')[0].toUpperCase()}
+            </button>
+            {avatarOpen && (
+              <div style={{
+                position: 'absolute', top: '38px', right: 0,
+                background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                borderRadius: '8px', padding: '8px 0', minWidth: '200px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 200,
+              }}>
+                <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                  <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600 }}>
+                    {user.email}
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setAvatarOpen(false); signOut(); }}
+                  style={{
+                    width: '100%', background: 'none', border: 'none',
+                    padding: '8px 16px', color: 'var(--text-secondary)',
+                    fontSize: '12px', cursor: 'pointer', textAlign: 'left',
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                >
+                  <LogOut size={14} /> Sign Out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => setAuthModal('signin')}
+              style={{
+                background: 'none', border: '1px solid var(--border-color)',
+                borderRadius: '6px', padding: '5px 12px',
+                color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 500,
+                cursor: 'pointer', transition: 'all 150ms ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => setAuthModal('signup')}
+              style={{
+                background: 'var(--gold)', border: 'none',
+                borderRadius: '6px', padding: '5px 12px',
+                color: 'var(--bg-primary)', fontSize: '11px', fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Sign Up
+            </button>
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div style={{
             width: '7px',
@@ -234,6 +323,8 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
           </div>
         </div>
       </div>
+
+      {authModal && <AuthModal onClose={() => setAuthModal(null)} initialMode={authModal} />}
     </nav>
   );
 }

@@ -8,6 +8,8 @@ import { useApp } from '../../context/AppContext';
 import { formatPrice, formatMarketCap, formatPercent, formatDividendYield } from '../../utils/formatters';
 import { calculateRSI, checkCrossSignal, calculateMACD, volumeTrend, pricePosition } from '../../utils/technicals';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, Copy, Check, Save, ExternalLink, Info } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 import TickerSearch from '../TickerSearch';
 import InfoTooltip from '../ui/InfoTooltip';
 import PriceChart from '../terminal/PriceChart';
@@ -1193,19 +1195,40 @@ function AutoThesis({ quote, analyst, technicals, valuation, profile, financials
 
 // ── User Notes ──
 function UserNotes({ symbol }) {
+  const { user } = useAuth();
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(`thesis_${symbol}`) || '';
-    setNotes(stored);
-    setExpanded(stored.length > 0);
     setSaved(false);
-  }, [symbol]);
+    if (user) {
+      // Load from Supabase
+      supabase.from('notes').select('content').eq('user_id', user.id).eq('ticker', symbol).single()
+        .then(({ data }) => {
+          const content = data?.content || '';
+          setNotes(content);
+          setExpanded(content.length > 0);
+        });
+    } else {
+      const stored = localStorage.getItem(`thesis_${symbol}`) || '';
+      setNotes(stored);
+      setExpanded(stored.length > 0);
+    }
+  }, [symbol, user]);
 
-  const handleSave = () => { localStorage.setItem(`thesis_${symbol}`, notes); setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  const handleSave = async () => {
+    if (user) {
+      await supabase.from('notes').upsert(
+        { user_id: user.id, ticker: symbol, content: notes, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id,ticker' }
+      );
+    } else {
+      localStorage.setItem(`thesis_${symbol}`, notes);
+    }
+    setSaved(true); setTimeout(() => setSaved(false), 2000);
+  };
   const handleExport = () => { navigator.clipboard.writeText(`${symbol} Notes:\n${notes}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); };
 
   return (
