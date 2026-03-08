@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
@@ -15,15 +15,6 @@ import PriceChart from '../terminal/PriceChart';
 import NewsFeed from '../terminal/NewsFeed';
 
 // ── RPR Fair Value Helpers ──
-const calculateAvgGrowth = (values) => {
-  if (!values || values.length < 2) return 0.08;
-  const filtered = values.filter(Boolean);
-  if (filtered.length < 2) return 0.08;
-  const growth = filtered.slice(1).map((v, i) => (v - filtered[i]) / Math.abs(filtered[i]));
-  const avg = growth.reduce((a, b) => a + b, 0) / growth.length;
-  return isFinite(avg) ? avg : 0.08;
-};
-
 const rprAverage = (values) => {
   const filtered = values.filter(v => v != null && !isNaN(v));
   return filtered.length ? filtered.reduce((a, b) => a + b, 0) / filtered.length : 0;
@@ -673,106 +664,118 @@ function TechnicalIndicators({ technicals, quote }) {
 }
 
 // ── RPR Fair Value ──
-function RPRFairValue({ symbol, quote }) {
-  const [rprData, setRprData] = useState(null);
+const RPB_SCENARIOS = {
+  0: { label: 'Bear', color: '#dc2626', wacc: 13.0, revenueGrowth: -2.0, netMargin: 4.0, ebitdaMargin: 16.0, terminalGrowth: 1.0 },
+  1: { label: 'Conservative', color: '#f59e0b', wacc: 11.5, revenueGrowth: 4.0, netMargin: 7.0, ebitdaMargin: 21.0, terminalGrowth: 2.0 },
+  2: { label: 'Base', color: '#F0A500', wacc: 10.0, revenueGrowth: 8.0, netMargin: 10.0, ebitdaMargin: 25.0, terminalGrowth: 2.5 },
+  3: { label: 'Bull', color: '#4ade80', wacc: 8.5, revenueGrowth: 15.0, netMargin: 14.0, ebitdaMargin: 30.0, terminalGrowth: 3.0 },
+  4: { label: 'Aggressive', color: '#a855f7', wacc: 7.0, revenueGrowth: 25.0, netMargin: 20.0, ebitdaMargin: 38.0, terminalGrowth: 4.0 },
+};
+
+function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
+  const [financialData, setFinancialData] = useState(null);
   const [rprLoading, setRprLoading] = useState(true);
+  const [rpbScenarioIndex, setRpbScenarioIndex] = useState(2);
+  const lt = document.documentElement.getAttribute('data-theme') === 'light';
 
   useEffect(() => {
     if (!symbol) return;
     setRprLoading(true);
-    setRprData(null);
+    setFinancialData(null);
     (async () => {
       try {
-        const [finResult] = await Promise.allSettled([
-          api.modelFinancials(symbol),
-        ]);
+        const [finResult] = await Promise.allSettled([api.modelFinancials(symbol)]);
         const fin = finResult.status === 'fulfilled' ? finResult.value : null;
-        if (!fin || !fin.incomeStatement?.length) { setRprLoading(false); return; }
-
-        const incomeStmts = fin.incomeStatement;
-        const cashFlows = fin.cashFlow || [];
-        const balanceSheets = fin.balanceSheet || [];
-        const keyStats = fin.keyStats || {};
-        const lastIncome = incomeStmts[incomeStmts.length - 1] || {};
-        const lastBS = balanceSheets[balanceSheets.length - 1] || {};
-        const lastRev = lastIncome.revenue || 0;
-        const shares = keyStats.sharesOutstanding || (quote?.marketCap && quote?.price ? quote.marketCap / quote.price : 1);
-        const bsNetDebt = (lastBS.longTermDebt || lastBS.totalDebt || 0) - (lastBS.cashAndCashEquivalents || 0);
-
-        // 1. DCF Component
-        const avgRevGrowth = calculateAvgGrowth(incomeStmts.map(s => s.revenue));
-        const avgNetMargin = rprAverage(incomeStmts.map(s => s.netMargin).filter(Boolean));
-        const avgCapexPct = rprAverage(cashFlows.map(s =>
-          s.capitalExpenditure && lastRev ? Math.abs(s.capitalExpenditure) / (incomeStmts[cashFlows.indexOf(s)]?.revenue || lastRev) : null
-        ).filter(Boolean));
-        const avgDAPct = rprAverage(cashFlows.map(s =>
-          s.depreciationAndAmortization ? Math.abs(s.depreciationAndAmortization) / (incomeStmts[cashFlows.indexOf(s)]?.revenue || lastRev) : null
-        ).filter(Boolean));
-
-        const revenueGrowth = Math.min(avgRevGrowth * 0.8, 0.25);
-        const ebitMargin = avgNetMargin > 0 ? avgNetMargin * 1.4 : 0.15;
-        const taxRate = 0.21;
-        const wacc = 0.10;
-        const g = 0.025;
-
-        const fcfs = [1, 2, 3, 4, 5].map(y => {
-          const rev = lastRev * Math.pow(1 + revenueGrowth, y);
-          const ebit = rev * ebitMargin;
-          const nopat = ebit * (1 - taxRate);
-          const da = rev * (avgDAPct || 0.05);
-          const capex = rev * (avgCapexPct || 0.04);
-          return nopat + da - capex;
-        });
-
-        const pvFCFs = fcfs.map((f, i) => f / Math.pow(1.10, i + 1));
-        const terminalValue = fcfs[4] * (1 + g) / (wacc - g);
-        const pvTerminal = terminalValue / Math.pow(1.10, 5);
-        const ev = pvFCFs.reduce((a, b) => a + b, 0) + pvTerminal;
-        const dcfPrice = shares > 0 ? (ev - bsNetDebt) / shares : null;
-
-        // 2. Forward EPS Component
-        const forwardEPS = keyStats.forwardEPS;
-        const forwardPE = keyStats.forwardPE || 20;
-        const appliedPE = Math.min(forwardPE, 30);
-        const epsPrice = forwardEPS ? forwardEPS * appliedPE : null;
-
-        // 3. Comps EV/EBITDA Component
-        const lastEBITDA = lastIncome.ebitda || 0;
-        const medianMultiple = 12;
-        const compsPrice = lastEBITDA > 0 && shares > 0 ? (lastEBITDA * medianMultiple - bsNetDebt) / shares : null;
-
-        // Weighted composite with null handling
-        const components = [
-          { name: 'dcf', price: dcfPrice, weight: 0.40 },
-          { name: 'eps', price: epsPrice, weight: 0.35 },
-          { name: 'comps', price: compsPrice, weight: 0.25 },
-        ];
-        const available = components.filter(c => c.price != null && isFinite(c.price) && c.price > 0);
-        const totalWeight = available.reduce((s, c) => s + c.weight, 0);
-        const fairValue = totalWeight > 0
-          ? available.reduce((s, c) => s + c.price * (c.weight / totalWeight), 0)
-          : null;
-
-        // Confidence
-        const yearsOfData = incomeStmts.length;
-        let confidence = 'LOW';
-        if (available.length >= 3 && yearsOfData >= 4) confidence = 'HIGH';
-        else if (available.length >= 2 && yearsOfData >= 3) confidence = 'MEDIUM';
-
-        setRprData({
-          fairValue,
-          dcfPrice: dcfPrice && isFinite(dcfPrice) && dcfPrice > 0 ? dcfPrice : null,
-          epsPrice: epsPrice && isFinite(epsPrice) && epsPrice > 0 ? epsPrice : null,
-          compsPrice: compsPrice && isFinite(compsPrice) && compsPrice > 0 ? compsPrice : null,
-          confidence,
-          availableCount: available.length,
-        });
+        if (fin && fin.incomeStatement?.length) {
+          setFinancialData(fin);
+        }
       } catch (e) {
-        console.error('RPR Fair Value calc failed:', e);
+        console.error('RPR Fair Value fetch failed:', e);
       }
       setRprLoading(false);
     })();
-  }, [symbol, quote?.marketCap, quote?.price]);
+  }, [symbol]);
+
+  const rprData = useMemo(() => {
+    if (!financialData) return null;
+    const scenario = RPB_SCENARIOS[rpbScenarioIndex];
+    const incomeStmts = financialData.incomeStatement;
+    const cashFlows = financialData.cashFlow || [];
+    const balanceSheets = financialData.balanceSheet || [];
+    const keyStats = financialData.keyStats || {};
+    const lastIncome = incomeStmts[incomeStmts.length - 1] || {};
+    const lastBS = balanceSheets[balanceSheets.length - 1] || {};
+    const lastRev = lastIncome.revenue || 0;
+    const shares = keyStats.sharesOutstanding || (quote?.marketCap && quote?.price ? quote.marketCap / quote.price : 1);
+    const bsNetDebt = (lastBS.longTermDebt || lastBS.totalDebt || 0) - (lastBS.cashAndCashEquivalents || 0);
+
+    const avgCapexPct = rprAverage(cashFlows.map(s =>
+      s.capitalExpenditure && lastRev ? Math.abs(s.capitalExpenditure) / (incomeStmts[cashFlows.indexOf(s)]?.revenue || lastRev) : null
+    ).filter(Boolean));
+    const avgDAPct = rprAverage(cashFlows.map(s =>
+      s.depreciationAndAmortization ? Math.abs(s.depreciationAndAmortization) / (incomeStmts[cashFlows.indexOf(s)]?.revenue || lastRev) : null
+    ).filter(Boolean));
+
+    // 1. DCF Component — driven by scenario
+    const revenueGrowth = scenario.revenueGrowth / 100;
+    const ebitMargin = scenario.netMargin / 100 * 1.4;
+    const taxRate = 0.21;
+    const wacc = scenario.wacc / 100;
+    const g = scenario.terminalGrowth / 100;
+
+    const fcfs = [1, 2, 3, 4, 5].map(y => {
+      const rev = lastRev * Math.pow(1 + revenueGrowth, y);
+      const ebit = rev * ebitMargin;
+      const nopat = ebit * (1 - taxRate);
+      const da = rev * (avgDAPct || 0.05);
+      const capex = rev * (avgCapexPct || 0.04);
+      return nopat + da - capex;
+    });
+
+    const pvFCFs = fcfs.map((f, i) => f / Math.pow(1 + wacc, i + 1));
+    const terminalValue = fcfs[4] > 0 ? fcfs[4] * (1 + g) / (wacc - g) : 0;
+    const pvTerminal = terminalValue / Math.pow(1 + wacc, 5);
+    const ev = pvFCFs.reduce((a, b) => a + b, 0) + pvTerminal;
+    const dcfPrice = shares > 0 ? (ev - bsNetDebt) / shares : null;
+
+    // 2. Forward EPS Component
+    const forwardEPS = keyStats.forwardEPS;
+    const forwardPE = keyStats.forwardPE || 20;
+    const appliedPE = Math.min(forwardPE, 30);
+    const epsPrice = forwardEPS ? forwardEPS * appliedPE : null;
+
+    // 3. Comps EV/EBITDA Component — use scenario ebitdaMargin for estimation
+    const lastEBITDA = lastIncome.ebitda || (lastRev * scenario.ebitdaMargin / 100);
+    const medianMultiple = 12;
+    const compsPrice = lastEBITDA > 0 && shares > 0 ? (lastEBITDA * medianMultiple - bsNetDebt) / shares : null;
+
+    // Weighted composite with null handling
+    const components = [
+      { name: 'dcf', price: dcfPrice, weight: 0.40 },
+      { name: 'eps', price: epsPrice, weight: 0.35 },
+      { name: 'comps', price: compsPrice, weight: 0.25 },
+    ];
+    const available = components.filter(c => c.price != null && isFinite(c.price) && c.price > 0);
+    const totalWeight = available.reduce((s, c) => s + c.weight, 0);
+    const fairValue = totalWeight > 0
+      ? available.reduce((s, c) => s + c.price * (c.weight / totalWeight), 0)
+      : null;
+
+    // Confidence
+    const yearsOfData = incomeStmts.length;
+    let confidence = 'LOW';
+    if (available.length >= 3 && yearsOfData >= 4) confidence = 'HIGH';
+    else if (available.length >= 2 && yearsOfData >= 3) confidence = 'MEDIUM';
+
+    return {
+      fairValue,
+      dcfPrice: dcfPrice && isFinite(dcfPrice) && dcfPrice > 0 ? dcfPrice : null,
+      epsPrice: epsPrice && isFinite(epsPrice) && epsPrice > 0 ? epsPrice : null,
+      compsPrice: compsPrice && isFinite(compsPrice) && compsPrice > 0 ? compsPrice : null,
+      confidence,
+      availableCount: available.length,
+    };
+  }, [financialData, rpbScenarioIndex, quote?.marketCap, quote?.price]);
 
   if (rprLoading) {
     return (
@@ -842,7 +845,55 @@ function RPRFairValue({ symbol, quote }) {
             <span className="tooltip-text">Proprietary valuation model combining DCF (40%), Forward EPS (35%), and Comparable multiples (25%). Automatically calculated using historical financials and consensus estimates.</span>
           </div>
         </div>
-        <span style={{ color: 'var(--text-dim)', fontSize: '9px' }}>Auto-calculated · Updates with market data</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ color: 'var(--text-dim)', fontSize: '9px' }}>Auto-calculated · Updates with market data</span>
+          {setActiveTab && (
+            <span
+              onClick={() => { if (setActiveSymbol) setActiveSymbol(symbol); setActiveTab('Models'); }}
+              style={{ color: '#F0A500', fontSize: '11px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              → Deep Dive in Models
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Scenario Slider */}
+      <div style={{ padding: '0 4px', marginTop: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+          {Object.values(RPB_SCENARIOS).map((s, i) => (
+            <span
+              key={i}
+              onClick={() => setRpbScenarioIndex(i)}
+              style={{
+                fontSize: '9px', fontWeight: rpbScenarioIndex === i ? 700 : 400,
+                color: rpbScenarioIndex === i ? s.color : (lt ? '#9ca3af' : 'rgba(255,255,255,0.25)'),
+                cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em',
+                transition: 'all 0.15s',
+              }}
+            >
+              {s.label}
+            </span>
+          ))}
+        </div>
+        <input
+          type="range" min={0} max={4} step={1}
+          value={rpbScenarioIndex}
+          onChange={e => setRpbScenarioIndex(Number(e.target.value))}
+          style={{ width: '100%', height: '3px', cursor: 'pointer', accentColor: RPB_SCENARIOS[rpbScenarioIndex].color }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '6px', gap: '6px', alignItems: 'center' }}>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: RPB_SCENARIOS[rpbScenarioIndex].color }}>
+            {RPB_SCENARIOS[rpbScenarioIndex].label} Case
+          </span>
+          <span style={{ fontSize: '9px', color: lt ? '#6b7280' : 'rgba(255,255,255,0.25)' }}>
+            · WACC {RPB_SCENARIOS[rpbScenarioIndex].wacc}%
+            · Growth {RPB_SCENARIOS[rpbScenarioIndex].revenueGrowth}%
+            · Net Margin {RPB_SCENARIOS[rpbScenarioIndex].netMargin}%
+          </span>
+        </div>
       </div>
 
       {/* Body */}
@@ -1636,7 +1687,7 @@ function KeyStatsGrid({ quote, analyst }) {
 }
 
 // ── Main ──
-export default function AnalysisTab() {
+export default function AnalysisTab({ setActiveTab }) {
   const { activeSymbol, setActiveSymbol } = useApp();
   const [analysisSymbol, setAnalysisSymbol] = useState(activeSymbol || '');
   const [analysisData, setAnalysisData] = useState(null);
@@ -1770,7 +1821,7 @@ export default function AnalysisTab() {
           {technicals && <OverallSignal technicals={technicals} valuation={valAvg} />}
 
           {/* Row 5a: RPR Fair Value (full width) */}
-          <RPRFairValue symbol={analysisSymbol} quote={quote} />
+          <RPRFairValue symbol={analysisSymbol} quote={quote} setActiveTab={setActiveTab} setActiveSymbol={setActiveSymbol} />
 
           {/* Row 5b: Technical indicators + valuation (2 columns) */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
