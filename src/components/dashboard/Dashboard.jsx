@@ -51,7 +51,7 @@ const SNAPSHOT_GROUPS = [
   },
 ];
 
-function MarketSnapshot() {
+function MarketSnapshot({ onNavigate }) {
   const [prices, setPrices] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -92,13 +92,14 @@ function MarketSnapshot() {
             return (
               <div
                 key={item.symbol}
+                onClick={() => onNavigate && onNavigate(item.symbol)}
                 style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '8px 14px', borderBottom: '1px solid var(--border-color)',
-                  cursor: 'pointer', transition: 'background 150ms ease',
+                  cursor: 'pointer', transition: 'all 150ms ease',
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.opacity = '0.85'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.opacity = '1'; }}
               >
                 <div>
                   <span style={{ color: 'var(--gold)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{item.symbol}</span>
@@ -838,7 +839,14 @@ function TopMovers({ onNavigate }) {
 }
 
 // ── Section 3: Sector Heatmap ──
-function SectorHeatmap() {
+const SECTOR_ETF_MAP = {
+  'technology': 'XLK', 'healthcare': 'XLV', 'financials': 'XLF', 'energy': 'XLE',
+  'consumer discretionary': 'XLY', 'consumer staples': 'XLP', 'industrials': 'XLI',
+  'materials': 'XLB', 'real estate': 'XLRE', 'utilities': 'XLU', 'communication services': 'XLC',
+  'financial services': 'XLF', 'basic materials': 'XLB',
+};
+
+function SectorHeatmap({ onNavigate }) {
   const [sectors, setSectors] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -885,7 +893,10 @@ function SectorHeatmap() {
         ) : displaySectors.map((s, i) => {
           const pctNum = typeof s.changesPercentage === 'number' ? s.changesPercentage : parseFloat(s.changesPercentage || '0');
           return (
-            <div key={i} style={{ backgroundColor: getColor(pctNum), borderRadius: '6px', padding: '12px', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' }}>
+            <div key={i} onClick={() => { const etf = SECTOR_ETF_MAP[(s.sector || '').toLowerCase()]; if (etf && onNavigate) onNavigate(etf); }}
+              style={{ backgroundColor: getColor(pctNum), borderRadius: '6px', padding: '12px', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               <span style={{ color: '#FFFFFF', fontSize: '13px', fontWeight: 600 }}>{(s.sector || '').replace(/_/g, ' ')}</span>
               <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace' }}>
                 {pctNum >= 0 ? '+' : ''}{pctNum.toFixed(2)}%
@@ -1206,7 +1217,7 @@ function IPOCalendarPanel() {
 }
 
 // ── Forex Rates Panel ──
-function ForexPanel() {
+function ForexPanel({ onNavigate }) {
   const [pairs, setPairs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -1238,7 +1249,10 @@ function ForexPanel() {
           {pairs.map((p, i) => {
             const isPos = (p.changePercent || 0) >= 0;
             return (
-              <div key={i} style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px 12px' }}>
+              <div key={i} onClick={() => onNavigate && onNavigate(p.symbol)}
+                style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px 12px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                 <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600, marginBottom: '4px' }}>{p.pair}</div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>
                   {p.rate != null ? p.rate.toFixed(4) : '\u2014'}
@@ -1426,7 +1440,13 @@ function InsiderTradingFeed({ onNavigate }) {
 }
 
 // ── Global Exchange Status ──
-function GlobalExchangeStatus() {
+const EXCHANGE_INDEX_MAP = {
+  'NYSE': '^NYA', 'NASDAQ': '^IXIC', 'LSE': '^FTSE', 'Euronext': '^FCHI', 'FSE': '^GDAXI',
+  'TSE': '^N225', 'SSE': '^SSEC', 'BSE': '^BSESN', 'ASX': '^AXJO', 'TSX': '^GSPTSE',
+  'KOSPI': '^KS11', 'B3': '^BVSP', 'SGX': '^STI', 'JSE': '^JN0U.JO',
+};
+
+function GlobalExchangeStatus({ onNavigate }) {
   const EXCHANGES = [
     { name: 'NYSE', city: 'New York', tz: 'America/New_York', open: '09:30', close: '16:00', flag: '\ud83c\uddfa\ud83c\uddf8' },
     { name: 'NASDAQ', city: 'New York', tz: 'America/New_York', open: '09:30', close: '16:00', flag: '\ud83c\uddfa\ud83c\uddf8' },
@@ -1480,7 +1500,10 @@ function GlobalExchangeStatus() {
         {EXCHANGES.map(ex => {
           const { status, color } = getStatus(ex);
           return (
-            <div key={ex.name} style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px 12px' }}>
+            <div key={ex.name} onClick={() => { const idx = EXCHANGE_INDEX_MAP[ex.name]; if (idx && onNavigate) onNavigate(idx); }}
+              style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px 12px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                 <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600 }}>{ex.flag} {ex.name}</span>
                 <span style={{ color, fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em' }}>{status}</span>
@@ -1559,33 +1582,33 @@ export default function Dashboard({ setActiveTab }) {
       </div>
 
       <div style={{ marginTop: '12px' }}>
-        <MarketSnapshot />
+        <MarketSnapshot onNavigate={handleNavigate} />
       </div>
 
       <div style={{ marginTop: '12px', width: '100%' }}>
-        <HeatmapCard />
+        <HeatmapCard onNavigate={handleNavigate} />
       </div>
 
       <div style={{ marginTop: '12px' }}>
-        <SectorHeatmap />
+        <SectorHeatmap onNavigate={handleNavigate} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px', alignItems: 'stretch' }}>
-        <ForexPanel />
-        <CurrencyStrengthIndex onItemClick={handleItemClick} />
+        <ForexPanel onNavigate={handleNavigate} />
+        <CurrencyStrengthIndex onItemClick={(item) => handleNavigate(item.symbol || item.ticker)} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px', alignItems: 'stretch' }}>
-        <CommoditiesDashboard onItemClick={handleItemClick} />
+        <CommoditiesDashboard onItemClick={(item) => handleNavigate(item.symbol)} />
         <MostShortedPanel onNavigate={handleNavigate} />
       </div>
 
       <div style={{ marginTop: '12px' }}>
-        <GlobalExchangeStatus />
+        <GlobalExchangeStatus onNavigate={handleNavigate} />
       </div>
 
       <div style={{ marginTop: '12px' }}>
-        <GlobalMarketsOverview onRowClick={handleItemClick} />
+        <GlobalMarketsOverview onRowClick={(item) => handleNavigate(item.symbol)} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>

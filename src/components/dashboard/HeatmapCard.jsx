@@ -25,7 +25,7 @@ function formatPct(pct) {
 
 const BORDER = '1px solid #0D1117';
 
-export default function HeatmapCard() {
+export default function HeatmapCard({ onNavigate }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -120,6 +120,7 @@ export default function HeatmapCard() {
           return (
             <div
               key={stock.symbol}
+              onClick={() => onNavigate && onNavigate(stock.symbol)}
               onMouseEnter={() => setHovered(stock)}
               onMouseLeave={() => setHovered(null)}
               onMouseMove={handleMouseMove}
