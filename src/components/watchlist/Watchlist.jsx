@@ -202,7 +202,7 @@ export default function Watchlist({ setActiveTab }) {
                         {formatPrice(q.price)}
                       </td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', color: chgColor, fontFamily: 'monospace' }}>
-                        {q.change != null ? (q.change >= 0 ? '+' : '') + Number(q.change).toFixed(2) : '\u2014'}
+                        {q.change != null ? (q.change >= 0 ? '+' : '') + Number(q.change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '\u2014'}
                       </td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', color: chgColor, fontFamily: 'monospace' }}>
                         {formatPercent(q.changesPercentage)}

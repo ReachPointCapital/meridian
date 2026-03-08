@@ -260,7 +260,7 @@ export default function HeatmapCard({ onNavigate }) {
         }}>
           <strong style={{ color: 'var(--gold)' }}>{hovered.symbol}</strong>
           <span style={{ marginLeft: '6px' }}>
-            {hovered.price != null ? `$${hovered.price.toFixed(2)}` : '—'}
+            {hovered.price != null ? '$' + Number(hovered.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
           </span>
           <span style={{ marginLeft: '6px', fontWeight: 600, color: (hovered.changePercent || 0) >= 0 ? '#22c55e' : '#ef4444' }}>
             {formatPct(hovered.changePercent)}

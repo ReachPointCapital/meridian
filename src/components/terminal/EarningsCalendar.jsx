@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight, X as XIcon } from 'lucide-react';
 import { useEarnings } from '../../hooks/useEarnings';
 import { useApp } from '../../context/AppContext';
-import { formatDate } from '../../utils/formatters';
+import { formatDate, formatPrice } from '../../utils/formatters';
 
 function getDateRange(filter) {
   const now = new Date();
@@ -268,10 +268,10 @@ export default function EarningsCalendar({ setActiveTab }) {
                         {getDayName(row.date)}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-                        {epsEstimate != null ? `$${Number(epsEstimate).toFixed(2)}` : '\u2014'}
+                        {epsEstimate != null ? formatPrice(epsEstimate) : '\u2014'}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-                        {epsActual != null ? `$${Number(epsActual).toFixed(2)}` : '\u2014'}
+                        {epsActual != null ? formatPrice(epsActual) : '\u2014'}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                         <SurpriseBadge actual={epsActual} estimate={epsEstimate} />

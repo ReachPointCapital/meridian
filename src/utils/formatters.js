@@ -1,12 +1,13 @@
 export function formatPrice(num) {
   if (num == null || isNaN(num)) return '—';
-  return `$${Number(num).toFixed(2)}`;
+  return '$' + Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function formatChange(num) {
   if (num == null || isNaN(num)) return '—';
   const n = Number(num);
-  return n >= 0 ? `+${n.toFixed(2)}` : `${n.toFixed(2)}`;
+  const formatted = Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n >= 0 ? `+${formatted}` : `-${formatted}`;
 }
 
 export function formatPercent(num) {

@@ -1063,7 +1063,7 @@ function NewsAndEarnings({ onNavigate }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                     <span style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>{formatDate(row.date)}</span>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'monospace', minWidth: '70px', textAlign: 'right' }}>
-                      {row.epsEstimate != null ? `Est: $${Number(row.epsEstimate).toFixed(2)}` : row.epsEstimated != null ? `Est: $${Number(row.epsEstimated).toFixed(2)}` : '\u2014'}
+                      {row.epsEstimate != null ? `Est: ${formatPrice(row.epsEstimate)}` : row.epsEstimated != null ? `Est: ${formatPrice(row.epsEstimated)}` : '\u2014'}
                     </span>
                     <span style={{ color: 'var(--text-tertiary)', fontSize: '9px', minWidth: '24px', textAlign: 'right' }}>{timeLabel}</span>
                   </div>
@@ -1499,7 +1499,7 @@ export default function Dashboard({ setActiveTab }) {
     setDetailContent(
       <div>
         <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'monospace', marginBottom: '4px' }}>
-          {item.price != null ? `$${Number(item.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
+          {item.price != null ? formatPrice(item.price) : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
         </div>
         {(item.changePercent ?? item.changesPercentage) != null && (
           <div style={{ color: (item.changePercent ?? item.changesPercentage) >= 0 ? 'var(--green)' : 'var(--red)', fontSize: '14px', fontWeight: 600, fontFamily: 'monospace', marginBottom: '0' }}>

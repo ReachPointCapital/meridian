@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TickerSearch from '../components/TickerSearch';
+import { formatPrice, formatPct } from '../utils/format';
 
 const TICKER_CHIPS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'SPY', 'BTC-USD'];
 
@@ -145,10 +146,10 @@ export default function Home() {
                   {tile.label}
                 </div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '2px' }}>
-                  {price != null ? `$${Number(price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '\u2014'}
+                  {price != null ? formatPrice(price) : '\u2014'}
                 </div>
                 <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
-                  {price != null ? `${isPos ? '+' : ''}${Number(changePct).toFixed(2)}%` : ''}
+                  {price != null ? `${isPos ? '+' : ''}${formatPct(changePct, 2)}` : ''}
                 </div>
               </div>
             );
@@ -205,11 +206,11 @@ export default function Home() {
                   }}>
                     <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.06em' }}>{s.label}</div>
                     <div style={{ color: '#F0A500', fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', marginTop: '2px' }}>
-                      {d?.price != null ? `$${Number(d.price).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '\u2014'}
+                      {d?.price != null ? formatPrice(d.price) : '\u2014'}
                     </div>
                     {pct != null && (
                       <div style={{ color: isPos ? '#22C55E' : '#EF4444', fontSize: '10px', fontWeight: 600, fontFamily: 'monospace' }}>
-                        {isPos ? '+' : ''}{Number(pct).toFixed(2)}%
+                        {isPos ? '+' : ''}{formatPct(pct, 2)}
                       </div>
                     )}
                   </div>

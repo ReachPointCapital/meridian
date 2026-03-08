@@ -106,8 +106,8 @@ function GlobalMarketsOverview({ onRowClick }) {
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <td style={{ padding: '8px 12px', color: 'var(--text-primary)', fontWeight: 500 }}>{idx.name}</td>
                     <td style={{ padding: '8px 12px', color: 'var(--text-tertiary)', fontSize: '10px', letterSpacing: '0.05em' }}>{idx.region}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 600 }}>{idx.price != null ? Number(idx.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '\u2014'}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: isPos ? 'var(--green)' : 'var(--red)', fontFamily: 'monospace' }}>{idx.change != null ? (idx.change >= 0 ? '+' : '') + Number(idx.change).toFixed(2) : '\u2014'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 600 }}>{idx.price != null ? formatPrice(idx.price) : '\u2014'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', color: isPos ? 'var(--green)' : 'var(--red)', fontFamily: 'monospace' }}>{idx.change != null ? (idx.change >= 0 ? '+' : '') + Number(idx.change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '\u2014'}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'right', color: isPos ? 'var(--green)' : 'var(--red)', fontFamily: 'monospace', fontWeight: 600 }}>{idx.changePercent != null ? formatPercent(idx.changePercent) : '\u2014'}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'right' }}>
                       <span style={{ fontSize: '9px', fontWeight: 600, padding: '2px 6px', borderRadius: '3px', backgroundColor: idx.marketState === 'REGULAR' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: idx.marketState === 'REGULAR' ? 'var(--green)' : 'var(--red)' }}>
@@ -374,7 +374,7 @@ function CommoditiesDashboard({ onItemClick }) {
                       onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}>
                       <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 500, marginBottom: '4px' }}>{c.name}</div>
                       <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '2px' }}>
-                        {c.price != null ? Number(c.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '\u2014'}
+                        {c.price != null ? formatPrice(c.price) : '\u2014'}
                       </div>
                       <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
                         {c.changePercent != null ? formatPercent(c.changePercent) : '\u2014'}
@@ -582,7 +582,7 @@ export default function MacroPage({ setActiveTab }) {
     openDetail(name, (
       <div>
         <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'monospace', marginBottom: '4px' }}>
-          {item.price != null ? `$${Number(item.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
+          {item.price != null ? formatPrice(item.price) : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
         </div>
         {(item.changePercent ?? item.changesPercentage) != null && (
           <div style={{ color: (item.changePercent ?? item.changesPercentage) >= 0 ? 'var(--green)' : 'var(--red)', fontSize: '14px', fontWeight: 600, fontFamily: 'monospace', marginBottom: '16px' }}>

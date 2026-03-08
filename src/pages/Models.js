@@ -10,25 +10,26 @@ import { formatPrice, formatMarketCap } from '../utils/formatters';
 const fmtB = (v) => {
   if (v == null || isNaN(v)) return '\u2014';
   const abs = Math.abs(v);
-  if (abs >= 1e9) return (v < 0 ? '-' : '') + '$' + (abs / 1e9).toFixed(2) + 'B';
-  if (abs >= 1e6) return (v < 0 ? '-' : '') + '$' + (abs / 1e6).toFixed(1) + 'M';
-  if (abs >= 1e3) return (v < 0 ? '-' : '') + '$' + (abs / 1e3).toFixed(1) + 'K';
+  const sign = v < 0 ? '-' : '';
+  if (abs >= 1e9) return sign + '$' + (abs / 1e9).toFixed(2) + 'B';
+  if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(1) + 'M';
+  if (abs >= 1e3) return sign + '$' + abs.toLocaleString('en-US', { maximumFractionDigits: 0 });
   return '$' + Number(v).toFixed(0);
 };
 
-const fmtPct = (v) => {
+const fmtPct = (v, d = 1) => {
   if (v == null || isNaN(v)) return '\u2014';
-  return Number(v).toFixed(1) + '%';
+  return Number(v).toFixed(d) + '%';
 };
 
 const fmtPS = (v) => {
   if (v == null || isNaN(v)) return '\u2014';
-  return '$' + Number(v).toFixed(2);
+  return '$' + Math.abs(Number(v)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-const fmtX = (v) => {
+const fmtX = (v, d = 1) => {
   if (v == null || isNaN(v)) return '\u2014';
-  return Number(v).toFixed(1) + 'x';
+  return Number(v).toFixed(d) + 'x';
 };
 
 const CARD = {
@@ -552,14 +553,14 @@ function DCFModel({ data, quote }) {
             ))}
             <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--row-section-bg)', borderRadius: '6px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                <span>Cost of Equity</span><span style={{ color: 'var(--gold)' }}>{costEquity.toFixed(2)}%</span>
+                <span>Cost of Equity</span><span style={{ color: 'var(--gold)' }}>{fmtPct(costEquity, 2)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                <span>After-tax Cost of Debt</span><span style={{ color: 'var(--gold)' }}>{afterTaxDebt.toFixed(2)}%</span>
+                <span>After-tax Cost of Debt</span><span style={{ color: 'var(--gold)' }}>{fmtPct(afterTaxDebt, 2)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
                 <span style={{ color: 'var(--text-label)', fontSize: '13px', fontWeight: 600 }}>WACC</span>
-                <span style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{wacc.toFixed(2)}%</span>
+                <span style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtPct(wacc, 2)}</span>
               </div>
             </div>
           </div>
@@ -577,7 +578,7 @@ function DCFModel({ data, quote }) {
               { label: 'Enterprise Value', val: fmtB(ev), gold: true },
               { label: 'Net Debt', val: fmtB(netDebt), gold: false },
               { label: 'Equity Value', val: fmtB(equityValue), gold: true },
-              { label: 'Shares Outstanding', val: sharesOut.toLocaleString(), gold: false },
+              { label: 'Shares Outstanding', val: Number(sharesOut).toLocaleString('en-US', { maximumFractionDigits: 0 }), gold: false },
             ].map(r => (
               <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--row-border)' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{r.label}</span>
@@ -596,7 +597,7 @@ function DCFModel({ data, quote }) {
               <div style={{ color: 'var(--gold)', fontSize: '32px', fontWeight: 900, fontFamily: 'monospace' }}>{fmtPS(impliedPrice)}</div>
               <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-faint)' }}>
                 Current: {fmtPS(currentPrice)} |{' '}
-                <span style={{ color: upside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{upside >= 0 ? '+' : ''}{upside.toFixed(1)}%</span>
+                <span style={{ color: upside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{upside >= 0 ? '+' : ''}{fmtPct(upside)}</span>
               </div>
             </div>
           </div>
@@ -774,7 +775,7 @@ function EPSModel({ data, quote }) {
             {actualYears.map((_, i) => <div key={i} style={VAL_CELL}>{'\u2014'}</div>)}
             {projected.map((p, i) => {
               const up = currentPrice > 0 ? ((p.impliedPrice - currentPrice) / currentPrice * 100) : 0;
-              return <div key={i} style={{ ...VAL_CELL, color: up >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{up >= 0 ? '+' : ''}{up.toFixed(1)}%</div>;
+              return <div key={i} style={{ ...VAL_CELL, color: up >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{up >= 0 ? '+' : ''}{fmtPct(up)}</div>;
             })}
           </div>
         </div>
@@ -895,11 +896,11 @@ function LBOModel({ data, quote }) {
           <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
             <div>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>MOIC</div>
-              <div style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{moic.toFixed(2)}x</div>
+              <div style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtX(moic, 2)}</div>
             </div>
             <div>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>IRR</div>
-              <div style={{ color: irr >= 20 ? 'var(--accent-green)' : irr >= 15 ? 'var(--gold)' : 'var(--accent-red)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{irr.toFixed(1)}%</div>
+              <div style={{ color: irr >= 20 ? 'var(--accent-green)' : irr >= 15 ? 'var(--gold)' : 'var(--accent-red)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtPct(irr)}</div>
             </div>
           </div>
         </div>
@@ -983,9 +984,9 @@ function CompsModel({ data, quote }) {
                   <td style={{ ...COL, textAlign: 'left', color: 'var(--gold)', fontWeight: 600 }}>{r.symbol}</td>
                   <td style={{ ...COL, textAlign: 'right', color: 'var(--text-primary)' }}>{formatPrice(r.price)}</td>
                   <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{formatMarketCap(r.marketCap)}</td>
-                  <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{r.pe != null ? r.pe.toFixed(1) : '\u2014'}</td>
-                  <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{r.priceToBook != null ? r.priceToBook.toFixed(1) : '\u2014'}</td>
-                  <td style={{ ...COL, textAlign: 'right', color: (r.changesPercentage || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>{r.changesPercentage != null ? `${r.changesPercentage >= 0 ? '+' : ''}${r.changesPercentage.toFixed(2)}%` : '\u2014'}</td>
+                  <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{r.pe != null ? fmtX(r.pe) : '\u2014'}</td>
+                  <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{r.priceToBook != null ? fmtX(r.priceToBook) : '\u2014'}</td>
+                  <td style={{ ...COL, textAlign: 'right', color: (r.changesPercentage || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>{r.changesPercentage != null ? `${r.changesPercentage >= 0 ? '+' : ''}${fmtPct(r.changesPercentage, 2)}` : '\u2014'}</td>
                 </tr>
               ))}
               <tr style={{ backgroundColor: 'var(--gold-subtle-bg)' }}>
@@ -993,8 +994,8 @@ function CompsModel({ data, quote }) {
                 <td style={COL}></td>
                 <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.price != null ? formatPrice(medians.price) : '\u2014'}</td>
                 <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.marketCap != null ? formatMarketCap(medians.marketCap) : '\u2014'}</td>
-                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.pe != null ? medians.pe.toFixed(1) : '\u2014'}</td>
-                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.priceToBook != null ? medians.priceToBook.toFixed(1) : '\u2014'}</td>
+                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.pe != null ? fmtX(medians.pe) : '\u2014'}</td>
+                <td style={{ ...COL, textAlign: 'right', color: 'var(--gold)' }}>{medians.priceToBook != null ? fmtX(medians.priceToBook) : '\u2014'}</td>
                 <td style={COL}></td>
               </tr>
             </tbody>
@@ -1841,7 +1842,7 @@ function MergerModel() {
               {isAccretive ? 'ACCRETIVE' : 'DILUTIVE'}
             </div>
             <div style={{ color: isAccretive ? 'var(--accent-green)' : 'var(--accent-red)', fontSize: '20px', fontWeight: 700, fontFamily: 'monospace', marginTop: '4px' }}>
-              {accDilAmt >= 0 ? '+' : ''}{fmtPS(accDilAmt)} ({accDilPct >= 0 ? '+' : ''}{accDilPct.toFixed(1)}%)
+              {accDilAmt >= 0 ? '+' : ''}{fmtPS(accDilAmt)} ({accDilPct >= 0 ? '+' : ''}{fmtPct(accDilPct)})
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '16px' }}>
               <div>
@@ -1861,13 +1862,13 @@ function MergerModel() {
             <div style={{ flex: 1, minWidth: '200px' }}>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Breakeven Synergies</div>
               <div style={{ color: 'var(--gold)', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
-                {breakEvenSynergies != null ? `$${breakEvenSynergies.toFixed(1)}M / year` : '\u2014'}
+                {breakEvenSynergies != null ? `$${Number(breakEvenSynergies).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M / year` : '\u2014'}
               </div>
             </div>
             <div style={{ flex: 1, minWidth: '200px' }}>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Breakeven Premium</div>
               <div style={{ color: 'var(--gold)', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
-                {breakEvenPremium != null ? `${breakEvenPremium.toFixed(1)}%` : '\u2014'}
+                {breakEvenPremium != null ? fmtPct(breakEvenPremium) : '\u2014'}
               </div>
             </div>
           </div>
@@ -2298,7 +2299,7 @@ function MasterModel({ data, quote }) {
               <div style={{ color: 'var(--gold)', fontSize: '28px', fontWeight: 900, fontFamily: 'monospace' }}>{fmtPS(outputs.dcfPrice)}</div>
               <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-faint)' }}>
                 Current: {fmtPS(currentPrice)} |{' '}
-                <span style={{ color: dcfUpside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{dcfUpside >= 0 ? '+' : ''}{dcfUpside.toFixed(1)}%</span>
+                <span style={{ color: dcfUpside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{dcfUpside >= 0 ? '+' : ''}{fmtPct(dcfUpside)}</span>
               </div>
             </div>
           </div>
@@ -2311,11 +2312,11 @@ function MasterModel({ data, quote }) {
             <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: '16px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px' }}>
               <div>
                 <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>MOIC</div>
-                <div style={{ color: 'var(--gold)', fontSize: '22px', fontWeight: 700, fontFamily: 'monospace' }}>{outputs.moic.toFixed(2)}x</div>
+                <div style={{ color: 'var(--gold)', fontSize: '22px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtX(outputs.moic, 2)}</div>
               </div>
               <div>
                 <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>IRR</div>
-                <div style={{ color: outputs.irr >= 20 ? 'var(--accent-green)' : outputs.irr >= 15 ? 'var(--gold)' : 'var(--accent-red)', fontSize: '22px', fontWeight: 700, fontFamily: 'monospace' }}>{outputs.irr.toFixed(1)}%</div>
+                <div style={{ color: outputs.irr >= 20 ? 'var(--accent-green)' : outputs.irr >= 15 ? 'var(--gold)' : 'var(--accent-red)', fontSize: '22px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtPct(outputs.irr)}</div>
               </div>
             </div>
             {[
@@ -2331,7 +2332,7 @@ function MasterModel({ data, quote }) {
             ))}
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Comps Upside</span>
-              <span style={{ color: compsUpside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontSize: '12px', fontWeight: 600, fontFamily: 'monospace' }}>{compsUpside >= 0 ? '+' : ''}{compsUpside.toFixed(1)}%</span>
+              <span style={{ color: compsUpside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontSize: '12px', fontWeight: 600, fontFamily: 'monospace' }}>{compsUpside >= 0 ? '+' : ''}{fmtPct(compsUpside)}</span>
             </div>
           </div>
         </div>
@@ -2343,14 +2344,14 @@ function MasterModel({ data, quote }) {
         <div style={{ padding: '16px' }}>
           <ResponsiveContainer width="100%" height={footballData.length * 50 + 40}>
             <BarChart data={footballData} layout="vertical" margin={{ left: 60, right: 30, top: 10, bottom: 10 }}>
-              <XAxis type="number" domain={['auto', 'auto']} tickFormatter={v => `$${v.toFixed(0)}`}
+              <XAxis type="number" domain={['auto', 'auto']} tickFormatter={v => fmtPS(v)}
                 tick={{ fill: 'var(--text-faint)', fontSize: 10 }} axisLine={{ stroke: 'var(--row-border)' }} tickLine={false} />
               <YAxis type="category" dataKey="name" width={65}
                 tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
               <Tooltip
                 formatter={(value) => {
-                  if (Array.isArray(value)) return [`$${value[0].toFixed(2)} - $${value[1].toFixed(2)}`, 'Range'];
-                  return [`$${value.toFixed(2)}`, ''];
+                  if (Array.isArray(value)) return [`${fmtPS(value[0])} - ${fmtPS(value[1])}`, 'Range'];
+                  return [fmtPS(value), ''];
                 }}
                 contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '11px' }}
                 labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
@@ -2361,7 +2362,7 @@ function MasterModel({ data, quote }) {
               </Bar>
               {currentPrice > 0 && (
                 <ReferenceLine x={currentPrice} stroke="var(--gold)" strokeWidth={2} strokeDasharray="4 4"
-                  label={{ value: `Current $${currentPrice.toFixed(2)}`, fill: 'var(--gold)', fontSize: 10, position: 'top' }} />
+                  label={{ value: `Current ${fmtPS(currentPrice)}`, fill: 'var(--gold)', fontSize: 10, position: 'top' }} />
               )}
             </BarChart>
           </ResponsiveContainer>
@@ -2403,7 +2404,7 @@ function MasterModel({ data, quote }) {
                 { label: 'WACC', fn: d => fmtPct(d.wacc) },
                 { label: 'DCF Price', fn: d => fmtPS(d.dcfPrice), gold: true },
                 { label: 'Comps Price', fn: d => fmtPS(d.compsPrice) },
-                { label: 'Upside %', fn: d => `${d.upside >= 0 ? '+' : ''}${d.upside.toFixed(1)}%`, color: d => d.upside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' },
+                { label: 'Upside %', fn: d => `${d.upside >= 0 ? '+' : ''}${fmtPct(d.upside)}`, color: d => d.upside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' },
               ].map(row => (
                 <tr key={row.label}>
                   <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontSize: '11px', borderBottom: '1px solid var(--row-border)', fontFamily: 'inherit' }}>{row.label}</td>

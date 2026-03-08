@@ -166,7 +166,7 @@ export default function Screener({ setActiveTab }) {
                         <td style={{ padding: '8px 10px', color: 'var(--gold)', fontFamily: 'monospace', fontWeight: 600 }}>{item.symbol}</td>
                         <td style={{ padding: '8px 10px', color: 'var(--text-primary)', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name || '\u2014'}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 600 }}>{formatPrice(item.price)}</td>
-                        <td style={{ padding: '8px 10px', textAlign: 'right', color: chgColor, fontFamily: 'monospace' }}>{item.change != null ? (item.change >= 0 ? '+' : '') + Number(item.change).toFixed(2) : '\u2014'}</td>
+                        <td style={{ padding: '8px 10px', textAlign: 'right', color: chgColor, fontFamily: 'monospace' }}>{item.change != null ? (item.change >= 0 ? '+' : '') + Number(item.change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '\u2014'}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', color: chgColor, fontFamily: 'monospace', fontWeight: 600 }}>{formatPercent(item.changesPercentage)}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{formatVolume(item.volume)}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{formatMarketCap(item.marketCap)}</td>

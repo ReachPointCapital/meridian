@@ -522,8 +522,8 @@ function EarningsHistoryChart({ earnings }) {
               const d = payload[0].payload;
               return (
                 <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
-                  <div style={{ color: 'var(--text-primary)' }}>Actual: ${d.actual?.toFixed(2)}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>Est: ${d.estimate?.toFixed(2)}</div>
+                  <div style={{ color: 'var(--text-primary)' }}>Actual: {formatPrice(d.actual)}</div>
+                  <div style={{ color: 'var(--text-secondary)' }}>Est: {formatPrice(d.estimate)}</div>
                   {d.surprise != null && <div style={{ color: d.surprise >= 0 ? 'var(--green)' : 'var(--red)' }}>Surprise: {d.surprise >= 0 ? '+' : ''}{d.surprise.toFixed(1)}%</div>}
                 </div>
               );
@@ -901,10 +901,10 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
         {/* Left — Fair Value + Verdict */}
         <div style={{ flex: 1 }}>
           <div style={{ color: '#F0A500', fontSize: '36px', fontWeight: 900, fontFamily: 'monospace', lineHeight: 1 }}>
-            ${rprData.fairValue.toFixed(2)}
+            {formatPrice(rprData.fairValue)}
           </div>
           <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
-            vs ${currentPrice.toFixed(2)} current
+            vs {formatPrice(currentPrice)} current
           </div>
           <div style={{
             marginTop: '8px', padding: '8px', borderRadius: '6px', textAlign: 'center',
@@ -927,7 +927,7 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
               <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{c.label}</span>
               <span style={{ color: 'var(--text-dim)', fontSize: '10px' }}>{c.weight}</span>
               <span style={{ color: 'var(--text-strong)', fontSize: '12px', fontFamily: 'monospace' }}>
-                {c.val != null ? `$${c.val.toFixed(2)}` : '\u2014'}
+                {c.val != null ? formatPrice(c.val) : '\u2014'}
               </span>
             </div>
           ))}
@@ -935,7 +935,7 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
             <span style={{ color: '#F0A500', fontSize: '11px', fontWeight: 700 }}>RPR Fair Value</span>
             <span style={{ color: '#F0A500', fontSize: '10px' }}>100%</span>
             <span style={{ color: '#F0A500', fontSize: '12px', fontWeight: 700, fontFamily: 'monospace' }}>
-              ${rprData.fairValue.toFixed(2)}
+              {formatPrice(rprData.fairValue)}
             </span>
           </div>
         </div>
@@ -1610,7 +1610,7 @@ function KeyStatsGrid({ quote, analyst }) {
       { label: 'Market Cap', value: formatMarketCap(quote.marketCap), tip: 'Total market value of outstanding shares' },
       { label: 'P/E Ratio', value: fmt(quote.pe), tip: 'Price divided by earnings per share (TTM)' },
       { label: 'Forward P/E', value: fmt(quote.forwardPE), tip: 'Price divided by estimated future EPS' },
-      { label: 'EPS (TTM)', value: quote.eps != null ? `$${Number(quote.eps).toFixed(2)}` : '\u2014', tip: 'Earnings per share over trailing 12 months' },
+      { label: 'EPS (TTM)', value: quote.eps != null ? formatPrice(quote.eps) : '\u2014', tip: 'Earnings per share over trailing 12 months' },
       { label: 'Price/Book', value: fmt(quote.priceToBook), tip: 'Price divided by book value per share' },
       { label: 'PEG Ratio', value: fmt(analyst?.pegRatio), tip: 'P/E ratio divided by earnings growth rate. <1 may indicate undervaluation' },
     ],
@@ -1772,7 +1772,7 @@ export default function AnalysisTab({ setActiveTab }) {
                 <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>{profile?.companyName || quote.name}</span>
                 <span style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace' }}>{formatPrice(quote.price)}</span>
                 <span style={{ color: (quote.change ?? 0) >= 0 ? 'var(--green)' : 'var(--red)', fontSize: '13px', fontWeight: 600, fontFamily: 'monospace' }}>
-                  {(quote.change ?? 0) >= 0 ? '+' : ''}{Number(quote.change ?? 0).toFixed(2)} ({formatPercent(quote.changesPercentage)})
+                  {(quote.change ?? 0) >= 0 ? '+' : ''}{Number(quote.change ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({formatPercent(quote.changesPercentage)})
                 </span>
                 {profile?.sector && <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>{profile.sector} {profile.industry ? `\u00B7 ${profile.industry}` : ''}</span>}
                 <button onClick={() => {
