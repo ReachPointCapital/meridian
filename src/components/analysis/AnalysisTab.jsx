@@ -1897,26 +1897,28 @@ function KeyStatsGrid({ quote, analyst }) {
         {rows.map((row, rowIdx) => (
           <div key={rowIdx} style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)' }}>
             {row.map((s, colIdx) => (
-              <div key={s.label} className="tooltip-container" style={{
+              <div key={s.label} title={s.tip} style={{
+                display: 'block',
                 padding: '10px 14px',
                 borderRight: colIdx < 5 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                 borderBottom: rowIdx < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                cursor: 'help',
-                position: 'relative',
+                overflow: 'hidden',
               }}>
                 <div style={{
+                  display: 'block',
                   fontSize: '9px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   color: 'rgba(255,255,255,0.35)',
-                  marginBottom: '5px',
+                  marginBottom: '6px',
                   whiteSpace: 'nowrap',
                 }}>
                   {s.label}
                 </div>
                 <div style={{
+                  display: 'block',
                   fontSize: '13px',
-                  fontWeight: 600,
+                  fontWeight: '600',
                   fontFamily: 'monospace',
                   color: getColor(s.value),
                   whiteSpace: 'nowrap',
@@ -1925,7 +1927,6 @@ function KeyStatsGrid({ quote, analyst }) {
                 }}>
                   {s.value}
                 </div>
-                <span className="tooltip-text">{s.tip}</span>
               </div>
             ))}
           </div>
