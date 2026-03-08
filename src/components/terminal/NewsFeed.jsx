@@ -28,6 +28,35 @@ function getSourceColor(source) {
   return SOURCE_COLORS[hash % SOURCE_COLORS.length];
 }
 
+function SourceAvatar({ site, url }) {
+  const [faviconFailed, setFaviconFailed] = useState(false);
+  const domain = (() => {
+    try { return new URL(url || '').hostname; } catch { return null; }
+  })();
+
+  if (domain && !faviconFailed) {
+    return (
+      <img
+        src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
+        alt={site}
+        style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', backgroundColor: 'var(--bg-tertiary)', flexShrink: 0 }}
+        onError={() => setFaviconFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div style={{
+      width: '36px', height: '36px', borderRadius: '50%',
+      backgroundColor: getSourceColor(site),
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#0A0E1A', fontWeight: 700, fontSize: '14px', flexShrink: 0,
+    }}>
+      {sourceInitial(site)}
+    </div>
+  );
+}
+
 function NewsItem({ item, isLast }) {
   const [expanded, setExpanded] = useState(false);
   const [summary, setSummary] = useState(null);
@@ -77,14 +106,7 @@ function NewsItem({ item, isLast }) {
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         {/* Source icon */}
-        <div style={{
-          width: '36px', height: '36px', borderRadius: '50%',
-          backgroundColor: getSourceColor(item.site),
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#0A0E1A', fontWeight: 700, fontSize: '14px', flexShrink: 0,
-        }}>
-          {sourceInitial(item.site)}
-        </div>
+        <SourceAvatar site={item.site} url={item.url} />
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>

@@ -580,18 +580,25 @@ function OverallSignal({ technicals, valuation }) {
   if (bullish > bearish && bullish >= 3) { overall = 'BULLISH'; overallColor = 'var(--green)'; OverallIcon = TrendingUp; }
   else if (bearish > bullish && bearish >= 3) { overall = 'BEARISH'; overallColor = 'var(--red)'; OverallIcon = TrendingDown; }
 
+  const bgGradient = overall === 'BULLISH'
+    ? 'linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(10,14,26,0) 100%)'
+    : overall === 'BEARISH'
+    ? 'linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(10,14,26,0) 100%)'
+    : 'linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(10,14,26,0) 100%)';
+
   return (
-    <div style={CARD_STYLE}>
-      <h3 style={SECTION_HEADER}>Overall Signal</h3>
-      <div style={{ padding: '16px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '8px' }}>
-          <OverallIcon size={28} color={overallColor} />
-          <span style={{ fontSize: '28px', fontWeight: 700, color: overallColor, letterSpacing: '0.08em' }}>{overall}</span>
+    <div style={{ ...CARD_STYLE, background: bgGradient, borderLeft: `3px solid ${overallColor}` }}>
+      <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <OverallIcon size={36} color={overallColor} />
+          <div>
+            <div style={{ fontSize: '32px', fontWeight: 700, color: overallColor, letterSpacing: '0.08em', lineHeight: 1 }}>{overall}</div>
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginTop: '4px' }}>
+              {bullish}/{total} bullish · {bearish}/{total} bearish
+            </div>
+          </div>
         </div>
-        <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '16px' }}>
-          {bullish}/{total} bullish | {bearish}/{total} bearish
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end', maxWidth: '400px' }}>
           {signals.map((s, i) => (
             <span key={i} style={{ fontSize: '10px', fontWeight: 600, padding: '3px 10px', borderRadius: '12px', backgroundColor: s.type === 'bullish' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: s.type === 'bullish' ? 'var(--green)' : 'var(--red)', border: `1px solid ${s.type === 'bullish' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
               {s.label}
@@ -724,21 +731,31 @@ function AutoThesis({ quote, analyst, technicals, valuation, profile, financials
           </p>
         )}
 
-        {bullPoints.length > 0 && (
-          <>
-            <div style={{ color: 'var(--green)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '6px' }}>BULL CASE</div>
-            <ul style={{ margin: '0 0 12px', paddingLeft: '16px' }}>
-              {bullPoints.map((p, i) => <li key={i} style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.6 }}>{p}</li>)}
-            </ul>
-          </>
-        )}
-        {bearPoints.length > 0 && (
-          <>
-            <div style={{ color: 'var(--red)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '6px' }}>BEAR CASE</div>
-            <ul style={{ margin: '0 0 12px', paddingLeft: '16px' }}>
-              {bearPoints.map((p, i) => <li key={i} style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.6 }}>{p}</li>)}
-            </ul>
-          </>
+        {(bullPoints.length > 0 || bearPoints.length > 0) && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            {bullPoints.length > 0 && (
+              <div style={{ backgroundColor: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '8px', padding: '14px' }}>
+                <div style={{ color: 'var(--green)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '8px' }}>BULL CASE</div>
+                {bullPoints.map((p, i) => (
+                  <div key={i} style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.6, marginBottom: '4px', display: 'flex', gap: '6px' }}>
+                    <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>
+                    <span>{p}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {bearPoints.length > 0 && (
+              <div style={{ backgroundColor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', padding: '14px' }}>
+                <div style={{ color: 'var(--red)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '8px' }}>BEAR CASE</div>
+                {bearPoints.map((p, i) => (
+                  <div key={i} style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.6, marginBottom: '4px', display: 'flex', gap: '6px' }}>
+                    <span style={{ color: 'var(--red)', flexShrink: 0 }}>✗</span>
+                    <span>{p}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {valuationContext && (
@@ -764,9 +781,12 @@ function UserNotes({ symbol }) {
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    setNotes(localStorage.getItem(`thesis_${symbol}`) || '');
+    const stored = localStorage.getItem(`thesis_${symbol}`) || '';
+    setNotes(stored);
+    setExpanded(stored.length > 0);
     setSaved(false);
   }, [symbol]);
 
@@ -778,28 +798,32 @@ function UserNotes({ symbol }) {
       <h3 style={SECTION_HEADER}>Your Notes</h3>
       <div style={{ padding: '16px' }}>
         <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Write your notes..."
-          style={{ width: '100%', minHeight: '100px', resize: 'vertical', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.6, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
-          onFocus={e => e.target.style.borderColor = 'var(--gold)'}
-          onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
-        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-          <button onClick={handleSave} style={{ backgroundColor: 'var(--gold)', border: 'none', borderRadius: '6px', padding: '8px 16px', color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {saved ? <><Check size={12} /> Saved!</> : <><Save size={12} /> Save</>}
-          </button>
-          <button onClick={handleExport} style={{ backgroundColor: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 16px', color: 'var(--text-secondary)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Export</>}
-          </button>
-        </div>
+          rows={expanded ? 6 : 2}
+          style={{ width: '100%', resize: 'vertical', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.6, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color 150ms ease' }}
+          onFocus={e => { e.target.style.borderColor = 'var(--gold)'; setExpanded(true); }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; if (!notes.trim()) setExpanded(false); }} />
+        {expanded && (
+          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+            <button onClick={handleSave} style={{ backgroundColor: 'var(--gold)', border: 'none', borderRadius: '6px', padding: '8px 16px', color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {saved ? <><Check size={12} /> Saved!</> : <><Save size={12} /> Save</>}
+            </button>
+            <button onClick={handleExport} style={{ backgroundColor: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 16px', color: 'var(--text-secondary)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Export</>}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 // ── Expanded Key Risks ──
-function KeyRisks({ quote, analyst, technicals }) {
+function KeyRisks({ quote, analyst, technicals, profile, financials }) {
   const risks = [];
 
   if (quote?.pe > 100) risks.push({ label: 'Extreme Valuation', desc: `P/E of ${quote.pe?.toFixed(0)}x is ${(quote.pe/22).toFixed(1)}x the market average`, severity: 'High' });
   else if (quote?.pe > 40) risks.push({ label: 'Valuation Premium', desc: `P/E of ${quote.pe?.toFixed(1)}x trades at significant premium`, severity: 'Medium' });
+  else if (quote?.pe != null && quote.pe < 0) risks.push({ label: 'Negative Earnings', desc: 'Company is currently unprofitable — P/E ratio is negative', severity: 'High' });
 
   if (quote?.beta > 2) risks.push({ label: 'Extreme Volatility', desc: `Beta of ${quote.beta?.toFixed(2)} — moves ${quote.beta?.toFixed(1)}x market swings`, severity: 'High' });
   else if (quote?.beta > 1.5) risks.push({ label: 'High Volatility', desc: `Beta of ${quote.beta?.toFixed(2)} indicates elevated market sensitivity`, severity: 'Medium' });
@@ -825,6 +849,52 @@ function KeyRisks({ quote, analyst, technicals }) {
 
   if (analyst?.shortRatio != null && analyst.shortRatio > 5) {
     risks.push({ label: 'High Short Interest', desc: `Short ratio of ${analyst.shortRatio.toFixed(1)} days to cover`, severity: 'Medium' });
+  } else if (analyst?.shortRatio != null && analyst.shortRatio > 3) {
+    risks.push({ label: 'Elevated Short Interest', desc: `Short ratio of ${analyst.shortRatio.toFixed(1)} days to cover`, severity: 'Low' });
+  }
+
+  if (analyst?.revenueGrowth != null && analyst.revenueGrowth < -0.05) {
+    risks.push({ label: 'Revenue Decline', desc: `Revenue declining ${(analyst.revenueGrowth * 100).toFixed(1)}% — potential structural weakness`, severity: 'High' });
+  } else if (analyst?.revenueGrowth != null && analyst.revenueGrowth < 0) {
+    risks.push({ label: 'Slowing Revenue', desc: `Revenue growth of ${(analyst.revenueGrowth * 100).toFixed(1)}% — near stagnation`, severity: 'Medium' });
+  }
+
+  if (analyst?.earningsGrowth != null && analyst.earningsGrowth < -0.1) {
+    risks.push({ label: 'Earnings Contraction', desc: `Earnings declining ${(analyst.earningsGrowth * 100).toFixed(1)}%`, severity: 'High' });
+  }
+
+  if (quote?.yearHigh && quote?.price && quote.price >= quote.yearHigh * 0.98) {
+    risks.push({ label: 'Near 52-Week High', desc: 'Trading near 52-week high — limited upside without new catalysts', severity: 'Low' });
+  }
+
+  if (quote?.priceToBook != null && quote.priceToBook > 10) {
+    risks.push({ label: 'High Price-to-Book', desc: `P/B of ${quote.priceToBook.toFixed(1)}x — significant premium to book value`, severity: 'Medium' });
+  }
+
+  if (analyst?.pegRatio != null && analyst.pegRatio > 2.5) {
+    risks.push({ label: 'Expensive vs Growth', desc: `PEG of ${analyst.pegRatio.toFixed(2)} — overpriced relative to earnings growth`, severity: 'Medium' });
+  }
+
+  const latestIncome = financials?.income?.[0];
+  if (latestIncome?.netIncome != null && latestIncome?.revenue != null && latestIncome.revenue > 0) {
+    const margin = (latestIncome.netIncome / latestIncome.revenue) * 100;
+    if (margin < 0) risks.push({ label: 'Negative Net Margin', desc: `Net margin of ${margin.toFixed(1)}% — company is losing money`, severity: 'High' });
+    else if (margin < 5) risks.push({ label: 'Thin Margins', desc: `Net margin of ${margin.toFixed(1)}% — limited profitability buffer`, severity: 'Medium' });
+  }
+
+  const latestBalance = financials?.balance?.[0];
+  if (latestBalance?.totalDebt != null && latestBalance?.totalStockholdersEquity != null && latestBalance.totalStockholdersEquity > 0) {
+    const debtToEquity = latestBalance.totalDebt / latestBalance.totalStockholdersEquity;
+    if (debtToEquity > 3) risks.push({ label: 'Heavy Leverage', desc: `Debt-to-equity of ${debtToEquity.toFixed(1)}x — high balance sheet risk`, severity: 'High' });
+    else if (debtToEquity > 1.5) risks.push({ label: 'Elevated Leverage', desc: `Debt-to-equity of ${debtToEquity.toFixed(1)}x`, severity: 'Medium' });
+  }
+
+  if (profile?.sector === 'Technology' || profile?.sector === 'Communication Services') {
+    risks.push({ label: 'Regulatory Risk', desc: 'Tech/comms sector faces increasing regulatory scrutiny globally', severity: 'Low' });
+  }
+
+  if (quote?.marketCap != null && quote.marketCap < 2e9) {
+    risks.push({ label: 'Small Cap Risk', desc: 'Market cap under $2B — higher volatility and liquidity risk', severity: 'Medium' });
   }
 
   // Sort by severity
@@ -1158,21 +1228,34 @@ function DCFModel({ quote, analyst }) {
   const currentPrice = quote?.price ?? 0;
   const upside = currentPrice > 0 ? ((impliedPrice - currentPrice) / currentPrice * 100) : 0;
 
+  const SLIDER_STYLE = { width: '100%', accentColor: 'var(--gold)', cursor: 'pointer', height: '4px' };
+  const SLIDER_CONTAINER = { flex: 1, minWidth: '160px' };
+  const SLIDER_LABEL = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' };
+
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <label style={MODEL_LABEL}>
-          Growth Rate %
-          <input type="number" value={growthRate} onChange={e => setGrowthRate(parseFloat(e.target.value) || 0)} style={{ ...MODEL_INPUT, marginLeft: '8px' }} />
-        </label>
-        <label style={MODEL_LABEL}>
-          Discount Rate %
-          <input type="number" value={discountRate} onChange={e => setDiscountRate(parseFloat(e.target.value) || 0)} style={{ ...MODEL_INPUT, marginLeft: '8px' }} />
-        </label>
-        <label style={MODEL_LABEL}>
-          Terminal Multiple
-          <input type="number" value={terminalMultiple} onChange={e => setTerminalMultiple(parseFloat(e.target.value) || 0)} style={{ ...MODEL_INPUT, marginLeft: '8px' }} />
-        </label>
+      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        <div style={SLIDER_CONTAINER}>
+          <div style={SLIDER_LABEL}>
+            <span style={MODEL_LABEL}>Growth Rate</span>
+            <span style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>{growthRate.toFixed(1)}%</span>
+          </div>
+          <input type="range" min="-10" max="40" step="0.5" value={growthRate} onChange={e => setGrowthRate(parseFloat(e.target.value))} style={SLIDER_STYLE} />
+        </div>
+        <div style={SLIDER_CONTAINER}>
+          <div style={SLIDER_LABEL}>
+            <span style={MODEL_LABEL}>Discount Rate</span>
+            <span style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>{discountRate.toFixed(1)}%</span>
+          </div>
+          <input type="range" min="4" max="20" step="0.5" value={discountRate} onChange={e => setDiscountRate(parseFloat(e.target.value))} style={SLIDER_STYLE} />
+        </div>
+        <div style={SLIDER_CONTAINER}>
+          <div style={SLIDER_LABEL}>
+            <span style={MODEL_LABEL}>Terminal Multiple</span>
+            <span style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>{terminalMultiple.toFixed(0)}x</span>
+          </div>
+          <input type="range" min="5" max="40" step="1" value={terminalMultiple} onChange={e => setTerminalMultiple(parseFloat(e.target.value))} style={SLIDER_STYLE} />
+        </div>
       </div>
 
       <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Projected EPS</div>
@@ -1597,30 +1680,30 @@ function FinancialModels({ quote, profile, financials, analyst }) {
 function KeyStatsGrid({ quote, analyst }) {
   if (!quote) return null;
   const stats = [
-    { label: 'Market Cap', value: formatMarketCap(quote.marketCap) },
-    { label: 'P/E Ratio', value: fmt(quote.pe) },
-    { label: 'Forward P/E', value: fmt(quote.forwardPE) },
-    { label: 'EPS (TTM)', value: quote.eps != null ? `$${Number(quote.eps).toFixed(2)}` : '\u2014' },
-    { label: 'Price/Book', value: fmt(quote.priceToBook) },
-    { label: 'PEG Ratio', value: fmt(analyst?.pegRatio) },
-    { label: 'Beta', value: fmt(quote.beta) },
-    { label: 'Div Yield', value: formatDividendYield(quote.dividendYield) },
-    { label: '52W High', value: formatPrice(quote.yearHigh) },
-    { label: '52W Low', value: formatPrice(quote.yearLow) },
-    { label: '50D Avg', value: formatPrice(quote.priceAvg50) },
-    { label: '200D Avg', value: formatPrice(quote.priceAvg200) },
-    { label: 'Volume', value: quote.volume ? Number(quote.volume).toLocaleString() : '\u2014' },
-    { label: 'Avg Volume', value: quote.avgVolume ? Number(quote.avgVolume).toLocaleString() : '\u2014' },
-    { label: 'Open', value: formatPrice(quote.open) },
-    { label: 'Prev Close', value: formatPrice(quote.previousClose) },
-    { label: 'Day High', value: formatPrice(quote.high) },
-    { label: 'Day Low', value: formatPrice(quote.low) },
-    { label: 'Enterprise Value', value: analyst?.enterpriseValue ? formatMarketCap(analyst.enterpriseValue) : '\u2014' },
-    { label: 'Revenue Growth', value: analyst?.revenueGrowth != null ? `${(analyst.revenueGrowth * 100).toFixed(1)}%` : '\u2014' },
-    { label: 'Earnings Growth', value: analyst?.earningsGrowth != null ? `${(analyst.earningsGrowth * 100).toFixed(1)}%` : '\u2014' },
-    { label: 'Target Mean', value: analyst?.targetMeanPrice ? formatPrice(analyst.targetMeanPrice) : '\u2014' },
-    { label: 'Short Ratio', value: fmt(analyst?.shortRatio) },
-    { label: 'Analysts', value: analyst?.numberOfAnalysts || '\u2014' },
+    { label: 'Market Cap', value: formatMarketCap(quote.marketCap), tip: 'Total market value of outstanding shares' },
+    { label: 'P/E Ratio', value: fmt(quote.pe), tip: 'Price divided by earnings per share (TTM)' },
+    { label: 'Forward P/E', value: fmt(quote.forwardPE), tip: 'Price divided by estimated future EPS' },
+    { label: 'EPS (TTM)', value: quote.eps != null ? `$${Number(quote.eps).toFixed(2)}` : '\u2014', tip: 'Earnings per share over trailing 12 months' },
+    { label: 'Price/Book', value: fmt(quote.priceToBook), tip: 'Price divided by book value per share' },
+    { label: 'PEG Ratio', value: fmt(analyst?.pegRatio), tip: 'P/E ratio divided by earnings growth rate. <1 may indicate undervaluation' },
+    { label: 'Beta', value: fmt(quote.beta), tip: 'Measure of volatility relative to the market. >1 = more volatile' },
+    { label: 'Div Yield', value: formatDividendYield(quote.dividendYield), tip: 'Annual dividend as a percentage of share price' },
+    { label: '52W High', value: formatPrice(quote.yearHigh), tip: 'Highest price in the last 52 weeks' },
+    { label: '52W Low', value: formatPrice(quote.yearLow), tip: 'Lowest price in the last 52 weeks' },
+    { label: '50D Avg', value: formatPrice(quote.priceAvg50), tip: '50-day simple moving average price' },
+    { label: '200D Avg', value: formatPrice(quote.priceAvg200), tip: '200-day simple moving average price' },
+    { label: 'Volume', value: quote.volume ? Number(quote.volume).toLocaleString() : '\u2014', tip: 'Number of shares traded today' },
+    { label: 'Avg Volume', value: quote.avgVolume ? Number(quote.avgVolume).toLocaleString() : '\u2014', tip: 'Average daily trading volume' },
+    { label: 'Open', value: formatPrice(quote.open), tip: 'Opening price for the current trading session' },
+    { label: 'Prev Close', value: formatPrice(quote.previousClose), tip: 'Closing price from the previous trading session' },
+    { label: 'Day High', value: formatPrice(quote.high), tip: 'Highest price during the current session' },
+    { label: 'Day Low', value: formatPrice(quote.low), tip: 'Lowest price during the current session' },
+    { label: 'Enterprise Value', value: analyst?.enterpriseValue ? formatMarketCap(analyst.enterpriseValue) : '\u2014', tip: 'Market cap + debt - cash. True cost to acquire the company' },
+    { label: 'Revenue Growth', value: analyst?.revenueGrowth != null ? `${(analyst.revenueGrowth * 100).toFixed(1)}%` : '\u2014', tip: 'Year-over-year revenue growth rate' },
+    { label: 'Earnings Growth', value: analyst?.earningsGrowth != null ? `${(analyst.earningsGrowth * 100).toFixed(1)}%` : '\u2014', tip: 'Year-over-year earnings growth rate' },
+    { label: 'Target Mean', value: analyst?.targetMeanPrice ? formatPrice(analyst.targetMeanPrice) : '\u2014', tip: 'Average analyst price target' },
+    { label: 'Short Ratio', value: fmt(analyst?.shortRatio), tip: 'Days to cover short positions based on average volume' },
+    { label: 'Analysts', value: analyst?.numberOfAnalysts || '\u2014', tip: 'Number of analysts covering this stock' },
   ];
 
   return (
@@ -1628,9 +1711,10 @@ function KeyStatsGrid({ quote, analyst }) {
       <h3 style={SECTION_HEADER}>Key Statistics <InfoTooltip text="Fundamental metrics sourced from Yahoo Finance in real-time" /></h3>
       <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0' }}>
         {stats.map(s => (
-          <div key={s.label} style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)' }}>
+          <div key={s.label} className="tooltip-container" style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)', cursor: 'help', position: 'relative' }}>
             <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', letterSpacing: '0.05em', marginBottom: '2px' }}>{s.label}</div>
             <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{s.value}</div>
+            <span className="tooltip-text">{s.tip}</span>
           </div>
         ))}
       </div>
@@ -1769,11 +1853,13 @@ export default function AnalysisTab() {
             <AnalystConsensus analyst={analyst} />
           </div>
 
-          {/* Row 5: Technical indicators + valuation + signal (3 columns) */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          {/* Row 5: Overall Signal banner (full width) */}
+          {technicals && <OverallSignal technicals={technicals} valuation={valAvg} />}
+
+          {/* Row 5b: Technical indicators + valuation (2 columns) */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {technicals ? <TechnicalIndicators technicals={technicals} quote={quote} /> : <div />}
             <ValuationScorecard quote={quote} analyst={analyst} />
-            {technicals ? <OverallSignal technicals={technicals} valuation={valAvg} /> : <div />}
           </div>
 
           {/* Row 6: Earnings history + revenue trend (2 columns) */}
@@ -1785,22 +1871,20 @@ export default function AnalysisTab() {
           {/* Row 7: Comparable companies (full width) */}
           <ComparableCompanies symbol={analysisSymbol} profile={profile} quote={quote} />
 
-          {/* Row 8: Short interest + insider activity (2 columns) */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Row 8: Short interest + insider activity + dividend (3 columns) */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             <ShortInterestSection analyst={analyst} />
             <InsiderActivity symbol={analysisSymbol} />
-          </div>
-
-          {/* Row 9: Ownership + dividend info (2 columns) */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <OwnershipSection analyst={analyst} quote={quote} />
             <DividendAnalysis quote={quote} />
           </div>
+
+          {/* Row 9: Ownership (full width) */}
+          <OwnershipSection analyst={analyst} quote={quote} />
 
           {/* Row 10: Investment thesis + risks */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <AutoThesis quote={quote} analyst={analyst} technicals={technicals} valuation={valAvg} profile={profile} financials={financials} />
-            <KeyRisks quote={quote} analyst={analyst} technicals={technicals} />
+            <KeyRisks quote={quote} analyst={analyst} technicals={technicals} profile={profile} financials={financials} />
           </div>
 
           {/* Row 11: News feed (full width) */}
@@ -1821,6 +1905,7 @@ export default function AnalysisTab() {
         @media (max-width: 900px) {
           div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
           div[style*="grid-template-columns: 55fr 45fr"] { grid-template-columns: 1fr !important; }
+          div[style*="grid-template-columns: 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>
