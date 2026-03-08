@@ -130,21 +130,204 @@ function AnalysisSearchBar({ onSearch }) {
   );
 }
 
-// ── Empty State with Recent Searches ──
+// ── Empty State with Trending, Sectors, Recent Searches ──
+const POPULAR_TICKERS = ['AAPL','MSFT','GOOGL','META','AMZN','NVDA','TSLA','BRK-B','JPM','V','SPY','QQQ','GLD','BTC-USD','ETH-USD','^VIX'];
+
+const SECTOR_ETFS = [
+  { label: 'Technology', ticker: 'XLK' },
+  { label: 'Healthcare', ticker: 'XLV' },
+  { label: 'Financials', ticker: 'XLF' },
+  { label: 'Energy', ticker: 'XLE' },
+  { label: 'Consumer Disc.', ticker: 'XLY' },
+  { label: 'Consumer Staples', ticker: 'XLP' },
+  { label: 'Industrials', ticker: 'XLI' },
+  { label: 'Materials', ticker: 'XLB' },
+  { label: 'Real Estate', ticker: 'XLRE' },
+  { label: 'Utilities', ticker: 'XLU' },
+  { label: 'Comm. Services', ticker: 'XLC' },
+];
+
 function EmptyState({ onSearch }) {
-  const recent = getRecentSearches();
-  const popular = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'SPY'];
+  const [recent, setRecent] = useState(getRecentSearches());
+  const [trending, setTrending] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
+  const [heroQuery, setHeroQuery] = useState('');
+  const [heroFocused, setHeroFocused] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [gainers, losers, actives] = await Promise.allSettled([
+          api.gainers(), api.losers(), api.actives(),
+        ]);
+        const g = (gainers.status === 'fulfilled' && Array.isArray(gainers.value) ? gainers.value : []).slice(0, 2);
+        const l = (losers.status === 'fulfilled' && Array.isArray(losers.value) ? losers.value : []).slice(0, 2);
+        const a = (actives.status === 'fulfilled' && Array.isArray(actives.value) ? actives.value : []).slice(0, 2);
+        setTrending([
+          ...g.map(t => ({ ...t, badge: 'TOP GAINER' })),
+          ...l.map(t => ({ ...t, badge: 'TOP LOSER' })),
+          ...a.map(t => ({ ...t, badge: 'MOST ACTIVE' })),
+        ]);
+      } catch {}
+      setTrendingLoading(false);
+    })();
+  }, []);
+
+  const handleHeroSearch = (e) => {
+    e.preventDefault();
+    const ticker = heroQuery.trim().toUpperCase();
+    if (ticker) onSearch(ticker);
+  };
+
+  const clearRecent = () => {
+    localStorage.removeItem(RECENT_KEY);
+    setRecent([]);
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center' }}>
-      <Search size={48} color="var(--text-tertiary)" style={{ marginBottom: '16px', opacity: 0.5 }} />
-      <h2 style={{ color: 'var(--text-secondary)', fontSize: '18px', fontWeight: 600, margin: '0 0 24px' }}>Search for a ticker to begin</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '40px', gap: '32px', maxWidth: '860px', margin: '0 auto' }}>
+      {/* 1. Header */}
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>Analysis</h2>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: 0 }}>Deep-dive any stock, ETF, commodity, or index</p>
+      </div>
 
+      {/* 2. Hero Search */}
+      <form onSubmit={handleHeroSearch} style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '580px' }}>
+        <input
+          value={heroQuery}
+          onChange={e => setHeroQuery(e.target.value)}
+          placeholder="Search any ticker, ETF, or company..."
+          style={{
+            flex: 1,
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            padding: '16px 24px',
+            color: 'var(--text-primary)',
+            fontSize: '16px',
+            fontFamily: 'monospace',
+            outline: 'none',
+            boxShadow: heroFocused ? '0 0 0 2px rgba(240,165,0,0.3)' : 'none',
+            transition: 'box-shadow 150ms ease, border-color 150ms ease',
+          }}
+          onFocus={e => { e.target.style.borderColor = 'var(--gold)'; setHeroFocused(true); }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; setHeroFocused(false); }}
+        />
+        <button type="submit" style={{
+          backgroundColor: 'var(--gold)',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '16px 32px',
+          color: 'var(--bg-primary)',
+          fontSize: '15px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          transition: 'opacity 150ms ease',
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+          Search
+        </button>
+      </form>
+
+      {/* 3. Popular to Analyze chips */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', maxWidth: '680px' }}>
+        {POPULAR_TICKERS.map(sym => (
+          <button key={sym} onClick={() => onSearch(sym)} style={{
+            backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '6px',
+            color: 'var(--gold)', fontSize: '12px', fontWeight: 600, fontFamily: 'monospace',
+            padding: '6px 14px', cursor: 'pointer', transition: 'all 150ms',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.backgroundColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--bg-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--gold)'; }}
+          >
+            {sym}
+          </button>
+        ))}
+      </div>
+
+      {/* 4. Trending Today */}
+      <div style={{ width: '100%' }}>
+        <div style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Trending Today</div>
+        {trendingLoading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
+            {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '100px', borderRadius: '8px' }} />)}
+          </div>
+        ) : trending.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
+            {trending.map((t, i) => {
+              const chg = t.changesPercentage ?? t.change_percentage ?? 0;
+              const pctNum = typeof chg === 'string' ? parseFloat(chg) : chg;
+              const isPos = pctNum >= 0;
+              return (
+                <div key={`${t.symbol}-${i}`} onClick={() => onSearch(t.symbol)} style={{
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  cursor: 'pointer',
+                  transition: 'background 150ms ease',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
+                >
+                  <div style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>{t.symbol}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '6px' }}>{t.name || t.companyName || ''}</div>
+                  <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600, fontFamily: 'monospace' }}>{formatPrice(t.price)}</div>
+                  <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
+                    {isPos ? '+' : ''}{typeof pctNum === 'number' ? pctNum.toFixed(2) : pctNum}%
+                  </div>
+                  <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', marginTop: '6px', textTransform: 'uppercase' }}>{t.badge}</div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>No trending data available</div>
+        )}
+      </div>
+
+      {/* 5. Sectors */}
+      <div style={{ width: '100%' }}>
+        <div style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Sectors</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+          {SECTOR_ETFS.map(s => (
+            <button key={s.ticker} onClick={() => onSearch(s.ticker)} style={{
+              backgroundColor: 'rgba(255,255,255,0.04)',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px 14px',
+              cursor: 'pointer',
+              transition: 'background 150ms ease',
+              textAlign: 'center',
+            }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
+            >
+              <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 500 }}>{s.label}</div>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontFamily: 'monospace', marginTop: '2px' }}>{s.ticker}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 6. Recently Analyzed */}
       {recent.length > 0 && (
-        <div style={{ ...CARD_STYLE, width: '100%', maxWidth: '500px', textAlign: 'left' }}>
-          <h3 style={SECTION_HEADER}>Recently Analyzed</h3>
+        <div style={{ ...CARD_STYLE, width: '100%', textAlign: 'left' }}>
+          <div style={{ ...SECTION_HEADER, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Recently Analyzed</span>
+            <button onClick={clearRecent} style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)',
+              fontSize: '10px', cursor: 'pointer', padding: '0', transition: 'color 150ms',
+            }}
+              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+            >
+              Clear
+            </button>
+          </div>
           <div>
-            {recent.map((r, i) => (
+            {recent.map((r) => (
               <div key={r.symbol} onClick={() => onSearch(r.symbol)}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 150ms' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
@@ -167,24 +350,6 @@ function EmptyState({ onSearch }) {
           </div>
         </div>
       )}
-
-      <div style={{ ...CARD_STYLE, width: '100%', maxWidth: '500px', textAlign: 'left', marginTop: recent.length > 0 ? '0' : '0' }}>
-        <h3 style={SECTION_HEADER}>Popular to Analyze</h3>
-        <div style={{ padding: '12px 16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {popular.map(sym => (
-            <button key={sym} onClick={() => onSearch(sym)} style={{
-              backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '4px',
-              color: 'var(--gold)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace',
-              padding: '4px 12px', cursor: 'pointer', transition: 'all 150ms',
-            }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
-            >
-              {sym}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -1824,7 +1989,7 @@ export default function AnalysisTab() {
                 </button>
               </>
             )}
-            {!quote && <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Security Research</span>}
+            {!quote && <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Analysis</span>}
           </div>
           <AnalysisSearchBar onSearch={handleSearch} />
         </div>
@@ -1901,11 +2066,13 @@ export default function AnalysisTab() {
       <style>{`
         @media (max-width: 1100px) {
           div[style*="grid-template-columns: 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+          div[style*="repeat(6, 1fr)"] { grid-template-columns: repeat(3, 1fr) !important; }
         }
         @media (max-width: 900px) {
           div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
           div[style*="grid-template-columns: 55fr 45fr"] { grid-template-columns: 1fr !important; }
           div[style*="grid-template-columns: 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+          div[style*="repeat(6, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
     </div>
