@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
 import { formatPrice, formatMarketCap } from '../utils/formatters';
@@ -151,6 +152,7 @@ function CellInput({ value, onChange, suffix = '%' }) {
 
 // ── Model Tabs ──
 const MODEL_TABS = [
+  { key: 'master', label: 'MASTER' },
   { key: 'dcf', label: 'DCF' },
   { key: 'eps', label: 'EPS' },
   { key: 'lbo', label: 'LBO' },
@@ -158,6 +160,37 @@ const MODEL_TABS = [
   { key: '3stmt', label: '3-Statement' },
   { key: 'ma', label: 'M&A' },
 ];
+
+// ── Scenario Presets ──
+const SCENARIOS = [
+  { name: 'Bear', description: 'Recession scenario with margin compression and multiple contraction',
+    revGrowth: -2, grossMargin: 35, ebitdaMargin: 15, netMargin: 8, taxRate: 25,
+    daaPct: 5, capexPct: 3, nwcPct: 2, riskFree: 5.0, erp: 7.0, beta: 1.4,
+    preTaxDebt: 7.0, debtPct: 40, termGrowth: 1.5, entryMultiple: 8, exitMultiple: 8,
+    lboDebtPct: 50, intRate: 9, targetPE: 12 },
+  { name: 'Conservative', description: 'Below-trend growth with cautious assumptions',
+    revGrowth: 3, grossMargin: 38, ebitdaMargin: 20, netMargin: 12, taxRate: 23,
+    daaPct: 5, capexPct: 4, nwcPct: 1.5, riskFree: 4.5, erp: 6.0, beta: 1.2,
+    preTaxDebt: 6.0, debtPct: 35, termGrowth: 2.0, entryMultiple: 10, exitMultiple: 10,
+    lboDebtPct: 55, intRate: 8, targetPE: 16 },
+  { name: 'Base', description: 'Consensus estimates reflecting current market conditions',
+    revGrowth: 8, grossMargin: 42, ebitdaMargin: 25, netMargin: 15, taxRate: 21,
+    daaPct: 5, capexPct: 4, nwcPct: 1, riskFree: 4.3, erp: 5.5, beta: 1.0,
+    preTaxDebt: 5.0, debtPct: 30, termGrowth: 2.5, entryMultiple: 12, exitMultiple: 12,
+    lboDebtPct: 60, intRate: 7, targetPE: 20 },
+  { name: 'Bull', description: 'Above-trend growth with margin expansion',
+    revGrowth: 15, grossMargin: 48, ebitdaMargin: 30, netMargin: 20, taxRate: 19,
+    daaPct: 4, capexPct: 5, nwcPct: 0.5, riskFree: 3.8, erp: 5.0, beta: 0.9,
+    preTaxDebt: 4.5, debtPct: 25, termGrowth: 3.0, entryMultiple: 14, exitMultiple: 16,
+    lboDebtPct: 65, intRate: 6, targetPE: 25 },
+  { name: 'Aggressive', description: 'Hyper-growth with significant multiple expansion',
+    revGrowth: 25, grossMargin: 55, ebitdaMargin: 35, netMargin: 25, taxRate: 18,
+    daaPct: 3, capexPct: 6, nwcPct: 0, riskFree: 3.5, erp: 4.5, beta: 0.8,
+    preTaxDebt: 4.0, debtPct: 20, termGrowth: 3.5, entryMultiple: 16, exitMultiple: 20,
+    lboDebtPct: 70, intRate: 5.5, targetPE: 35 },
+];
+
+const defaultScenario = () => ({ ...SCENARIOS[2] });
 
 // ── Popular Tickers ──
 const POPULAR = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'JPM', 'SPY', 'QQQ'];
@@ -1841,13 +1874,502 @@ function MergerModel() {
   );
 }
 
+// ── Master Integrated Model ──
+function MasterModel({ data, quote }) {
+  const income = Array.isArray(data.incomeStatement) ? data.incomeStatement : [];
+  const bs = Array.isArray(data.balanceSheet) ? data.balanceSheet : [];
+  const lastIncome = income[income.length - 1] || {};
+  const lastBS = bs[bs.length - 1] || {};
+
+  const [scenarioIndex, setScenarioIndex] = useState(2);
+  const [assumptions, setAssumptions] = useState(() => defaultScenario());
+  const [userOverrides, setUserOverrides] = useState({});
+  const [showOverrides, setShowOverrides] = useState(false);
+
+  const applyScenario = (idx) => {
+    setScenarioIndex(idx);
+    const base = { ...SCENARIOS[idx] };
+    Object.keys(userOverrides).forEach(k => { base[k] = userOverrides[k]; });
+    setAssumptions(base);
+  };
+
+  const handleOverride = (key, val) => {
+    setUserOverrides(prev => ({ ...prev, [key]: val }));
+    setAssumptions(prev => ({ ...prev, [key]: val }));
+  };
+
+  const clearOverrides = () => {
+    setUserOverrides({});
+    setAssumptions({ ...SCENARIOS[scenarioIndex] });
+  };
+
+  const overrideKeys = Object.keys(userOverrides);
+
+  // ── Integrated Calculations ──
+  const lastRev = lastIncome.revenue || 0;
+  const projYears = 5;
+  const currentPrice = quote?.price || 0;
+  const sharesOut = quote?.marketCap && quote?.price ? Math.round(quote.marketCap / quote.price) : 1;
+  const netDebt = (lastBS.totalDebt || 0) - (lastBS.cashAndCashEquivalents || 0);
+
+  // 3-Statement + DCF outputs
+  const outputs = useMemo(() => {
+    const a = assumptions;
+    const projected = [];
+    for (let y = 0; y < projYears; y++) {
+      const rev = lastRev * Math.pow(1 + a.revGrowth / 100, y + 1);
+      const gp = rev * a.grossMargin / 100;
+      const ebitda = rev * a.ebitdaMargin / 100;
+      const ebit = ebitda - rev * a.daaPct / 100;
+      const ni = rev * a.netMargin / 100;
+      const nopat = ebit * (1 - a.taxRate / 100);
+      const daa = rev * a.daaPct / 100;
+      const capex = rev * a.capexPct / 100;
+      const nwc = rev * a.nwcPct / 100;
+      const fcff = nopat + daa - capex - nwc;
+      const eps = sharesOut > 0 ? ni / sharesOut : 0;
+      projected.push({ rev, gp, ebitda, ebit, ni, nopat, daa, capex, nwc, fcff, eps });
+    }
+
+    // WACC
+    const costEquity = a.riskFree + a.beta * a.erp;
+    const afterTaxDebt = a.preTaxDebt * (1 - a.taxRate / 100);
+    const equityPct = 100 - a.debtPct;
+    const wacc = (costEquity * equityPct / 100) + (afterTaxDebt * a.debtPct / 100);
+
+    // DCF
+    const pvFCFs = projected.map((p, i) => p.fcff / Math.pow(1 + wacc / 100, i + 1));
+    const totalPvFCF = pvFCFs.reduce((s, v) => s + v, 0);
+    const terminalFCF = projected[projYears - 1].fcff * (1 + a.termGrowth / 100);
+    const terminalValue = wacc > a.termGrowth ? terminalFCF / ((wacc - a.termGrowth) / 100) : 0;
+    const pvTerminal = terminalValue / Math.pow(1 + wacc / 100, projYears);
+    const ev = totalPvFCF + pvTerminal;
+    const equityValue = ev - netDebt;
+    const dcfPrice = sharesOut > 0 ? equityValue / sharesOut : 0;
+
+    // LBO
+    const lastEbitda = lastIncome.ebitda || lastRev * a.ebitdaMargin / 100;
+    const purchaseEV = lastEbitda * a.entryMultiple;
+    const totalLboDebt = purchaseEV * a.lboDebtPct / 100;
+    const equityContrib = purchaseEV - totalLboDebt;
+    let debtBalance = totalLboDebt;
+    for (let y = 1; y <= 5; y++) {
+      const revY = lastRev * Math.pow(1 + a.revGrowth / 100, y);
+      const ebitdaY = revY * a.ebitdaMargin / 100;
+      const capexY = revY * a.capexPct / 100;
+      const interest = debtBalance * a.intRate / 100;
+      const fcfY = ebitdaY - capexY - interest;
+      const paydown = Math.min(fcfY * 0.5, debtBalance);
+      debtBalance = Math.max(0, debtBalance - paydown);
+    }
+    const exitEbitda = lastRev * Math.pow(1 + a.revGrowth / 100, 5) * a.ebitdaMargin / 100;
+    const exitEV = exitEbitda * a.exitMultiple;
+    const exitEquity = exitEV - debtBalance;
+    const moic = equityContrib > 0 ? exitEquity / equityContrib : 0;
+    const irr = equityContrib > 0 ? (Math.pow(Math.max(0, moic), 1 / 5) - 1) * 100 : 0;
+
+    // Comps implied
+    const fwdEPS = projected[0]?.eps || 0;
+    const compsPrice = fwdEPS * a.targetPE;
+
+    // Year 5 outputs
+    const y5 = projected[projYears - 1];
+
+    return {
+      projected, wacc, costEquity, dcfPrice, ev, equityValue, totalPvFCF, pvTerminal,
+      moic, irr, exitEV, exitEquity, purchaseEV, equityContrib,
+      compsPrice, fwdEPS,
+      y5Rev: y5.rev, y5EBITDA: y5.ebitda, y5NI: y5.ni, y5EPS: y5.eps, y5FCF: y5.fcff,
+    };
+  }, [assumptions, lastRev, sharesOut, netDebt, lastIncome.ebitda, projYears]);
+
+  const dcfUpside = currentPrice > 0 ? ((outputs.dcfPrice - currentPrice) / currentPrice * 100) : 0;
+  const compsUpside = currentPrice > 0 ? ((outputs.compsPrice - currentPrice) / currentPrice * 100) : 0;
+
+  // Football field data
+  const fiftyTwoLow = quote?.yearLow || currentPrice * 0.7;
+  const fiftyTwoHigh = quote?.yearHigh || currentPrice * 1.3;
+
+  const footballData = useMemo(() => {
+    // Compute all scenario prices for ranges
+    const scenarioPrices = SCENARIOS.map(sc => {
+      const a = sc;
+      const proj = [];
+      for (let y = 0; y < 5; y++) {
+        const rev = lastRev * Math.pow(1 + a.revGrowth / 100, y + 1);
+        const ebitda = rev * a.ebitdaMargin / 100;
+        const ebit = ebitda - rev * a.daaPct / 100;
+        const ni = rev * a.netMargin / 100;
+        const nopat = ebit * (1 - a.taxRate / 100);
+        const daa = rev * a.daaPct / 100;
+        const capex = rev * a.capexPct / 100;
+        const nwc = rev * a.nwcPct / 100;
+        const fcff = nopat + daa - capex - nwc;
+        proj.push({ fcff, ni });
+      }
+      const ce = a.riskFree + a.beta * a.erp;
+      const atd = a.preTaxDebt * (1 - a.taxRate / 100);
+      const w = (ce * (100 - a.debtPct) / 100) + (atd * a.debtPct / 100);
+      const pvs = proj.map((p, i) => p.fcff / Math.pow(1 + w / 100, i + 1));
+      const tpv = pvs.reduce((s, v) => s + v, 0);
+      const tf = proj[4].fcff * (1 + a.termGrowth / 100);
+      const tv = w > a.termGrowth ? tf / ((w - a.termGrowth) / 100) : 0;
+      const pvt = tv / Math.pow(1 + w / 100, 5);
+      const dcf = sharesOut > 0 ? (tpv + pvt - netDebt) / sharesOut : 0;
+      const eps = sharesOut > 0 ? proj[0].ni / sharesOut : 0;
+      const comp = eps * a.targetPE;
+      return { dcf, comp };
+    });
+
+    const dcfPrices = scenarioPrices.map(s => s.dcf);
+    const compPrices = scenarioPrices.map(s => s.comp);
+
+    return [
+      { name: 'DCF', low: Math.min(...dcfPrices), high: Math.max(...dcfPrices), base: [Math.min(...dcfPrices), Math.max(...dcfPrices)] },
+      { name: 'Comps', low: Math.min(...compPrices), high: Math.max(...compPrices), base: [Math.min(...compPrices), Math.max(...compPrices)] },
+      { name: '52W Range', low: fiftyTwoLow, high: fiftyTwoHigh, base: [fiftyTwoLow, fiftyTwoHigh] },
+    ];
+  }, [lastRev, sharesOut, netDebt, fiftyTwoLow, fiftyTwoHigh]);
+
+  // Scenario comparison
+  const scenarioComparison = useMemo(() => {
+    return SCENARIOS.map(sc => {
+      const a = sc;
+      const proj = [];
+      for (let y = 0; y < 5; y++) {
+        const rev = lastRev * Math.pow(1 + a.revGrowth / 100, y + 1);
+        const ebitda = rev * a.ebitdaMargin / 100;
+        const ebit = ebitda - rev * a.daaPct / 100;
+        const ni = rev * a.netMargin / 100;
+        const nopat = ebit * (1 - a.taxRate / 100);
+        const daa = rev * a.daaPct / 100;
+        const capex = rev * a.capexPct / 100;
+        const nwc = rev * a.nwcPct / 100;
+        const fcff = nopat + daa - capex - nwc;
+        proj.push({ rev, ebitda, ni, fcff });
+      }
+      const ce = a.riskFree + a.beta * a.erp;
+      const atd = a.preTaxDebt * (1 - a.taxRate / 100);
+      const w = (ce * (100 - a.debtPct) / 100) + (atd * a.debtPct / 100);
+      const pvs = proj.map((p, i) => p.fcff / Math.pow(1 + w / 100, i + 1));
+      const tpv = pvs.reduce((s, v) => s + v, 0);
+      const tf = proj[4].fcff * (1 + a.termGrowth / 100);
+      const tv = w > a.termGrowth ? tf / ((w - a.termGrowth) / 100) : 0;
+      const pvt = tv / Math.pow(1 + w / 100, 5);
+      const dcfP = sharesOut > 0 ? (tpv + pvt - netDebt) / sharesOut : 0;
+      const eps = sharesOut > 0 ? proj[0].ni / sharesOut : 0;
+      const compP = eps * a.targetPE;
+      const up = currentPrice > 0 ? ((dcfP - currentPrice) / currentPrice * 100) : 0;
+      return {
+        name: a.name, revGrowth: a.revGrowth, ebitdaMargin: a.ebitdaMargin,
+        y5Rev: proj[4].rev, y5EBITDA: proj[4].ebitda, y5FCF: proj[4].fcff,
+        wacc: w, dcfPrice: dcfP, compsPrice: compP, upside: up,
+      };
+    });
+  }, [lastRev, sharesOut, netDebt, currentPrice]);
+
+  const OVERRIDE_FIELDS = [
+    { key: 'revGrowth', label: 'Rev Growth %', min: -20, max: 40, step: 0.5 },
+    { key: 'grossMargin', label: 'Gross Margin %', min: 10, max: 80, step: 0.5 },
+    { key: 'ebitdaMargin', label: 'EBITDA Margin %', min: 5, max: 60, step: 0.5 },
+    { key: 'netMargin', label: 'Net Margin %', min: -10, max: 40, step: 0.5 },
+    { key: 'taxRate', label: 'Tax Rate %', min: 10, max: 35, step: 0.5 },
+    { key: 'capexPct', label: 'Capex % Rev', min: 0, max: 15, step: 0.5 },
+    { key: 'daaPct', label: 'D&A % Rev', min: 0, max: 15, step: 0.5 },
+    { key: 'nwcPct', label: 'NWC % Rev', min: -5, max: 10, step: 0.5 },
+    { key: 'riskFree', label: 'Risk-Free %', min: 1, max: 8, step: 0.1 },
+    { key: 'erp', label: 'Equity RP %', min: 3, max: 10, step: 0.1 },
+    { key: 'beta', label: 'Beta', min: 0.3, max: 2.5, step: 0.05 },
+    { key: 'termGrowth', label: 'Terminal Gr %', min: 0, max: 5, step: 0.1 },
+    { key: 'entryMultiple', label: 'Entry EV/EBITDA', min: 4, max: 25, step: 0.5 },
+    { key: 'exitMultiple', label: 'Exit EV/EBITDA', min: 4, max: 30, step: 0.5 },
+    { key: 'targetPE', label: 'Target P/E', min: 5, max: 50, step: 0.5 },
+    { key: 'intRate', label: 'LBO Int Rate %', min: 3, max: 15, step: 0.25 },
+  ];
+
+  const scenarioColors = ['var(--accent-red)', '#f59e0b', 'var(--gold)', 'var(--accent-green)', '#3b82f6'];
+  const barColors = ['var(--gold)', '#3b82f6', 'var(--text-tertiary)'];
+
+  return (
+    <div>
+      {/* Scenario Slider */}
+      <div style={CARD}>
+        <h3 style={HEADER}>Scenario Analysis</h3>
+        <div style={{ padding: '20px 24px' }}>
+          {/* Slider track */}
+          <div style={{ position: 'relative', marginBottom: '8px' }}>
+            <input
+              type="range" min={0} max={4} step={1} value={scenarioIndex}
+              onChange={e => applyScenario(Number(e.target.value))}
+              style={{
+                width: '100%', height: '6px', appearance: 'none', WebkitAppearance: 'none',
+                background: 'linear-gradient(to right, var(--accent-red), #f59e0b, var(--gold), var(--accent-green), #3b82f6)',
+                borderRadius: '3px', outline: 'none', cursor: 'pointer',
+              }}
+            />
+          </div>
+          {/* Position labels */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+            {SCENARIOS.map((s, i) => (
+              <button key={s.name} onClick={() => applyScenario(i)} style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
+                fontSize: '11px', fontWeight: scenarioIndex === i ? 700 : 400,
+                color: scenarioIndex === i ? scenarioColors[i] : 'var(--text-tertiary)',
+                textTransform: 'uppercase', letterSpacing: '0.06em',
+                borderBottom: scenarioIndex === i ? `2px solid ${scenarioColors[i]}` : '2px solid transparent',
+              }}>{s.name}</button>
+            ))}
+          </div>
+          {/* Description */}
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', fontStyle: 'italic' }}>
+            {SCENARIOS[scenarioIndex].description}
+          </div>
+          {/* Override pills */}
+          {overrideKeys.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>Overrides:</span>
+              {overrideKeys.map(k => {
+                const field = OVERRIDE_FIELDS.find(f => f.key === k);
+                return (
+                  <span key={k} style={{
+                    fontSize: '10px', padding: '2px 8px', borderRadius: '10px',
+                    backgroundColor: 'var(--gold-active-bg)', color: 'var(--gold)', fontWeight: 600,
+                  }}>{field?.label || k}: {userOverrides[k]}</span>
+                );
+              })}
+              <button onClick={clearOverrides} style={{
+                fontSize: '10px', padding: '2px 8px', borderRadius: '10px', cursor: 'pointer',
+                backgroundColor: 'var(--row-section-bg)', color: 'var(--accent-red)',
+                border: '1px solid var(--border-color)', fontWeight: 600,
+              }}>Clear All</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3-Column Summary */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        {/* Projected Financials */}
+        <div style={CARD}>
+          <h3 style={HEADER}>Projected Financials (Y5)</h3>
+          <div style={{ padding: '16px' }}>
+            {[
+              { label: 'Revenue', val: fmtB(outputs.y5Rev) },
+              { label: 'EBITDA', val: fmtB(outputs.y5EBITDA) },
+              { label: 'Net Income', val: fmtB(outputs.y5NI) },
+              { label: 'EPS', val: fmtPS(outputs.y5EPS) },
+              { label: 'Free Cash Flow', val: fmtB(outputs.y5FCF), gold: true },
+            ].map(r => (
+              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--row-border)' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{r.label}</span>
+                <span style={{ color: r.gold ? 'var(--gold)' : 'var(--text-strong)', fontSize: '12px', fontWeight: r.gold ? 700 : 400, fontFamily: 'monospace' }}>{r.val}</span>
+              </div>
+            ))}
+            <div style={{ marginTop: '8px', padding: '6px 0', borderBottom: '1px solid var(--row-border)', display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Rev Growth</span>
+              <span style={{ color: 'var(--text-strong)', fontSize: '12px', fontFamily: 'monospace' }}>{fmtPct(assumptions.revGrowth)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>EBITDA Margin</span>
+              <span style={{ color: 'var(--text-strong)', fontSize: '12px', fontFamily: 'monospace' }}>{fmtPct(assumptions.ebitdaMargin)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Valuation Summary */}
+        <div style={CARD}>
+          <h3 style={HEADER}>Valuation Summary</h3>
+          <div style={{ padding: '16px' }}>
+            {[
+              { label: 'WACC', val: fmtPct(outputs.wacc) },
+              { label: 'Enterprise Value', val: fmtB(outputs.ev), gold: true },
+              { label: 'Equity Value', val: fmtB(outputs.equityValue), gold: true },
+              { label: 'PV of FCFs', val: fmtB(outputs.totalPvFCF) },
+              { label: 'PV of Terminal', val: fmtB(outputs.pvTerminal) },
+            ].map(r => (
+              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--row-border)' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{r.label}</span>
+                <span style={{ color: r.gold ? 'var(--gold)' : 'var(--text-strong)', fontSize: '12px', fontWeight: r.gold ? 700 : 400, fontFamily: 'monospace' }}>{r.val}</span>
+              </div>
+            ))}
+            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>DCF Implied Price</div>
+              <div style={{ color: 'var(--gold)', fontSize: '28px', fontWeight: 900, fontFamily: 'monospace' }}>{fmtPS(outputs.dcfPrice)}</div>
+              <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-faint)' }}>
+                Current: {fmtPS(currentPrice)} |{' '}
+                <span style={{ color: dcfUpside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{dcfUpside >= 0 ? '+' : ''}{dcfUpside.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Return Metrics */}
+        <div style={CARD}>
+          <h3 style={HEADER}>Return Metrics</h3>
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: '16px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px' }}>
+              <div>
+                <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>MOIC</div>
+                <div style={{ color: 'var(--gold)', fontSize: '22px', fontWeight: 700, fontFamily: 'monospace' }}>{outputs.moic.toFixed(2)}x</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>IRR</div>
+                <div style={{ color: outputs.irr >= 20 ? 'var(--accent-green)' : outputs.irr >= 15 ? 'var(--gold)' : 'var(--accent-red)', fontSize: '22px', fontWeight: 700, fontFamily: 'monospace' }}>{outputs.irr.toFixed(1)}%</div>
+              </div>
+            </div>
+            {[
+              { label: 'Purchase EV', val: fmtB(outputs.purchaseEV) },
+              { label: 'Exit EV', val: fmtB(outputs.exitEV), gold: true },
+              { label: 'Exit Equity', val: fmtB(outputs.exitEquity), gold: true },
+              { label: 'Comps Price (Fwd P/E)', val: fmtPS(outputs.compsPrice) },
+            ].map(r => (
+              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--row-border)' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{r.label}</span>
+                <span style={{ color: r.gold ? 'var(--gold)' : 'var(--text-strong)', fontSize: '12px', fontWeight: r.gold ? 700 : 400, fontFamily: 'monospace' }}>{r.val}</span>
+              </div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Comps Upside</span>
+              <span style={{ color: compsUpside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontSize: '12px', fontWeight: 600, fontFamily: 'monospace' }}>{compsUpside >= 0 ? '+' : ''}{compsUpside.toFixed(1)}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Football Field Chart */}
+      <div style={CARD}>
+        <h3 style={HEADER}>Valuation Range (Football Field)</h3>
+        <div style={{ padding: '16px' }}>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={footballData} layout="vertical" margin={{ left: 60, right: 30, top: 10, bottom: 10 }}>
+              <XAxis type="number" domain={['auto', 'auto']} tickFormatter={v => `$${v.toFixed(0)}`}
+                tick={{ fill: 'var(--text-faint)', fontSize: 10 }} axisLine={{ stroke: 'var(--row-border)' }} tickLine={false} />
+              <YAxis type="category" dataKey="name" width={55}
+                tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                formatter={(value) => {
+                  if (Array.isArray(value)) return [`$${value[0].toFixed(2)} - $${value[1].toFixed(2)}`, 'Range'];
+                  return [`$${value.toFixed(2)}`, ''];
+                }}
+                contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '11px' }}
+                labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
+                itemStyle={{ color: 'var(--text-secondary)' }}
+              />
+              <Bar dataKey="base" barSize={20} radius={[4, 4, 4, 4]}>
+                {footballData.map((_, i) => <Cell key={i} fill={barColors[i]} fillOpacity={0.6} />)}
+              </Bar>
+              {currentPrice > 0 && (
+                <ReferenceLine x={currentPrice} stroke="var(--gold)" strokeWidth={2} strokeDasharray="4 4"
+                  label={{ value: `Current $${currentPrice.toFixed(2)}`, fill: 'var(--gold)', fontSize: 10, position: 'top' }} />
+              )}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Assumption Override Panel */}
+      <div style={CARD}>
+        <div onClick={() => setShowOverrides(!showOverrides)} style={{
+          ...HEADER, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+        }}>
+          {showOverrides ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          Assumption Overrides
+        </div>
+        {showOverrides && (
+          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            {OVERRIDE_FIELDS.map(f => (
+              <div key={f.key}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '10px', color: userOverrides[f.key] != null ? 'var(--gold)' : 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-strong)', fontFamily: 'monospace' }}>{assumptions[f.key]}</span>
+                </div>
+                <input type="range" min={f.min} max={f.max} step={f.step} value={assumptions[f.key]}
+                  onChange={e => handleOverride(f.key, parseFloat(e.target.value))}
+                  style={{ width: '100%', height: '4px', appearance: 'none', WebkitAppearance: 'none',
+                    background: userOverrides[f.key] != null
+                      ? 'linear-gradient(to right, var(--gold-muted), var(--gold))'
+                      : 'var(--border-color)',
+                    borderRadius: '2px', outline: 'none', cursor: 'pointer',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Scenario Comparison Table */}
+      <div style={CARD}>
+        <h3 style={HEADER}>Scenario Comparison</h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '11px' }}>
+            <thead>
+              <tr>
+                <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid var(--row-border)' }}>Metric</th>
+                {SCENARIOS.map((s, i) => (
+                  <th key={s.name} style={{
+                    padding: '8px 12px', textAlign: 'right', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em',
+                    borderBottom: '1px solid var(--row-border)',
+                    color: scenarioIndex === i ? scenarioColors[i] : 'var(--text-faint)',
+                    fontWeight: scenarioIndex === i ? 700 : 600,
+                    backgroundColor: scenarioIndex === i ? 'var(--gold-active-bg)' : 'transparent',
+                  }}>{s.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { label: 'Rev Growth %', fn: d => fmtPct(d.revGrowth) },
+                { label: 'EBITDA Margin %', fn: d => fmtPct(d.ebitdaMargin) },
+                { label: 'Y5 Revenue', fn: d => fmtB(d.y5Rev) },
+                { label: 'Y5 EBITDA', fn: d => fmtB(d.y5EBITDA) },
+                { label: 'Y5 FCF', fn: d => fmtB(d.y5FCF) },
+                { label: 'WACC', fn: d => fmtPct(d.wacc) },
+                { label: 'DCF Price', fn: d => fmtPS(d.dcfPrice), gold: true },
+                { label: 'Comps Price', fn: d => fmtPS(d.compsPrice) },
+                { label: 'Upside %', fn: d => `${d.upside >= 0 ? '+' : ''}${d.upside.toFixed(1)}%`, color: d => d.upside >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' },
+              ].map(row => (
+                <tr key={row.label}>
+                  <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontSize: '11px', borderBottom: '1px solid var(--row-border)', fontFamily: 'inherit' }}>{row.label}</td>
+                  {scenarioComparison.map((d, i) => (
+                    <td key={i} style={{
+                      padding: '6px 12px', textAlign: 'right', borderBottom: '1px solid var(--row-border)',
+                      color: row.color ? row.color(d) : row.gold ? 'var(--gold)' : 'var(--text-strong)',
+                      fontWeight: row.gold ? 700 : 400,
+                      backgroundColor: scenarioIndex === i ? 'var(--gold-active-bg)' : 'transparent',
+                    }}>{row.fn(d)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <style>{`
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: var(--gold);
+          cursor: pointer;
+          border: 2px solid var(--bg-primary);
+          box-shadow: 0 0 4px rgba(201,168,76,0.4);
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // ── Main Models Page ──
 export default function Models() {
   const { activeSymbol, setActiveSymbol } = useApp();
   const [ticker, setTicker] = useState(activeSymbol || '');
   const [stockData, setStockData] = useState(null);
   const [quote, setQuote] = useState(null);
-  const [activeModel, setActiveModel] = useState('dcf');
+  const [activeModel, setActiveModel] = useState('master');
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -1924,16 +2446,26 @@ export default function Models() {
 
         {/* Model tabs */}
         <div style={{ display: 'flex', gap: '4px', marginTop: '12px' }}>
-          {MODEL_TABS.map(t => (
-            <button key={t.key} onClick={() => setActiveModel(t.key)} style={{
-              padding: '6px 16px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.06em',
-              textTransform: 'uppercase', cursor: 'pointer', transition: 'all 150ms',
-              borderRadius: '4px',
-              border: activeModel === t.key ? '1px solid var(--gold)' : '1px solid var(--border-color)',
-              background: activeModel === t.key ? 'var(--gold-active-bg)' : 'transparent',
-              color: activeModel === t.key ? 'var(--gold)' : 'var(--text-tertiary)',
-            }}>{t.label}</button>
-          ))}
+          {MODEL_TABS.map(t => {
+            const isMaster = t.key === 'master';
+            const isActive = activeModel === t.key;
+            return (
+              <button key={t.key} onClick={() => setActiveModel(t.key)} style={{
+                padding: '6px 16px', fontSize: '12px', fontWeight: isMaster ? 700 : 600, letterSpacing: '0.06em',
+                textTransform: 'uppercase', cursor: 'pointer', transition: 'all 150ms',
+                borderRadius: '4px',
+                border: isMaster
+                  ? (isActive ? '1px solid var(--gold)' : '1px solid var(--gold-muted)')
+                  : (isActive ? '1px solid var(--gold)' : '1px solid var(--border-color)'),
+                background: isMaster
+                  ? (isActive ? 'var(--gold)' : 'var(--gold-active-bg)')
+                  : (isActive ? 'var(--gold-active-bg)' : 'transparent'),
+                color: isMaster
+                  ? (isActive ? 'var(--bg-primary)' : 'var(--gold)')
+                  : (isActive ? 'var(--gold)' : 'var(--text-tertiary)'),
+              }}>{t.label}</button>
+            );
+          })}
         </div>
       </div>
 
@@ -1949,6 +2481,7 @@ export default function Models() {
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>Failed to load data for {ticker}</div>
       ) : (
         <>
+          {activeModel === 'master' && <MasterModel data={stockData} quote={quote} />}
           {activeModel === 'dcf' && <DCFModel data={stockData} quote={quote} />}
           {activeModel === 'eps' && <EPSModel data={stockData} quote={quote} />}
           {activeModel === 'lbo' && <LBOModel data={stockData} quote={quote} />}
