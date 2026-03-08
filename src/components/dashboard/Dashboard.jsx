@@ -1398,84 +1398,6 @@ function AIDailyBrief() {
   );
 }
 
-// ── Insider Trading Feed ──
-function InsiderTradingFeed({ onNavigate }) {
-  const [trades, setTrades] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await api.insiderTradingFeed();
-        console.log('[InsiderFeed UI] received:', Array.isArray(data) ? `${data.length} trades` : typeof data);
-        if (Array.isArray(data)) {
-          setTrades(data.slice(0, 15));
-        }
-      } catch (e) {
-        console.error('[InsiderFeed UI] fetch error:', e);
-      }
-      setLoading(false);
-    })();
-  }, []);
-
-  const fmtDate = (d) => {
-    if (!d) return '\u2014';
-    const dt = new Date(d);
-    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
-  return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
-        <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Insider Trading Feed</span>
-      </div>
-      {loading ? (
-        <div style={{ padding: '12px' }}>{Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '32px', marginBottom: '4px' }} />)}</div>
-      ) : trades.length === 0 ? (
-        <div style={{ padding: '16px 14px', color: 'var(--text-tertiary)', fontSize: '11px', textAlign: 'center' }}>No recent insider activity.</div>
-      ) : (
-        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-          {trades.map((t, i) => {
-            const txType = (t.transactionType || '').toLowerCase();
-            const isBuy = txType.includes('buy') || txType.includes('purchase') || txType === 'p-purchase';
-            const isSell = txType.includes('sale') || txType.includes('sell') || txType === 's-sale';
-            const badgeLabel = isBuy ? 'BUY' : isSell ? 'SELL' : (t.transactionType || 'N/A').toUpperCase();
-            const badgeColor = isBuy ? 'var(--green)' : isSell ? 'var(--red)' : 'var(--text-tertiary)';
-            const badgeBg = isBuy ? 'rgba(34,197,94,0.15)' : isSell ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)';
-            return (
-              <div key={`${t.symbol}-${t.date}-${i}`}
-                onClick={() => onNavigate && onNavigate(t.symbol)}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 100ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                  <span style={{ color: 'var(--gold)', fontFamily: 'monospace', fontWeight: 700, fontSize: '12px' }}>{t.symbol}</span>
-                  <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 700, backgroundColor: badgeBg, color: badgeColor, letterSpacing: '0.04em' }}>
-                    {badgeLabel}
-                  </span>
-                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
-                    {t.owner || '\u2014'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'monospace' }}>
-                    {t.shares != null ? Number(t.shares).toLocaleString() : '\u2014'} shs
-                  </span>
-                  <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600, minWidth: '80px', textAlign: 'right' }}>
-                    {t.value != null && t.value > 0 ? `$${Number(t.value).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '\u2014'}
-                  </span>
-                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', minWidth: '70px', textAlign: 'right' }}>
-                    {fmtDate(t.date)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Global Exchange Status ──
 const EXCHANGE_INDEX_MAP = {
@@ -1654,9 +1576,6 @@ export default function Dashboard({ setActiveTab }) {
         <M2MoneySupply />
       </div>
 
-      <div style={{ marginTop: '12px' }}>
-        <InsiderTradingFeed onNavigate={handleNavigate} />
-      </div>
       <div style={{ marginTop: '12px' }}>
         <NewsAndEarnings onNavigate={handleNavigate} />
       </div>

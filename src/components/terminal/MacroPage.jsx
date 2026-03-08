@@ -195,6 +195,7 @@ function CentralBankTracker({ onRowClick }) {
 }
 
 // ── M2 Money Supply (FRED API) ──
+const M2_POINTS = { '1Y': 12, '3Y': 36, '5Y': 60, '10Y': 120 };
 function M2MoneySupply() {
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -217,12 +218,10 @@ function M2MoneySupply() {
     })();
   }, []);
 
-  const M2_POINTS = { '1Y': 12, '3Y': 36, '5Y': 60, '10Y': 120 };
-
-  const filteredSeries = series.map(s => ({
+  const filteredSeries = useMemo(() => series.map(s => ({
     ...s,
     data: s.data.slice(-(M2_POINTS[m2Timeframe] || s.data.length)),
-  }));
+  })), [series, m2Timeframe]);
 
   return (
     <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>

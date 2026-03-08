@@ -120,6 +120,72 @@ module.exports = async (req, res) => {
     }
   }
 
+  // Tier 5: Hardcoded recurring US economic events (always returns data)
+  try {
+    console.log('[EconCal] Tier 5: Hardcoded recurring events');
+    const RECURRING = [
+      { event: 'Nonfarm Payrolls', country: 'US', impact: 'High', dayOfMonth: 'first-friday' },
+      { event: 'CPI Release', country: 'US', impact: 'High', dayOfMonth: 12 },
+      { event: 'FOMC Meeting Minutes', country: 'US', impact: 'High', dayOfMonth: 15 },
+      { event: 'PPI Release', country: 'US', impact: 'Medium', dayOfMonth: 14 },
+      { event: 'Retail Sales', country: 'US', impact: 'Medium', dayOfMonth: 16 },
+      { event: 'GDP Estimate', country: 'US', impact: 'High', dayOfMonth: 28 },
+      { event: 'PCE Price Index', country: 'US', impact: 'High', dayOfMonth: 30 },
+      { event: 'ISM Manufacturing PMI', country: 'US', impact: 'Medium', dayOfMonth: 1 },
+      { event: 'Consumer Confidence', country: 'US', impact: 'Medium', dayOfMonth: 25 },
+      { event: 'Housing Starts', country: 'US', impact: 'Low', dayOfMonth: 18 },
+      { event: 'Initial Jobless Claims', country: 'US', impact: 'Medium', dayOfMonth: 'weekly-thursday' },
+    ];
+
+    const events = [];
+    const startDate = new Date(from);
+    const endDate = new Date(to);
+
+    for (const r of RECURRING) {
+      if (r.dayOfMonth === 'first-friday') {
+        // Find first Friday of each month in range
+        let d = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        while (d <= endDate) {
+          const first = new Date(d.getFullYear(), d.getMonth(), 1);
+          while (first.getDay() !== 5) first.setDate(first.getDate() + 1);
+          if (first >= startDate && first <= endDate) {
+            events.push({ event: r.event, date: first.toISOString().split('T')[0], country: r.country, impact: r.impact, estimate: null, previous: null, actual: null });
+          }
+          d.setMonth(d.getMonth() + 1);
+        }
+      } else if (r.dayOfMonth === 'weekly-thursday') {
+        // Every Thursday in range
+        let d = new Date(startDate);
+        while (d.getDay() !== 4) d.setDate(d.getDate() + 1);
+        while (d <= endDate) {
+          events.push({ event: r.event, date: d.toISOString().split('T')[0], country: r.country, impact: r.impact, estimate: null, previous: null, actual: null });
+          d.setDate(d.getDate() + 7);
+        }
+      } else {
+        // Specific day of month
+        let d = new Date(startDate.getFullYear(), startDate.getMonth(), r.dayOfMonth);
+        if (d < startDate) d.setMonth(d.getMonth() + 1);
+        while (d <= endDate) {
+          // Skip weekends
+          const adj = new Date(d);
+          if (adj.getDay() === 0) adj.setDate(adj.getDate() + 1);
+          if (adj.getDay() === 6) adj.setDate(adj.getDate() + 2);
+          events.push({ event: r.event, date: adj.toISOString().split('T')[0], country: r.country, impact: r.impact, estimate: null, previous: null, actual: null });
+          d.setMonth(d.getMonth() + 1);
+        }
+      }
+    }
+
+    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+    console.log(`[EconCal] Tier 5: ${events.length} hardcoded events`);
+    if (events.length > 0) {
+      setCached(cacheKey, events, 21600);
+      return res.json(events);
+    }
+  } catch (e) {
+    console.error('[EconCal] Tier 5 (hardcoded) failed:', e.message);
+  }
+
   console.log('[EconCal] All tiers exhausted, returning empty');
   res.json([]);
 };

@@ -92,9 +92,48 @@ module.exports = async (req, res) => {
     console.error('[Earnings] Tier 3 failed:', e.message);
   }
 
-  // Tier 4: Yahoo SPY top holdings calendar events
+  // Tier 4: Yahoo Finance earnings calendar page scrape
   try {
-    console.log('[Earnings] Tier 4: Yahoo SPY holdings');
+    console.log('[Earnings] Tier 4: Yahoo earnings calendar scrape');
+    const yahooUrl = `https://finance.yahoo.com/calendar/earnings?from=${from}&to=${to}`;
+    const resp = await fetch(yahooUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+    });
+    const html = await resp.text();
+    // Parse JSON data embedded in Yahoo page
+    const match = html.match(/root\.App\.main\s*=\s*(\{.*?\});\s*\n/s) ||
+                  html.match(/"rows"\s*:\s*(\[.*?\])/s);
+    if (match) {
+      let rows = [];
+      try {
+        const parsed = JSON.parse(match[1]);
+        rows = parsed?.context?.dispatcher?.stores?.ScreenerResultsStore?.results?.rows ||
+               parsed?.context?.dispatcher?.stores?.QuoteStore?.quotes ||
+               (Array.isArray(parsed) ? parsed : []);
+      } catch { rows = []; }
+      if (rows.length > 0) {
+        const earnings = rows.slice(0, 30).map(r => ({
+          symbol: r.ticker || r.symbol,
+          name: r.companyshortname || r.shortName || r.ticker || r.symbol,
+          date: r.startdatetime ? new Date(r.startdatetime).toISOString().split('T')[0] : from,
+          epsEstimate: r.epsestimate ?? null,
+          epsActual: r.epsactual ?? null,
+          time: r.startdatetimetype === 'BMO' ? 'bmo' : r.startdatetimetype === 'AMC' ? 'amc' : 'unknown',
+        })).filter(e => e.symbol);
+        if (earnings.length > 0) {
+          console.log(`[Earnings] Tier 4: ${earnings.length} earnings scraped`);
+          setCached(cacheKey, earnings, 21600);
+          return res.json(earnings);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[Earnings] Tier 4 (Yahoo scrape) failed:', e.message);
+  }
+
+  // Tier 5: yahoo-finance2 SPY top holdings calendar events
+  try {
+    console.log('[Earnings] Tier 5: Yahoo SPY holdings');
     const spyHoldings = await yahooFinance.quoteSummary('SPY', { modules: ['topHoldings'] });
     const tickers = (spyHoldings?.topHoldings?.holdings || [])
       .map(h => h.symbol)
@@ -127,14 +166,51 @@ module.exports = async (req, res) => {
           }
         }
       });
-      console.log(`[Earnings] Tier 4: ${earnings.length} earnings found`);
+      console.log(`[Earnings] Tier 5: ${earnings.length} earnings found`);
       if (earnings.length > 0) {
         setCached(cacheKey, earnings, 21600);
         return res.json(earnings);
       }
     }
   } catch (e) {
-    console.error('[Earnings] Tier 4 (Yahoo) failed:', e.message);
+    console.error('[Earnings] Tier 5 (Yahoo) failed:', e.message);
+  }
+
+  // Tier 6: Hardcoded major upcoming earnings (always returns data)
+  try {
+    console.log('[Earnings] Tier 6: Major companies fallback');
+    const MAJOR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA', 'JPM', 'V', 'JNJ',
+      'WMT', 'PG', 'MA', 'HD', 'DIS', 'NFLX', 'ADBE', 'CRM', 'INTC', 'AMD'];
+    const results = await Promise.allSettled(
+      MAJOR_TICKERS.map(s => yahooFinance.quoteSummary(s, { modules: ['calendarEvents', 'price'] }))
+    );
+    const earnings = [];
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') {
+        const cal = r.value?.calendarEvents?.earnings;
+        const price = r.value?.price;
+        if (cal?.earningsDate?.[0]) {
+          const date = new Date(cal.earningsDate[0]);
+          const dateStr = date.toISOString().split('T')[0];
+          const epsEst = typeof cal.epsEstimate === 'number' ? cal.epsEstimate : cal.epsEstimate?.raw ?? null;
+          earnings.push({
+            symbol: MAJOR_TICKERS[i],
+            name: price?.longName || price?.shortName || MAJOR_TICKERS[i],
+            date: dateStr,
+            epsEstimate: epsEst,
+            time: 'unknown',
+          });
+        }
+      }
+    });
+    earnings.sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (earnings.length > 0) {
+      console.log(`[Earnings] Tier 6: ${earnings.length} major earnings found`);
+      setCached(cacheKey, earnings, 21600);
+      return res.json(earnings);
+    }
+  } catch (e) {
+    console.error('[Earnings] Tier 6 (major companies) failed:', e.message);
   }
 
   console.log('[Earnings] All tiers exhausted, returning empty');
