@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { api } from '../services/api';
@@ -1891,6 +1891,18 @@ function MasterModel({ data, quote }) {
   const [userOverrides, setUserOverrides] = useState({});
   const [showOverrides, setShowOverrides] = useState(false);
   const [previousScenario, setPreviousScenario] = useState(null);
+  const overridesPanelRef = useRef(null);
+
+  useEffect(() => {
+    if (scenarioIndex === 5) {
+      setShowOverrides(true);
+      setTimeout(() => {
+        overridesPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      setShowOverrides(false);
+    }
+  }, [scenarioIndex]);
 
   const applyScenario = (idx) => {
     setScenarioIndex(idx);
@@ -2303,37 +2315,6 @@ function MasterModel({ data, quote }) {
         </div>
       </div>
 
-      {/* Assumption Override Panel */}
-      <div style={CARD}>
-        <div onClick={() => setShowOverrides(!showOverrides)} style={{
-          ...HEADER, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-        }}>
-          {showOverrides ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          Assumption Overrides
-        </div>
-        {showOverrides && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-            {OVERRIDE_FIELDS.map(f => (
-              <div key={f.key}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '10px', color: userOverrides[f.key] != null ? 'var(--gold)' : 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-strong)', fontFamily: 'monospace' }}>{assumptions[f.key]}</span>
-                </div>
-                <input type="range" min={f.min} max={f.max} step={f.step} value={assumptions[f.key]}
-                  onChange={e => handleOverride(f.key, parseFloat(e.target.value))}
-                  style={{ width: '100%', height: '4px', appearance: 'none', WebkitAppearance: 'none',
-                    background: userOverrides[f.key] != null
-                      ? 'linear-gradient(to right, var(--gold-muted), var(--gold))'
-                      : 'var(--border-color)',
-                    borderRadius: '2px', outline: 'none', cursor: 'pointer',
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Scenario Comparison Table */}
       <div style={CARD}>
         <h3 style={HEADER}>Scenario Comparison</h3>
@@ -2345,11 +2326,17 @@ function MasterModel({ data, quote }) {
                 {scenarioComparison.map((s, i) => (
                   <th key={s.name} style={{
                     padding: '8px 12px', textAlign: 'right', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em',
-                    borderBottom: '1px solid var(--row-border)',
+                    borderBottom: scenarioIndex === i && i === 5 ? '2px solid #ffffff' : '1px solid var(--row-border)',
                     color: scenarioIndex === i ? (i === 5 ? '#ffffff' : scenarioColors[i]) : 'var(--text-faint)',
                     fontWeight: scenarioIndex === i ? 700 : 600,
                     backgroundColor: scenarioIndex === i ? 'var(--gold-active-bg)' : 'transparent',
-                  }}>{s.name}</th>
+                    position: 'relative',
+                  }}>
+                    {scenarioIndex === i && (
+                      <div style={{ position: 'absolute', top: '-2px', left: '50%', transform: 'translateX(-50%)', fontSize: '7px', fontWeight: 700, padding: '1px 4px', borderRadius: '3px', backgroundColor: i === 5 ? 'rgba(255,255,255,0.15)' : 'var(--gold-active-bg)', color: i === 5 ? '#ffffff' : scenarioColors[i], letterSpacing: '0.08em' }}>ACTIVE</div>
+                    )}
+                    {s.name}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -2380,6 +2367,46 @@ function MasterModel({ data, quote }) {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Assumption Override Panel */}
+      <div ref={overridesPanelRef} style={CARD}>
+        <div onClick={() => setShowOverrides(!showOverrides)} style={{
+          ...HEADER, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+        }}>
+          {showOverrides ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          {scenarioIndex === 5 ? (
+            <div>
+              <span>{'\u2699'} Custom Scenario — Adjust All Assumptions</span>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 400, letterSpacing: 'normal', textTransform: 'none', marginTop: '2px' }}>
+                All inputs are fully editable. Changes update the model in real time.
+              </div>
+            </div>
+          ) : (
+            'Assumption Overrides'
+          )}
+        </div>
+        {showOverrides && (
+          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            {OVERRIDE_FIELDS.map(f => (
+              <div key={f.key}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '10px', color: userOverrides[f.key] != null ? 'var(--gold)' : 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-strong)', fontFamily: 'monospace' }}>{assumptions[f.key]}</span>
+                </div>
+                <input type="range" min={f.min} max={f.max} step={f.step} value={assumptions[f.key]}
+                  onChange={e => handleOverride(f.key, parseFloat(e.target.value))}
+                  style={{ width: '100%', height: '4px', appearance: 'none', WebkitAppearance: 'none',
+                    background: userOverrides[f.key] != null
+                      ? 'linear-gradient(to right, var(--gold-muted), var(--gold))'
+                      : 'var(--border-color)',
+                    borderRadius: '2px', outline: 'none', cursor: 'pointer',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <style>{`
