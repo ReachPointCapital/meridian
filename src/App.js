@@ -5,6 +5,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { ProProvider } from './context/ProContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
+import { HelmetProvider } from 'react-helmet-async';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ResetPassword from './pages/ResetPassword';
@@ -449,11 +450,12 @@ function HomeWithLayout() {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>
-          <AppProvider>
-            <ProProvider>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <ToastProvider>
+            <AppProvider>
+              <ProProvider>
               <DisclaimerModal />
               <Routes>
                 <Route path="/" element={<HomeWithLayout />} />
@@ -469,5 +471,6 @@ export default function App() {
         </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
+    </HelmetProvider>
   );
 }

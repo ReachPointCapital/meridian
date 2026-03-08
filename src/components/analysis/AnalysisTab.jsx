@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
@@ -1777,6 +1778,11 @@ export default function AnalysisTab({ setActiveTab }) {
   const valAvg = valScores.reduce((a, b) => a + b, 0) / valScores.length;
 
   return (
+    <>
+    <Helmet>
+      <title>{analysisSymbol ? `${analysisSymbol} Stock Analysis — DCF Valuation & Research | Meridian` : 'Stock Analysis — Research Any Stock or ETF | Meridian'}</title>
+      <meta name="description" content={analysisSymbol ? `Deep-dive analysis for ${analysisSymbol}. Price charts, key statistics, analyst consensus, DCF valuation, technical indicators, and more.` : 'Institutional-grade stock research. Price charts, financial models, analyst targets, technical indicators, and valuation analysis for any stock or ETF.'} />
+    </Helmet>
     <div className="page-fade-in">
       {/* Row 1: Sticky top bar with search + company info */}
       <div style={{
@@ -1895,5 +1901,6 @@ export default function AnalysisTab({ setActiveTab }) {
         }
       `}</style>
     </div>
+    </>
   );
 }

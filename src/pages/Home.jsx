@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import TickerSearch from '../components/TickerSearch';
 import { formatPrice, formatPct } from '../utils/format';
@@ -55,6 +56,11 @@ export default function Home() {
   ];
 
   return (
+    <>
+    <Helmet>
+      <title>Meridian — Free Hedge Fund-Grade Financial Terminal | Reach Point Research</title>
+      <meta name="description" content="Institutional-grade market intelligence. Real-time stock analysis, DCF & LBO models, S&P 500 heatmap, earnings calendar, screener, and more. No subscription required." />
+    </Helmet>
     <div style={{
       minHeight: '100vh',
       backgroundColor: 'var(--bg-primary)',
@@ -329,5 +335,6 @@ export default function Home() {
         }
       `}</style>
     </div>
+    </>
   );
 }

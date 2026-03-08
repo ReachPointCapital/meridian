@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import TickerSearch from '../components/TickerSearch';
 import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -2480,6 +2481,11 @@ export default function Models() {
   if (!ticker && activeModel !== 'ma') return <ModelsEmptyState onSearch={handleSearch} />;
 
   return (
+    <>
+    <Helmet>
+      <title>Financial Models — DCF, LBO, 3-Statement & Scenario Analysis | Meridian</title>
+      <meta name="description" content="Free DCF, LBO, 3-Statement, and comparable company models for any stock. Integrated Master Model with scenario analysis and football field valuation." />
+    </Helmet>
     <div className="page-fade-in">
       {/* Top bar */}
       <div style={{
@@ -2558,5 +2564,6 @@ export default function Models() {
         .hover-row:hover { background-color: var(--row-hover-bg) !important; }
       `}</style>
     </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../../services/api';
 import { formatPrice, formatPercent, formatMarketCap, formatVolume } from '../../utils/formatters';
@@ -76,6 +77,11 @@ export default function Screener({ setActiveTab }) {
   );
 
   return (
+    <>
+    <Helmet>
+      <title>Stock Screener — Filter by Fundamentals & Technicals | Meridian</title>
+      <meta name="description" content="Screen thousands of stocks by market cap, P/E ratio, revenue growth, margins, and more. Free institutional-grade stock screener." />
+    </Helmet>
     <div className="page-fade-in">
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
@@ -195,5 +201,6 @@ export default function Screener({ setActiveTab }) {
         </div>
       </div>
     </div>
+    </>
   );
 }

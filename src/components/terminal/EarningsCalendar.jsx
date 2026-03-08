@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Search, ChevronLeft, ChevronRight, X as XIcon } from 'lucide-react';
 import { useEarnings } from '../../hooks/useEarnings';
 import { useApp } from '../../context/AppContext';
@@ -120,6 +121,11 @@ export default function EarningsCalendar({ setActiveTab }) {
   };
 
   return (
+    <>
+    <Helmet>
+      <title>Earnings Calendar — Upcoming Reports & EPS Estimates | Meridian</title>
+      <meta name="description" content="Track upcoming earnings reports, EPS estimates, and revenue forecasts. Real-time earnings calendar for all major stocks." />
+    </Helmet>
     <div className="page-fade-in">
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
@@ -329,5 +335,6 @@ export default function EarningsCalendar({ setActiveTab }) {
         </div>
       )}
     </div>
+    </>
   );
 }

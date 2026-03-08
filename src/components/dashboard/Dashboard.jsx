@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, LabelList,
 } from 'recharts';
@@ -1518,6 +1519,11 @@ export default function Dashboard({ setActiveTab }) {
   };
 
   return (
+    <>
+    <Helmet>
+      <title>Market Dashboard — Real-Time Stocks, Indices & Heatmap | Meridian</title>
+      <meta name="description" content="Live S&P 500 heatmap, market movers, yield curve, fear & greed index, sector performance, and global markets. Free real-time market dashboard." />
+    </Helmet>
     <div className="page-fade-in" style={{ paddingTop: '12px' }}>
       <div style={{ marginBottom: '8px' }}>
         <h2 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
@@ -1606,5 +1612,6 @@ export default function Dashboard({ setActiveTab }) {
         }
       `}</style>
     </div>
+    </>
   );
 }
