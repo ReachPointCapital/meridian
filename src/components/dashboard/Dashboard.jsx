@@ -1317,7 +1317,7 @@ function MostShortedPanel({ onNavigate }) {
         <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '20px' }}>No data</p>
       ) : (
         <div>
-          {stocks.slice(0, 10).map((s, i) => {
+          {stocks.slice(0, 11).map((s, i) => {
             const pct = s.changePercent ?? 0;
             const isPos = pct >= 0;
             return (

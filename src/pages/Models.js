@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { api } from '../services/api';
@@ -1891,14 +1891,9 @@ function MasterModel({ data, quote }) {
   const [userOverrides, setUserOverrides] = useState({});
   const [showOverrides, setShowOverrides] = useState(false);
   const [previousScenario, setPreviousScenario] = useState(null);
-  const overridesPanelRef = useRef(null);
-
   useEffect(() => {
     if (scenarioIndex === 5) {
       setShowOverrides(true);
-      setTimeout(() => {
-        overridesPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
     } else {
       setShowOverrides(false);
     }
@@ -2216,7 +2211,7 @@ function MasterModel({ data, quote }) {
       </div>
 
       {/* Assumption Override Panel */}
-      <div ref={overridesPanelRef} style={{ ...CARD, marginTop: '12px' }}>
+      <div style={{ ...CARD, marginTop: '12px' }}>
         <div onClick={() => setShowOverrides(!showOverrides)} style={{
           ...HEADER, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
         }}>

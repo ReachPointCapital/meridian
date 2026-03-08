@@ -199,6 +199,7 @@ function M2MoneySupply() {
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [m2Timeframe, setM2Timeframe] = useState('3Y');
 
   useEffect(() => {
     (async () => {
@@ -216,10 +217,28 @@ function M2MoneySupply() {
     })();
   }, []);
 
+  const M2_POINTS = { '1Y': 12, '3Y': 36, '5Y': 60, '10Y': 120 };
+
+  const filteredSeries = series.map(s => ({
+    ...s,
+    data: s.data.slice(-(M2_POINTS[m2Timeframe] || s.data.length)),
+  }));
+
   return (
     <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>M2 Money Supply</span>
+        <div style={{ display: 'flex', gap: '2px' }}>
+          {['1Y', '3Y', '5Y', '10Y'].map(tf => (
+            <button key={tf} onClick={() => setM2Timeframe(tf)} style={{
+              background: m2Timeframe === tf ? '#F0A500' : 'none',
+              border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer',
+              color: m2Timeframe === tf ? 'var(--bg-primary)' : 'rgba(255,255,255,0.4)',
+              fontSize: '10px', fontWeight: m2Timeframe === tf ? 600 : 400,
+              transition: 'all 150ms',
+            }}>{tf}</button>
+          ))}
+        </div>
       </div>
       {loading ? (
         <div style={{ padding: '12px' }}><div className="skeleton" style={{ height: '120px' }} /></div>
@@ -230,8 +249,8 @@ function M2MoneySupply() {
           M2 money supply data temporarily unavailable
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: series.length > 1 ? '1fr 1fr' : '1fr', gap: '12px', padding: '12px' }}>
-          {series.map(s => (
+        <div style={{ display: 'grid', gridTemplateColumns: filteredSeries.length > 1 ? '1fr 1fr' : '1fr', gap: '12px', padding: '12px' }}>
+          {filteredSeries.map(s => (
             <div key={s.seriesId}>
               <div style={{ marginBottom: '6px' }}>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600 }}>{s.name}</span>
