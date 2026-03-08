@@ -1844,42 +1844,73 @@ function FinancialModels({ quote, profile, financials, analyst }) {
 // ── Key Stats Grid ──
 function KeyStatsGrid({ quote, analyst }) {
   if (!quote) return null;
-  const stats = [
-    { label: 'Market Cap', value: formatMarketCap(quote.marketCap), tip: 'Total market value of outstanding shares' },
-    { label: 'P/E Ratio', value: fmt(quote.pe), tip: 'Price divided by earnings per share (TTM)' },
-    { label: 'Forward P/E', value: fmt(quote.forwardPE), tip: 'Price divided by estimated future EPS' },
-    { label: 'EPS (TTM)', value: quote.eps != null ? `$${Number(quote.eps).toFixed(2)}` : '\u2014', tip: 'Earnings per share over trailing 12 months' },
-    { label: 'Price/Book', value: fmt(quote.priceToBook), tip: 'Price divided by book value per share' },
-    { label: 'PEG Ratio', value: fmt(analyst?.pegRatio), tip: 'P/E ratio divided by earnings growth rate. <1 may indicate undervaluation' },
-    { label: 'Beta', value: fmt(quote.beta), tip: 'Measure of volatility relative to the market. >1 = more volatile' },
-    { label: 'Div Yield', value: formatDividendYield(quote.dividendYield), tip: 'Annual dividend as a percentage of share price' },
-    { label: '52W High', value: formatPrice(quote.yearHigh), tip: 'Highest price in the last 52 weeks' },
-    { label: '52W Low', value: formatPrice(quote.yearLow), tip: 'Lowest price in the last 52 weeks' },
-    { label: '50D Avg', value: formatPrice(quote.priceAvg50), tip: '50-day simple moving average price' },
-    { label: '200D Avg', value: formatPrice(quote.priceAvg200), tip: '200-day simple moving average price' },
-    { label: 'Volume', value: quote.volume ? Number(quote.volume).toLocaleString() : '\u2014', tip: 'Number of shares traded today' },
-    { label: 'Avg Volume', value: quote.avgVolume ? Number(quote.avgVolume).toLocaleString() : '\u2014', tip: 'Average daily trading volume' },
-    { label: 'Open', value: formatPrice(quote.open), tip: 'Opening price for the current trading session' },
-    { label: 'Prev Close', value: formatPrice(quote.previousClose), tip: 'Closing price from the previous trading session' },
-    { label: 'Day High', value: formatPrice(quote.high), tip: 'Highest price during the current session' },
-    { label: 'Day Low', value: formatPrice(quote.low), tip: 'Lowest price during the current session' },
-    { label: 'Enterprise Value', value: analyst?.enterpriseValue ? formatMarketCap(analyst.enterpriseValue) : '\u2014', tip: 'Market cap + debt - cash. True cost to acquire the company' },
-    { label: 'Revenue Growth', value: analyst?.revenueGrowth != null ? `${(analyst.revenueGrowth * 100).toFixed(1)}%` : '\u2014', tip: 'Year-over-year revenue growth rate' },
-    { label: 'Earnings Growth', value: analyst?.earningsGrowth != null ? `${(analyst.earningsGrowth * 100).toFixed(1)}%` : '\u2014', tip: 'Year-over-year earnings growth rate' },
-    { label: 'Target Mean', value: analyst?.targetMeanPrice ? formatPrice(analyst.targetMeanPrice) : '\u2014', tip: 'Average analyst price target' },
-    { label: 'Short Ratio', value: fmt(analyst?.shortRatio), tip: 'Days to cover short positions based on average volume' },
-    { label: 'Analysts', value: analyst?.numberOfAnalysts || '\u2014', tip: 'Number of analysts covering this stock' },
+
+  // Determine value color: prices → gold, positive % → green, negative % → red, missing → dim
+  const valColor = (value, raw) => {
+    if (value === '\u2014') return 'rgba(255,255,255,0.2)';
+    if (typeof value === 'string' && value.startsWith('$')) return '#F0A500';
+    if (typeof value === 'string' && value.includes('%')) {
+      const num = parseFloat(value);
+      if (!isNaN(num)) return num >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+    return 'var(--text-primary)';
+  };
+
+  // 4 rows × 6 columns = 24 stats
+  const rows = [
+    [
+      { label: 'Market Cap', value: formatMarketCap(quote.marketCap), tip: 'Total market value of outstanding shares' },
+      { label: 'P/E Ratio', value: fmt(quote.pe), tip: 'Price divided by earnings per share (TTM)' },
+      { label: 'Forward P/E', value: fmt(quote.forwardPE), tip: 'Price divided by estimated future EPS' },
+      { label: 'EPS (TTM)', value: quote.eps != null ? `$${Number(quote.eps).toFixed(2)}` : '\u2014', tip: 'Earnings per share over trailing 12 months' },
+      { label: 'Price/Book', value: fmt(quote.priceToBook), tip: 'Price divided by book value per share' },
+      { label: 'PEG Ratio', value: fmt(analyst?.pegRatio), tip: 'P/E ratio divided by earnings growth rate. <1 may indicate undervaluation' },
+    ],
+    [
+      { label: 'Beta', value: fmt(quote.beta), tip: 'Measure of volatility relative to the market. >1 = more volatile' },
+      { label: 'Div Yield', value: formatDividendYield(quote.dividendYield), tip: 'Annual dividend as a percentage of share price' },
+      { label: '52W High', value: formatPrice(quote.yearHigh), tip: 'Highest price in the last 52 weeks' },
+      { label: '52W Low', value: formatPrice(quote.yearLow), tip: 'Lowest price in the last 52 weeks' },
+      { label: '50D Avg', value: formatPrice(quote.priceAvg50), tip: '50-day simple moving average price' },
+      { label: '200D Avg', value: formatPrice(quote.priceAvg200), tip: '200-day simple moving average price' },
+    ],
+    [
+      { label: 'Volume', value: quote.volume ? Number(quote.volume).toLocaleString() : '\u2014', tip: 'Number of shares traded today' },
+      { label: 'Avg Volume', value: quote.avgVolume ? Number(quote.avgVolume).toLocaleString() : '\u2014', tip: 'Average daily trading volume' },
+      { label: 'Open', value: formatPrice(quote.open), tip: 'Opening price for the current trading session' },
+      { label: 'Prev Close', value: formatPrice(quote.previousClose), tip: 'Closing price from the previous trading session' },
+      { label: 'Day High', value: formatPrice(quote.high), tip: 'Highest price during the current session' },
+      { label: 'Day Low', value: formatPrice(quote.low), tip: 'Lowest price during the current session' },
+    ],
+    [
+      { label: 'Enterprise Value', value: analyst?.enterpriseValue ? formatMarketCap(analyst.enterpriseValue) : '\u2014', tip: 'Market cap + debt - cash. True cost to acquire the company' },
+      { label: 'Revenue Growth', value: analyst?.revenueGrowth != null ? `${(analyst.revenueGrowth * 100).toFixed(1)}%` : '\u2014', tip: 'Year-over-year revenue growth rate' },
+      { label: 'Earnings Growth', value: analyst?.earningsGrowth != null ? `${(analyst.earningsGrowth * 100).toFixed(1)}%` : '\u2014', tip: 'Year-over-year earnings growth rate' },
+      { label: 'Target Mean', value: analyst?.targetMeanPrice ? formatPrice(analyst.targetMeanPrice) : '\u2014', tip: 'Average analyst price target' },
+      { label: 'Short Ratio', value: fmt(analyst?.shortRatio), tip: 'Days to cover short positions based on average volume' },
+      { label: 'Analysts', value: analyst?.numberOfAnalysts || '\u2014', tip: 'Number of analysts covering this stock' },
+    ],
   ];
 
   return (
     <div style={CARD_STYLE}>
       <h3 style={SECTION_HEADER}>Key Statistics <InfoTooltip text="Fundamental metrics sourced from Yahoo Finance in real-time" /></h3>
-      <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0' }}>
-        {stats.map(s => (
-          <div key={s.label} className="tooltip-container" style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)', cursor: 'help', position: 'relative' }}>
-            <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', letterSpacing: '0.05em', marginBottom: '2px' }}>{s.label}</div>
-            <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{s.value}</div>
-            <span className="tooltip-text">{s.tip}</span>
+      <div>
+        {rows.map((row, rowIdx) => (
+          <div key={rowIdx} style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)' }}>
+            {row.map((s, colIdx) => (
+              <div key={s.label} className="tooltip-container" style={{
+                padding: '8px 12px',
+                borderRight: colIdx < 5 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                borderBottom: rowIdx < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                cursor: 'help',
+                position: 'relative',
+              }}>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '3px' }}>{s.label}</div>
+                <div style={{ color: valColor(s.value), fontSize: '13px', fontFamily: 'monospace', fontWeight: 600 }}>{s.value}</div>
+                <span className="tooltip-text">{s.tip}</span>
+              </div>
+            ))}
           </div>
         ))}
       </div>
