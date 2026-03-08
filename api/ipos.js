@@ -18,6 +18,7 @@ module.exports = async (req, res) => {
   // FMP endpoints to try
   const fmpUrls = [
     `https://financialmodelingprep.com/stable/ipos_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
+    `https://financialmodelingprep.com/stable/ipos-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
     `https://financialmodelingprep.com/api/v3/ipo_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
     `https://financialmodelingprep.com/api/v3/ipo-calendar-confirmed?from=${from}&to=${to}&apikey=${FMP_KEY}`,
     `https://financialmodelingprep.com/api/v3/ipo-calendar-prospectus?from=${from}&to=${to}&apikey=${FMP_KEY}`,

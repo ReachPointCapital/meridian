@@ -28,11 +28,12 @@ module.exports = async (req, res) => {
     fiscalDateEnding: e.fiscalDateEnding
   });
 
-  // Tier 1-5: FMP endpoints
+  // Tier 1-6: FMP endpoints (various spellings/versions)
   const fmpUrls = [
     `https://financialmodelingprep.com/stable/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
+    `https://financialmodelingprep.com/stable/earning-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
     `https://financialmodelingprep.com/api/v3/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
-    `https://financialmodelingprep.com/api/v4/earning-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
+    `https://financialmodelingprep.com/api/v3/earning-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
     `https://financialmodelingprep.com/api/v3/earnings-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
     `https://financialmodelingprep.com/api/v4/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`,
   ];

@@ -1,39 +1,24 @@
 const { getCached, setCached } = require('./_cache');
 const { FMP_KEY } = require('./_helpers');
 
-// FRED graph endpoint — no API key required
-const FRED_GRAPH = 'https://fred.stlouisfed.org/graph/fredgraph.json';
+// FRED HTTPS API (observations endpoint) — no API key required for basic access
+const FRED_API = 'https://api.stlouisfed.org/fred/series/observations';
+const FRED_API_KEY = process.env.FRED_API_KEY || null;
 
 const BANKS = [
-  { id: 'FEDFUNDS', name: 'Federal Reserve', country: 'US', nextMeeting: '2025-06-18' },
-  { id: 'ECBDFR', name: 'ECB', country: 'EU', nextMeeting: '2025-06-05' },
-  { id: 'BOEBR', name: 'Bank of England', country: 'UK', nextMeeting: '2025-06-19' },
-  { id: 'IRSTCI01JPM156N', name: 'Bank of Japan', country: 'JP', nextMeeting: '2025-06-13' },
+  { id: 'FEDFUNDS', name: 'Federal Reserve', country: 'US', nextMeeting: '2026-06-17' },
+  { id: 'ECBDFR', name: 'ECB', country: 'EU', nextMeeting: '2026-06-04' },
+  { id: 'BOEBR', name: 'Bank of England', country: 'UK', nextMeeting: '2026-06-18' },
+  { id: 'IRSTCI01JPM156N', name: 'Bank of Japan', country: 'JP', nextMeeting: '2026-06-12' },
 ];
 
-function parseFredResponse(json, seriesId) {
-  // FRED graph JSON can have different structures
-  // Try: json.observations (array of {date, value})
-  // Try: json[seriesId] with nested data
-  // Try: json.data (flat array)
-  if (json.observations && Array.isArray(json.observations)) {
-    const valid = json.observations.filter(o => o.value !== '.' && o.value != null);
-    if (valid.length > 0) return parseFloat(valid[valid.length - 1].value);
-  }
-  if (json[seriesId]?.data && Array.isArray(json[seriesId].data)) {
-    const data = json[seriesId].data;
-    if (data.length > 0) {
-      const last = data[data.length - 1];
-      return parseFloat(Array.isArray(last) ? last[1] : last.value);
-    }
-  }
-  // Try flat structure
-  if (Array.isArray(json)) {
-    const last = json[json.length - 1];
-    if (last?.value != null) return parseFloat(last.value);
-  }
-  return null;
-}
+// Fallback rates updated periodically — used when all live sources fail
+const FALLBACK_RATES = [
+  { name: 'Federal Reserve', country: 'US', seriesId: 'FEDFUNDS', rate: 4.33, nextMeeting: '2026-06-17', source: 'fallback' },
+  { name: 'ECB', country: 'EU', seriesId: 'ECBDFR', rate: 2.65, nextMeeting: '2026-06-04', source: 'fallback' },
+  { name: 'Bank of England', country: 'UK', seriesId: 'BOEBR', rate: 4.50, nextMeeting: '2026-06-18', source: 'fallback' },
+  { name: 'Bank of Japan', country: 'JP', seriesId: 'IRSTCI01JPM156N', rate: 0.50, nextMeeting: '2026-06-12', source: 'fallback' },
+];
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -46,22 +31,68 @@ module.exports = async (req, res) => {
     return res.json(cached);
   }
 
-  // Tier 1: FRED
+  // Tier 1: FRED observations API (requires API key)
+  if (FRED_API_KEY) {
+    try {
+      const results = await Promise.allSettled(
+        BANKS.map(async (b) => {
+          const url = `${FRED_API}?series_id=${b.id}&sort_order=desc&limit=1&file_type=json&api_key=${FRED_API_KEY}`;
+          console.log(`[CentralBanks] Fetching FRED API: ${b.name} (${b.id})`);
+          const response = await fetch(url);
+          const json = await response.json();
+          let rate = null;
+          const obs = json?.observations;
+          if (Array.isArray(obs) && obs.length > 0) {
+            const val = obs[0].value;
+            if (val !== '.' && val != null) rate = parseFloat(val);
+          }
+          console.log(`[CentralBanks] ${b.name}: rate=${rate}`);
+          return { name: b.name, country: b.country, seriesId: b.id, rate, nextMeeting: b.nextMeeting };
+        })
+      );
+
+      const data = results
+        .filter(r => r.status === 'fulfilled')
+        .map(r => r.value)
+        .filter(d => d.rate !== null && !isNaN(d.rate));
+
+      if (data.length > 0) {
+        setCached(cacheKey, data, 3600);
+        res.setHeader('X-Cache', 'MISS');
+        res.setHeader('X-Source', 'fred');
+        return res.json(data);
+      }
+      console.log('[CentralBanks] FRED API returned no valid rates');
+    } catch (e) {
+      console.error('Central Banks FRED API failed:', e.message);
+    }
+  }
+
+  // Tier 2: FRED graph JSON endpoint (no key needed)
   try {
+    const FRED_GRAPH = 'https://fred.stlouisfed.org/graph/fredgraph.json';
     const results = await Promise.allSettled(
       BANKS.map(async (b) => {
         const url = `${FRED_GRAPH}?id=${b.id}`;
-        console.log(`[CentralBanks] Fetching FRED: ${b.name} (${b.id})`);
         const response = await fetch(url);
         const text = await response.text();
         let rate = null;
         try {
           const json = JSON.parse(text);
-          rate = parseFredResponse(json, b.id);
+          if (json.observations && Array.isArray(json.observations)) {
+            const valid = json.observations.filter(o => o.value !== '.' && o.value != null);
+            if (valid.length > 0) rate = parseFloat(valid[valid.length - 1].value);
+          }
+          if (rate == null && json[b.id]?.data && Array.isArray(json[b.id].data)) {
+            const d = json[b.id].data;
+            if (d.length > 0) {
+              const last = d[d.length - 1];
+              rate = parseFloat(Array.isArray(last) ? last[1] : last.value);
+            }
+          }
         } catch (parseErr) {
           console.error(`[CentralBanks] JSON parse failed for ${b.id}:`, parseErr.message);
         }
-        console.log(`[CentralBanks] ${b.name}: rate=${rate}`);
         return { name: b.name, country: b.country, seriesId: b.id, rate, nextMeeting: b.nextMeeting };
       })
     );
@@ -74,15 +105,15 @@ module.exports = async (req, res) => {
     if (data.length > 0) {
       setCached(cacheKey, data, 3600);
       res.setHeader('X-Cache', 'MISS');
-      res.setHeader('X-Source', 'fred');
+      res.setHeader('X-Source', 'fred-graph');
       return res.json(data);
     }
-    console.log('[CentralBanks] FRED returned no valid rates');
+    console.log('[CentralBanks] FRED graph returned no valid rates');
   } catch (e) {
-    console.error('Central Banks FRED failed:', e.message);
+    console.error('Central Banks FRED graph failed:', e.message);
   }
 
-  // Tier 2: FMP
+  // Tier 3: FMP
   try {
     const url = `https://financialmodelingprep.com/api/v4/treasury?apikey=${FMP_KEY}`;
     const response = await fetch(url);
@@ -97,5 +128,10 @@ module.exports = async (req, res) => {
     console.error('Central Banks FMP failed:', e.message);
   }
 
-  res.json([]);
+  // Tier 4: Hardcoded fallback (always shows something)
+  console.log('[CentralBanks] All live sources failed, using fallback rates');
+  setCached(cacheKey, FALLBACK_RATES, 1800);
+  res.setHeader('X-Cache', 'MISS');
+  res.setHeader('X-Source', 'fallback');
+  res.json(FALLBACK_RATES);
 };

@@ -1012,14 +1012,25 @@ function NewsAndEarnings({ onNavigate }) {
               <div key={i}>
                 <div
                   onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
-                  style={{ display: 'block', padding: '10px 14px', borderBottom: expandedIdx === i ? 'none' : '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 150ms ease', backgroundColor: expandedIdx === i ? 'var(--bg-tertiary)' : 'transparent' }}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '10px 14px', borderBottom: expandedIdx === i ? 'none' : '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 150ms ease', backgroundColor: expandedIdx === i ? 'var(--bg-tertiary)' : 'transparent' }}
                   onMouseEnter={e => { if (expandedIdx !== i) e.currentTarget.style.background = 'var(--bg-tertiary)'; }}
                   onMouseLeave={e => { if (expandedIdx !== i) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 500, marginBottom: '4px', lineHeight: 1.4 }}>{item.title}</div>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>
-                    {item.site || item.source} {'\u00B7'} {formatTimeAgo(item.publishedDate || item.date)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 500, marginBottom: '4px', lineHeight: 1.4 }}>{item.title}</div>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>
+                      {item.site || item.source} {'\u00B7'} {formatTimeAgo(item.publishedDate || item.date)}
+                    </div>
                   </div>
+                  {item.url && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{ flexShrink: 0, marginLeft: '8px', marginTop: '2px', color: 'var(--text-tertiary)', opacity: 0.6, transition: 'opacity 150ms' }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
+                      <ExternalLink size={12} />
+                    </a>
+                  )}
                 </div>
                 {expandedIdx === i && <InlineArticlePreview url={item.url} />}
               </div>

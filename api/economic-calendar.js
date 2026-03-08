@@ -42,5 +42,18 @@ module.exports = async (req, res) => {
     console.error('FMP v3 economic calendar failed:', e.message);
   }
 
+  // Try FMP v3 alternate spelling
+  try {
+    const url = `https://financialmodelingprep.com/api/v3/economic-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (Array.isArray(data) && data.length > 0) {
+      setCached(cacheKey, data, 21600);
+      return res.json(data);
+    }
+  } catch (e) {
+    console.error('FMP v3 economic-calendar (hyphen) failed:', e.message);
+  }
+
   res.json([]);
 };
