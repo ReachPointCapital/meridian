@@ -93,7 +93,7 @@ export default function EarningsCalendar({ setActiveTab }) {
 
   const handleRowClick = (symbol) => {
     setActiveSymbol(symbol);
-    if (setActiveTab) setActiveTab('Terminal');
+    if (setActiveTab) setActiveTab('Analysis');
   };
 
   const handleExpand30Days = () => {
