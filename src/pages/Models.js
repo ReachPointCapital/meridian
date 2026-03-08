@@ -240,8 +240,8 @@ function ModelsEmptyState({ onSearch }) {
 
 // ── DCF Model ──
 function DCFModel({ data, quote }) {
-  const income = Array.isArray(data.incomeStatement) ? [...data.incomeStatement].reverse() : [];
-  const cf = Array.isArray(data.cashFlow) ? [...data.cashFlow].reverse() : [];
+  const income = Array.isArray(data.incomeStatement) ? data.incomeStatement : [];
+  const cf = Array.isArray(data.cashFlow) ? data.cashFlow : [];
   const bs = Array.isArray(data.balanceSheet) ? data.balanceSheet : [];
 
   const lastIncome = income[income.length - 1] || {};
@@ -251,7 +251,7 @@ function DCFModel({ data, quote }) {
   const [revGrowth, setRevGrowth] = useState(8);
   const [grossMargin, setGrossMargin] = useState(() => lastIncome.grossProfit && lastIncome.revenue ? (lastIncome.grossProfit / lastIncome.revenue * 100) : 40);
   const [ebitdaMargin, setEbitdaMargin] = useState(() => lastIncome.ebitda && lastIncome.revenue ? (lastIncome.ebitda / lastIncome.revenue * 100) : 25);
-  const [ebitMargin, setEbitMargin] = useState(() => lastIncome.operatingIncome && lastIncome.revenue ? (lastIncome.operatingIncome / lastIncome.revenue * 100) : 20);
+  const [ebitMargin] = useState(() => lastIncome.ebit && lastIncome.revenue ? (lastIncome.ebit / lastIncome.revenue * 100) : 20);
   const [netMargin, setNetMargin] = useState(() => lastIncome.netIncome && lastIncome.revenue ? (lastIncome.netIncome / lastIncome.revenue * 100) : 15);
   const [taxRate, setTaxRate] = useState(21);
   const [daaPct, setDaaPct] = useState(() => lastCF.depreciationAndAmortization && lastIncome.revenue ? Math.abs(lastCF.depreciationAndAmortization) / lastIncome.revenue * 100 : 5);
@@ -259,13 +259,10 @@ function DCFModel({ data, quote }) {
   const [nwcPct, setNwcPct] = useState(1);
   const [riskFree, setRiskFree] = useState(4.3);
   const [erp, setErp] = useState(5.5);
-  const [beta, setBeta] = useState(() => {
-    const p = Array.isArray(data.profile) ? data.profile[0] : data.profile;
-    return p?.beta || 1.0;
-  });
+  const [beta, setBeta] = useState(() => data.keyStats?.beta || 1.0);
   const [preTaxDebt, setPreTaxDebt] = useState(5.0);
   const [debtPct, setDebtPct] = useState(() => {
-    const b = bs[0] || {};
+    const b = bs[bs.length - 1] || {};
     const totalDebt = b.totalDebt || 0;
     const mktCap = quote?.marketCap || 1;
     return Math.min(80, Math.max(0, totalDebt / (totalDebt + mktCap) * 100));
@@ -303,7 +300,7 @@ function DCFModel({ data, quote }) {
   const terminalValue = wacc > termGrowth ? terminalFCF / ((wacc - termGrowth) / 100) : 0;
   const pvTerminal = terminalValue / Math.pow(1 + wacc / 100, projYears);
   const ev = totalPvFCF + pvTerminal;
-  const netDebt = (bs[0]?.totalDebt || 0) - (bs[0]?.cashAndCashEquivalents || 0);
+  const netDebt = (bs[bs.length - 1]?.totalDebt || 0) - (bs[bs.length - 1]?.cashAndCashEquivalents || 0);
   const equityValue = ev - netDebt;
   const sharesOut = quote?.marketCap && quote?.price ? Math.round(quote.marketCap / quote.price) : 1;
   const impliedPrice = sharesOut > 0 ? equityValue / sharesOut : 0;
@@ -320,7 +317,7 @@ function DCFModel({ data, quote }) {
     return sharesOut > 0 ? eqVal / sharesOut : 0;
   }));
 
-  const actualYears = income.map(i => i.calendarYear || i.date?.substring(0, 4) || '');
+  const actualYears = income.map(i => String(i.year || ''));
   const projYearLabels = [];
   const lastYear = parseInt(actualYears[actualYears.length - 1]) || new Date().getFullYear();
   for (let i = 1; i <= projYears; i++) projYearLabels.push(`${lastYear + i}E`);
@@ -401,7 +398,7 @@ function DCFModel({ data, quote }) {
           {/* EBIT */}
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
             <div style={LABEL_CELL}>EBIT (Operating Income)</div>
-            {income.map((d, i) => <div key={i} style={valCell(d.operatingIncome, d.operatingIncome < 0)}>{fmtB(d.operatingIncome)}</div>)}
+            {income.map((d, i) => <div key={i} style={valCell(d.ebit, d.ebit < 0)}>{fmtB(d.ebit)}</div>)}
             {projected.map((p, i) => <div key={i} style={valCell(p.ebit)}>{fmtB(p.ebit)}</div>)}
           </div>
 
@@ -437,7 +434,7 @@ function DCFModel({ data, quote }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
             <div style={LABEL_CELL}>EBIT</div>
-            {income.map((d, i) => <div key={i} style={valCell(d.operatingIncome, d.operatingIncome < 0)}>{fmtB(d.operatingIncome)}</div>)}
+            {income.map((d, i) => <div key={i} style={valCell(d.ebit, d.ebit < 0)}>{fmtB(d.ebit)}</div>)}
             {projected.map((p, i) => <div key={i} style={VAL_CELL}>{fmtB(p.ebit)}</div>)}
           </div>
 
@@ -455,7 +452,7 @@ function DCFModel({ data, quote }) {
             <div style={LABEL_CELL}>NOPAT</div>
             {income.map((d, i) => {
               const tr = d.incomeTaxExpense && d.incomeBeforeTax ? Math.abs(d.incomeTaxExpense / d.incomeBeforeTax) : 0.21;
-              return <div key={i} style={VAL_CELL}>{fmtB(d.operatingIncome * (1 - tr))}</div>;
+              return <div key={i} style={VAL_CELL}>{fmtB(d.ebit * (1 - tr))}</div>;
             })}
             {projected.map((p, i) => <div key={i} style={VAL_CELL}>{fmtB(p.nopat)}</div>)}
           </div>
@@ -608,12 +605,12 @@ function DCFModel({ data, quote }) {
 
 // ── EPS Model ──
 function EPSModel({ data, quote }) {
-  const income = Array.isArray(data.incomeStatement) ? [...data.incomeStatement].reverse() : [];
+  const income = Array.isArray(data.incomeStatement) ? data.incomeStatement : [];
   const lastIncome = income[income.length - 1] || {};
 
   const [revGrowth, setRevGrowth] = useState(8);
   const [grossMargin, setGrossMargin] = useState(() => lastIncome.grossProfit && lastIncome.revenue ? (lastIncome.grossProfit / lastIncome.revenue * 100) : 40);
-  const [ebitMargin] = useState(() => lastIncome.operatingIncome && lastIncome.revenue ? (lastIncome.operatingIncome / lastIncome.revenue * 100) : 20);
+  const [ebitMargin] = useState(() => lastIncome.ebit && lastIncome.revenue ? (lastIncome.ebit / lastIncome.revenue * 100) : 20);
   const [taxRate, setTaxRate] = useState(21);
   const [shareGrowth, setShareGrowth] = useState(-1);
   const [targetPE, setTargetPE] = useState(() => quote?.pe || 20);
@@ -635,7 +632,7 @@ function EPSModel({ data, quote }) {
     projected.push({ rev, gp, ebit, interest, pretax, ni, shares, eps, impliedPrice });
   }
 
-  const actualYears = income.map(i => i.calendarYear || i.date?.substring(0, 4) || '');
+  const actualYears = income.map(i => String(i.year || ''));
   const lastYear = parseInt(actualYears[actualYears.length - 1]) || new Date().getFullYear();
   const projYearLabels = Array.from({ length: projYears }, (_, i) => `${lastYear + i + 1}E`);
   const cols = `220px repeat(${actualYears.length + projYears}, minmax(90px, 1fr))`;
@@ -656,7 +653,7 @@ function EPSModel({ data, quote }) {
           {[
             { label: 'Revenue', key: 'revenue', proj: p => p.rev },
             { label: 'Gross Profit', key: 'grossProfit', proj: p => p.gp },
-            { label: 'EBIT', key: 'operatingIncome', proj: p => p.ebit },
+            { label: 'EBIT', key: 'ebit', proj: p => p.ebit },
             { label: 'Net Income', key: 'netIncome', proj: p => p.ni },
           ].map(row => (
             <div key={row.label} style={{ display: 'grid', gridTemplateColumns: cols, ...DATA_ROW }} className="hover-row">
@@ -750,7 +747,7 @@ function EPSModel({ data, quote }) {
 // ── LBO Model ──
 function LBOModel({ data, quote }) {
   const income = Array.isArray(data.incomeStatement) ? data.incomeStatement : [];
-  const lastIncome = income[0] || {};
+  const lastIncome = income[income.length - 1] || {};
 
   const [entryPrice] = useState(quote?.price || 100);
   const [entryMultiple, setEntryMultiple] = useState(12);
@@ -877,22 +874,24 @@ function CompsModel({ data, quote }) {
   const [peerQuotes, setPeerQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const profile = Array.isArray(data.profile) ? data.profile[0] : data.profile;
-  const peers = Array.isArray(data.peers) ? (data.peers[0]?.peersList || []).slice(0, 5) : [];
-
   useEffect(() => {
-    if (!peers.length) { setLoading(false); return; }
+    if (!quote?.symbol) { setLoading(false); return; }
     (async () => {
       try {
-        const res = await api.quotes(peers);
-        setPeerQuotes(Array.isArray(res) ? res : []);
+        // Fetch peers list from model-data endpoint
+        const peerData = await api.peers(quote.symbol);
+        const peersList = Array.isArray(peerData.peers) ? (peerData.peers[0]?.peersList || []).slice(0, 5) : [];
+        if (peersList.length) {
+          const res = await api.quotes(peersList);
+          setPeerQuotes(Array.isArray(res) ? res : []);
+        }
       } catch {}
       setLoading(false);
     })();
-  }, [peers.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [quote?.symbol]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const allRows = [
-    ...(quote ? [{ ...quote, _isSubject: true, name: profile?.companyName || quote.name }] : []),
+    ...(quote ? [{ ...quote, _isSubject: true, name: quote.name }] : []),
     ...peerQuotes.filter(q => q && q.symbol),
   ];
 
@@ -975,13 +974,13 @@ const STMT_TABS = [
 ];
 
 function ThreeStatementModel({ data, quote }) {
-  const income = useMemo(() => Array.isArray(data.incomeStatement) ? [...data.incomeStatement].reverse() : [], [data.incomeStatement]);
-  const cfRaw = useMemo(() => Array.isArray(data.cashFlow) ? [...data.cashFlow].reverse() : [], [data.cashFlow]);
-  const bsRaw = useMemo(() => Array.isArray(data.balanceSheet) ? [...data.balanceSheet].reverse() : [], [data.balanceSheet]);
+  const income = useMemo(() => Array.isArray(data.incomeStatement) ? data.incomeStatement : [], [data.incomeStatement]);
+  const cfRaw = useMemo(() => Array.isArray(data.cashFlow) ? data.cashFlow : [], [data.cashFlow]);
+  const bsRaw = useMemo(() => Array.isArray(data.balanceSheet) ? data.balanceSheet : [], [data.balanceSheet]);
 
   const [subTab, setSubTab] = useState('is');
 
-  const actualYears = useMemo(() => income.map(i => i.calendarYear || i.date?.substring(0, 4) || ''), [income]);
+  const actualYears = useMemo(() => income.map(i => String(i.year || '')), [income]);
   const lastYear = parseInt(actualYears[actualYears.length - 1]) || new Date().getFullYear();
   const projYearLabels = [`${lastYear + 1}E`, `${lastYear + 2}E`, `${lastYear + 3}E`];
   const numActual = actualYears.length;
@@ -1275,8 +1274,8 @@ function ThreeStatementModel({ data, quote }) {
             {renderRow('Total OpEx', income.map(d => (d.costOfRevenue || 0) + (d.researchAndDevelopmentExpenses || 0) + (d.sellingAndMarketingExpenses || 0) + (d.generalAndAdministrativeExpenses || 0)), isProj.map(p => p.totalOpex))}
 
             {sectionLabel('PROFITABILITY')}
-            {renderRow('EBIT', income.map(d => d.operatingIncome), isProj.map(p => p.ebit), { gold: true })}
-            {renderPctRow('EBIT Margin %', income.map(d => d.revenue ? (d.operatingIncome / d.revenue * 100) : 0), isProj.map(p => p.rev ? (p.ebit / p.rev * 100) : 0))}
+            {renderRow('EBIT', income.map(d => d.ebit), isProj.map(p => p.ebit), { gold: true })}
+            {renderPctRow('EBIT Margin %', income.map(d => d.revenue ? (d.ebit / d.revenue * 100) : 0), isProj.map(p => p.rev ? (p.ebit / p.rev * 100) : 0))}
             {renderRow('Interest Income', income.map(d => d.interestIncome || 0), isProj.map(() => intIncome), { input: true, inputVal: intIncome, inputSet: setIntIncome, inputSuffix: '' })}
             {renderRow('Interest Expense', income.map(d => Math.abs(d.interestExpense || 0)), isProj.map(() => intExpense), { input: true, inputVal: intExpense, inputSet: setIntExpense, inputSuffix: '' })}
             {renderRow('Other Income/Expense', income.map(d => d.totalOtherIncomeExpensesNet || 0), isProj.map(() => otherIncome), { input: true, inputVal: otherIncome, inputSet: setOtherIncome, inputSuffix: '' })}
@@ -1542,11 +1541,14 @@ function MergerModel() {
     if (!sym) return;
     setLoading(true);
     try {
-      const d = await api.modelData(sym);
-      const q = Array.isArray(d.quote) ? d.quote[0] : d.quote;
-      const p = Array.isArray(d.profile) ? d.profile[0] : d.profile;
-      const inc = Array.isArray(d.incomeStatement) ? d.incomeStatement[0] : null;
-      setter({ quote: q, profile: p, income: inc });
+      const [finRes, quoteRes] = await Promise.allSettled([
+        api.modelFinancials(sym),
+        api.quote(sym),
+      ]);
+      const fin = finRes.status === 'fulfilled' ? finRes.value : null;
+      const q = quoteRes.status === 'fulfilled' ? (Array.isArray(quoteRes.value) ? quoteRes.value[0] : quoteRes.value) : null;
+      const inc = fin?.incomeStatement ? fin.incomeStatement[fin.incomeStatement.length - 1] : null;
+      setter({ quote: q, income: inc });
     } catch { setter(null); }
     setLoading(false);
   }, []);
@@ -1857,9 +1859,13 @@ export default function Models() {
     if (!ticker) return;
     setLoading(true);
     try {
-      const data = await api.modelData(ticker);
-      setStockData(data);
-      const q = Array.isArray(data.quote) ? data.quote[0] : data.quote;
+      const [finData, quoteData] = await Promise.allSettled([
+        api.modelFinancials(ticker),
+        api.quote(ticker),
+      ]);
+      const fin = finData.status === 'fulfilled' ? finData.value : null;
+      const q = quoteData.status === 'fulfilled' ? (Array.isArray(quoteData.value) ? quoteData.value[0] : quoteData.value) : null;
+      if (fin) setStockData(fin);
       setQuote(q);
     } catch (e) {
       console.error('Model data fetch failed:', e);
@@ -1883,8 +1889,6 @@ export default function Models() {
 
   if (!ticker && activeModel !== 'ma') return <ModelsEmptyState onSearch={handleSearch} />;
 
-  const profile = stockData ? (Array.isArray(stockData.profile) ? stockData.profile[0] : stockData.profile) : null;
-
   return (
     <div className="page-fade-in">
       {/* Top bar */}
@@ -1898,7 +1902,7 @@ export default function Models() {
             {quote && (
               <>
                 <span style={{ backgroundColor: 'var(--gold)', color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '4px', fontFamily: 'monospace' }}>{ticker}</span>
-                <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>{profile?.companyName || quote?.name || ticker}</span>
+                <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>{quote?.name || ticker}</span>
                 <span style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace' }}>{formatPrice(quote?.price)}</span>
               </>
             )}

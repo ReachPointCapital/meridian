@@ -41,5 +41,6 @@ export const api = {
   dailyBrief: () => get(`${BASE}/api/daily-brief`),
   heatmap: () => get(`${BASE}/api/heatmap`),
   modelData: (symbol) => get(`${BASE}/api/model-data?symbol=${encodeURIComponent(symbol)}`),
+  modelFinancials: (symbol) => get(`${BASE}/api/financials?symbol=${encodeURIComponent(symbol)}&type=all`),
   peers: (symbol) => get(`${BASE}/api/model-data?symbol=${encodeURIComponent(symbol)}`),
 };
