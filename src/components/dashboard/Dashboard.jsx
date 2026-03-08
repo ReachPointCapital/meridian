@@ -9,6 +9,7 @@ import {
 import { api } from '../../services/api';
 import { formatPrice, formatPercent, formatDate, formatVolume, formatTimeAgo } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ExternalLink, Maximize2, Minimize2, Plus, X } from 'lucide-react';
 import {
   GlobalMarketsOverview, CentralBankTracker, M2MoneySupply,
@@ -580,6 +581,8 @@ function YieldCurvePanel() {
 
 // ── Fear & Greed Multi-Indicator Panel ──
 function FearGreedPanel() {
+  const { theme } = useTheme();
+  const lt = theme === 'light';
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hoveredIndicator, setHoveredIndicator] = useState(null);
@@ -602,14 +605,6 @@ function FearGreedPanel() {
     if (score <= 55) return { text: 'NEUTRAL', color: '#eab308' };
     if (score <= 75) return { text: 'GREED', color: '#22c55e' };
     return { text: 'EXTREME GREED', color: '#16a34a' };
-  };
-
-  const getBarColor = (score) => {
-    if (score <= 25) return '#ef4444';
-    if (score <= 45) return '#f97316';
-    if (score <= 55) return '#eab308';
-    if (score <= 75) return '#22c55e';
-    return '#16a34a';
   };
 
   const INDICATOR_TOOLTIPS = {
@@ -636,7 +631,6 @@ function FearGreedPanel() {
   const overallScore = data?.fear_and_greed?.score ?? data?.score ?? null;
   const overallLabel = overallScore != null ? getLabel(overallScore) : null;
   const previousClose = data?.fear_and_greed?.previous_close ?? null;
-  const lastUpdated = data?.fear_and_greed?.previous_1_month_date ?? null;
 
   const indicators = [];
   if (data) {
@@ -677,7 +671,7 @@ function FearGreedPanel() {
         <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
           {/* TOP ROW: Score + Badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '48px', fontWeight: 900, color: 'white', fontFamily: 'monospace', lineHeight: 1 }}>
+            <span style={{ fontSize: '48px', fontWeight: 900, color: lt ? '#111827' : '#ffffff', fontFamily: 'monospace', lineHeight: 1 }}>
               {Math.round(overallScore)}
             </span>
             <div>
@@ -687,7 +681,7 @@ function FearGreedPanel() {
               }}>
                 {overallLabel.text}
               </span>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', marginTop: '4px' }}>
+              <div style={{ color: lt ? '#6b7280' : 'rgba(255,255,255,0.4)', fontSize: '10px', marginTop: '4px' }}>
                 Overall Index{previousClose != null ? ` · Prev: ${Math.round(previousClose)}` : ''}
               </div>
             </div>
@@ -698,12 +692,12 @@ function FearGreedPanel() {
             <div style={{ position: 'relative', width: '100%', height: '8px', borderRadius: '9999px', background: 'linear-gradient(to right, #7f1d1d, #dc2626, #f59e0b, #16a34a, #14532d)' }}>
               <div style={{
                 position: 'absolute', left: `${overallScore}%`, top: '-4px', transform: 'translateX(-50%)',
-                width: '2px', height: '16px', backgroundColor: 'white', borderRadius: '1px',
+                width: '2px', height: '16px', backgroundColor: lt ? '#111827' : '#ffffff', borderRadius: '1px',
               }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
               {['Extreme Fear', 'Fear', 'Neutral', 'Greed', 'Extreme Greed'].map(z => (
-                <span key={z} style={{ color: 'rgba(255,255,255,0.3)', fontSize: '9px' }}>{z}</span>
+                <span key={z} style={{ color: lt ? '#9ca3af' : 'rgba(255,255,255,0.3)', fontSize: '9px' }}>{z}</span>
               ))}
             </div>
           </div>
@@ -717,30 +711,30 @@ function FearGreedPanel() {
                   <div key={ind.key}
                     onMouseEnter={() => setHoveredIndicator(ind.key)}
                     onMouseLeave={() => setHoveredIndicator(null)}
-                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '8px', position: 'relative', cursor: 'help' }}
+                    style={{ backgroundColor: lt ? '#f3f4f6' : 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '8px', position: 'relative', cursor: 'help' }}
                   >
-                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                      {ind.name}<span style={{ opacity: 0.3, fontSize: '9px', marginLeft: '3px' }}>ⓘ</span>
+                    <div style={{ color: lt ? '#6b7280' : 'rgba(255,255,255,0.4)', fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      {ind.name}<span style={{ opacity: lt ? 0.5 : 0.3, fontSize: '9px', marginLeft: '3px', color: lt ? '#9ca3af' : undefined }}>ⓘ</span>
                     </div>
-                    <div style={{ color: 'white', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '4px' }}>
+                    <div style={{ color: lt ? '#111827' : '#ffffff', fontSize: '18px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '4px' }}>
                       {Math.round(ind.score)}
                     </div>
-                    <div style={{ width: '100%', height: '4px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', height: '4px', borderRadius: '9999px', backgroundColor: lt ? '#e5e7eb' : 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
                       <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: '#F0A500', borderRadius: '9999px', transition: 'width 600ms ease' }} />
                     </div>
                     {hoveredIndicator === ind.key && tip && (
                       <div style={{
                         position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
-                        width: '200px', backgroundColor: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)',
+                        width: '200px', backgroundColor: lt ? '#ffffff' : '#1a1f2e', border: `1px solid ${lt ? '#e5e7eb' : 'rgba(255,255,255,0.1)'}`,
                         borderRadius: '6px', padding: '10px 12px', zIndex: 50, pointerEvents: 'none',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                        boxShadow: lt ? '0 4px 12px rgba(0,0,0,0.1)' : '0 4px 12px rgba(0,0,0,0.4)',
                       }}>
-                        <div style={{ color: 'white', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>{tip.title}</div>
-                        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px', lineHeight: 1.5 }}>{tip.desc}</div>
+                        <div style={{ color: lt ? '#111827' : '#ffffff', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>{tip.title}</div>
+                        <div style={{ color: lt ? '#6b7280' : 'rgba(255,255,255,0.5)', fontSize: '10px', lineHeight: 1.5 }}>{tip.desc}</div>
                         <div style={{
                           position: 'absolute', bottom: '-4px', left: '50%',
-                          width: '8px', height: '8px', backgroundColor: '#1a1f2e',
-                          border: '1px solid rgba(255,255,255,0.1)', borderTop: 'none', borderLeft: 'none',
+                          width: '8px', height: '8px', backgroundColor: lt ? '#ffffff' : '#1a1f2e',
+                          border: `1px solid ${lt ? '#e5e7eb' : 'rgba(255,255,255,0.1)'}`, borderTop: 'none', borderLeft: 'none',
                           transform: 'translateX(-50%) rotate(45deg)',
                         }} />
                       </div>
