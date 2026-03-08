@@ -1845,15 +1845,19 @@ function FinancialModels({ quote, profile, financials, analyst }) {
 function KeyStatsGrid({ quote, analyst }) {
   if (!quote) return null;
 
-  // Determine value color: prices → gold, positive % → green, negative % → red, missing → dim
-  const valColor = (value, raw) => {
-    if (value === '\u2014') return 'rgba(255,255,255,0.2)';
-    if (typeof value === 'string' && value.startsWith('$')) return '#F0A500';
+  const PRICE_LABELS = new Set([
+    'Market Cap', 'EPS (TTM)', '52W High', '52W Low', '50D Avg', '200D Avg',
+    'Open', 'Prev Close', 'Day High', 'Day Low', 'Target Mean', 'Enterprise Value',
+  ]);
+
+  const getColor = (label, value) => {
+    if (value === '\u2014' || value == null) return 'rgba(255,255,255,0.2)';
+    if (PRICE_LABELS.has(label)) return '#F0A500';
     if (typeof value === 'string' && value.includes('%')) {
       const num = parseFloat(value);
-      if (!isNaN(num)) return num >= 0 ? 'var(--green)' : 'var(--red)';
+      if (!isNaN(num)) return num < 0 ? '#f87171' : '#4ade80';
     }
-    return 'var(--text-primary)';
+    return '#ffffff';
   };
 
   // 4 rows × 6 columns = 24 stats
@@ -1906,8 +1910,23 @@ function KeyStatsGrid({ quote, analyst }) {
                 cursor: 'help',
                 position: 'relative',
               }}>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '3px' }}>{s.label}</div>
-                <div style={{ color: valColor(s.value), fontSize: '13px', fontFamily: 'monospace', fontWeight: 600 }}>{s.value}</div>
+                <div style={{
+                  fontSize: '9px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'rgba(255,255,255,0.35)',
+                  marginBottom: '4px',
+                }}>
+                  {s.label}
+                </div>
+                <div style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  fontFamily: 'monospace',
+                  color: getColor(s.label, s.value),
+                }}>
+                  {s.value}
+                </div>
                 <span className="tooltip-text">{s.tip}</span>
               </div>
             ))}
