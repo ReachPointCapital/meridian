@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, LogOut } from 'lucide-react';
+import { Sun, Moon, LogOut, Menu, ChevronDown } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { usePro } from '../../context/ProContext';
 import { useAuth } from '../../context/AuthContext';
 import TickerSearch from '../TickerSearch';
 import AuthModal from '../auth/AuthModal';
+import NamePromptModal from '../auth/NamePromptModal';
 
 function isMarketOpen() {
   const now = new Date();
@@ -35,19 +36,33 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
   const { setActiveSymbol } = useApp();
   const { theme, toggleTheme } = useTheme();
   const { isPro, togglePro } = usePro();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const [now, setNow] = useState(new Date());
   const [open, setOpen] = useState(isMarketOpen());
-  const [authModal, setAuthModal] = useState(null); // 'signin' | 'signup' | null
+  const [authModal, setAuthModal] = useState(null);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(window.innerWidth < 1100);
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [prevUser, setPrevUser] = useState(null);
   const avatarRef = useRef(null);
+  const navMenuRef = useRef(null);
 
+  // Clock
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(new Date());
       setOpen(isMarketOpen());
     }, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Responsive resize listener
+  useEffect(() => {
+    const handleResize = () => setIsNarrow(window.innerWidth < 1100);
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Close avatar dropdown on outside click
@@ -59,6 +74,26 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [avatarOpen]);
+
+  // Close nav dropdown on outside click
+  useEffect(() => {
+    if (!navOpen) return;
+    const handler = (e) => {
+      if (navMenuRef.current && !navMenuRef.current.contains(e.target)) setNavOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [navOpen]);
+
+  // Detect new email user (no full_name) and show name prompt
+  useEffect(() => {
+    if (!user || prevUser?.id === user.id) return;
+    setPrevUser(user);
+    const fullName = user.user_metadata?.full_name;
+    if (!fullName) {
+      setShowNamePrompt(true);
+    }
+  }, [user, prevUser]);
 
   const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', {
@@ -85,7 +120,17 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
     nav('/');
   };
 
+  const handleNavTab = useCallback((tab) => {
+    setActiveTab(tab);
+    setNavOpen(false);
+  }, [setActiveTab]);
+
   const tabs = ['Dashboard', 'Analysis', 'Models', 'Watchlist', 'Portfolio', 'Earnings', 'Options', 'Screener'];
+
+  // User display name helpers
+  const fullName = user?.user_metadata?.full_name || '';
+  const firstName = fullName.split(' ')[0];
+  const avatarLetter = firstName ? firstName[0].toUpperCase() : (user?.email || '?')[0].toUpperCase();
 
   return (
     <nav style={{
@@ -127,34 +172,85 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
 
       {/* Center: Nav Tabs + Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flex: 1, justifyContent: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {tabs.map(tab => (
+        {isNarrow ? (
+          /* Hamburger dropdown for narrow screens */
+          <div ref={navMenuRef} style={{ position: 'relative' }}>
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setNavOpen(!navOpen)}
               style={{
-                background: 'none',
-                border: 'none',
-                borderTop: 'none',
-                borderBottom: activeTab === tab ? '2px solid var(--gold)' : '2px solid transparent',
-                color: activeTab === tab ? 'var(--gold)' : 'var(--text-secondary)',
-                fontSize: '12px',
-                fontWeight: activeTab === tab ? 600 : 400,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                padding: '4px 12px',
-                cursor: 'pointer',
-                transition: 'all 150ms ease',
+                background: 'none', border: '1px solid var(--border-color)',
+                borderRadius: '6px', padding: '5px 10px',
+                color: 'var(--text-secondary)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                fontSize: '12px', fontWeight: 500,
               }}
-              onMouseEnter={e => { if (activeTab !== tab) e.target.style.color = 'var(--text-primary)'; }}
-              onMouseLeave={e => { if (activeTab !== tab) e.target.style.color = 'var(--text-secondary)'; }}
-              onMouseDown={e => e.preventDefault()}
             >
-              {tab}
+              <Menu size={16} />
+              <span style={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                {activeTab || 'Menu'}
+              </span>
+              <ChevronDown size={12} style={{ transform: navOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} />
             </button>
-          ))}
-        </div>
-        <div style={{ width: '320px', maxWidth: '320px' }}>
+            {navOpen && (
+              <div style={{
+                position: 'absolute', top: '42px', left: 0,
+                background: '#0D1117', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '0 0 8px 8px', zIndex: 200,
+                minWidth: '180px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              }}>
+                {tabs.map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => handleNavTab(tab)}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left',
+                      background: 'none', border: 'none',
+                      padding: '12px 24px',
+                      color: activeTab === tab ? '#F0A500' : 'var(--text-secondary)',
+                      fontSize: '12px', fontWeight: activeTab === tab ? 600 : 400,
+                      letterSpacing: '0.08em', textTransform: 'uppercase',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { if (activeTab !== tab) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Full tab bar for wide screens */
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {tabs.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  borderTop: 'none',
+                  borderBottom: activeTab === tab ? '2px solid var(--gold)' : '2px solid transparent',
+                  color: activeTab === tab ? 'var(--gold)' : 'var(--text-secondary)',
+                  fontSize: '12px',
+                  fontWeight: activeTab === tab ? 600 : 400,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  padding: '4px 12px',
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                }}
+                onMouseEnter={e => { if (activeTab !== tab) e.target.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { if (activeTab !== tab) e.target.style.color = 'var(--text-secondary)'; }}
+                onMouseDown={e => e.preventDefault()}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        )}
+        <div style={{ width: isNarrow ? '200px' : '320px', maxWidth: '320px' }}>
           <TickerSearch
             size="sm"
             placeholder="Search ticker or company..."
@@ -163,7 +259,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
         </div>
       </div>
 
-      {/* Right: Pro badge + Theme toggle + Alert badge + Market status + time */}
+      {/* Right: Pro badge + Theme toggle + Alert badge + Auth + Market status + time */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         <button
           onClick={togglePro}
@@ -223,9 +319,14 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
           )}
         </div>
 
-        {/* Auth */}
-        {user ? (
-          <div ref={avatarRef} style={{ position: 'relative' }}>
+        {/* Auth section */}
+        {authLoading ? null : user ? (
+          <div ref={avatarRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {firstName && !isNarrow && (
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
+                Hi, {firstName}
+              </span>
+            )}
             <button
               onClick={() => setAvatarOpen(!avatarOpen)}
               style={{
@@ -237,7 +338,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
               }}
               title={user.email}
             >
-              {(user.email || '?')[0].toUpperCase()}
+              {avatarLetter}
             </button>
             {avatarOpen && (
               <div style={{
@@ -247,7 +348,12 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
                 boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 200,
               }}>
                 <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-color)' }}>
-                  <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600 }}>
+                  {fullName && (
+                    <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600, marginBottom: '2px' }}>
+                      {fullName}
+                    </div>
+                  )}
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>
                     {user.email}
                   </div>
                 </div>
@@ -296,35 +402,40 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{
-            width: '7px',
-            height: '7px',
-            borderRadius: '50%',
-            backgroundColor: open ? 'var(--green)' : 'var(--red)',
-            boxShadow: open ? '0 0 6px var(--green)' : '0 0 6px var(--red)',
-          }} />
-          <span style={{
-            color: open ? 'var(--green)' : 'var(--red)',
-            fontSize: '10px',
-            fontWeight: 600,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-          }}>
-            {open ? 'Market Open' : 'Market Closed'}
-          </span>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ color: 'var(--text-primary)', fontSize: '11px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}>
-            {formatTime(now)}
-          </div>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>
-            {formatDateDisplay(now)}
-          </div>
-        </div>
+        {!isNarrow && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                backgroundColor: open ? 'var(--green)' : 'var(--red)',
+                boxShadow: open ? '0 0 6px var(--green)' : '0 0 6px var(--red)',
+              }} />
+              <span style={{
+                color: open ? 'var(--green)' : 'var(--red)',
+                fontSize: '10px',
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+              }}>
+                {open ? 'Market Open' : 'Market Closed'}
+              </span>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ color: 'var(--text-primary)', fontSize: '11px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}>
+                {formatTime(now)}
+              </div>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>
+                {formatDateDisplay(now)}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {authModal && <AuthModal onClose={() => setAuthModal(null)} initialMode={authModal} />}
+      {showNamePrompt && <NamePromptModal onClose={() => setShowNamePrompt(false)} />}
     </nav>
   );
 }
