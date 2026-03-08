@@ -2195,6 +2195,46 @@ function MasterModel({ data, quote }) {
         </div>
       </div>
 
+      {/* Assumption Override Panel */}
+      <div ref={overridesPanelRef} style={{ ...CARD, marginTop: '12px' }}>
+        <div onClick={() => setShowOverrides(!showOverrides)} style={{
+          ...HEADER, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+        }}>
+          {showOverrides ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          {scenarioIndex === 5 ? (
+            <div>
+              <span>{'\u2699'} Custom Scenario — Adjust All Assumptions</span>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 400, letterSpacing: 'normal', textTransform: 'none', marginTop: '2px' }}>
+                All inputs are fully editable. Changes update the model in real time.
+              </div>
+            </div>
+          ) : (
+            'Assumption Overrides'
+          )}
+        </div>
+        {showOverrides && (
+          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            {OVERRIDE_FIELDS.map(f => (
+              <div key={f.key}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '10px', color: userOverrides[f.key] != null ? 'var(--gold)' : 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-strong)', fontFamily: 'monospace' }}>{assumptions[f.key]}</span>
+                </div>
+                <input type="range" min={f.min} max={f.max} step={f.step} value={assumptions[f.key]}
+                  onChange={e => handleOverride(f.key, parseFloat(e.target.value))}
+                  style={{ width: '100%', height: '4px', appearance: 'none', WebkitAppearance: 'none',
+                    background: userOverrides[f.key] != null
+                      ? 'linear-gradient(to right, var(--gold-muted), var(--gold))'
+                      : 'var(--border-color)',
+                    borderRadius: '2px', outline: 'none', cursor: 'pointer',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* 3-Column Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         {/* Projected Financials */}
@@ -2367,46 +2407,6 @@ function MasterModel({ data, quote }) {
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Assumption Override Panel */}
-      <div ref={overridesPanelRef} style={CARD}>
-        <div onClick={() => setShowOverrides(!showOverrides)} style={{
-          ...HEADER, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-        }}>
-          {showOverrides ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          {scenarioIndex === 5 ? (
-            <div>
-              <span>{'\u2699'} Custom Scenario — Adjust All Assumptions</span>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 400, letterSpacing: 'normal', textTransform: 'none', marginTop: '2px' }}>
-                All inputs are fully editable. Changes update the model in real time.
-              </div>
-            </div>
-          ) : (
-            'Assumption Overrides'
-          )}
-        </div>
-        {showOverrides && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-            {OVERRIDE_FIELDS.map(f => (
-              <div key={f.key}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '10px', color: userOverrides[f.key] != null ? 'var(--gold)' : 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-strong)', fontFamily: 'monospace' }}>{assumptions[f.key]}</span>
-                </div>
-                <input type="range" min={f.min} max={f.max} step={f.step} value={assumptions[f.key]}
-                  onChange={e => handleOverride(f.key, parseFloat(e.target.value))}
-                  style={{ width: '100%', height: '4px', appearance: 'none', WebkitAppearance: 'none',
-                    background: userOverrides[f.key] != null
-                      ? 'linear-gradient(to right, var(--gold-muted), var(--gold))'
-                      : 'var(--border-color)',
-                    borderRadius: '2px', outline: 'none', cursor: 'pointer',
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       <style>{`
