@@ -59,7 +59,7 @@ export default function Watchlist({ setActiveTab }) {
 
   const handleNavigate = (sym) => {
     setActiveSymbol(sym);
-    setActiveTab('Terminal');
+    setActiveTab('Analysis');
   };
 
   // Drag reorder handlers
