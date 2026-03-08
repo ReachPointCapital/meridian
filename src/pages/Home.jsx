@@ -11,6 +11,7 @@ const NAV_TILES = [
   { label: 'Options', desc: 'Black-Scholes calculator and analytics', path: '/options' },
   { label: 'Screener', desc: 'Filter stocks by any metric', path: '/screener' },
   { label: 'Global Markets', desc: 'World indices and macro data', path: '/dashboard' },
+  { label: 'News', desc: 'Live market news and headlines', path: '/dashboard' },
 ];
 
 const PRICE_TILES = [
