@@ -38,6 +38,7 @@ export const api = {
   centralBanks: () => get(`${BASE}/api/central-banks`),
   m2: () => get(`${BASE}/api/m2`),
   insiderTradingFeed: () => get(`${BASE}/api/insider-trading-feed`),
+  economicReleases: () => get(`${BASE}/api/economic-releases`),
   dailyBrief: () => get(`${BASE}/api/daily-brief`),
   heatmap: () => get(`${BASE}/api/heatmap`),
   modelData: (symbol) => get(`${BASE}/api/model-data?symbol=${encodeURIComponent(symbol)}`),

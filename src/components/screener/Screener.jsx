@@ -64,7 +64,7 @@ export default function Screener({ setActiveTab }) {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const handleNavigate = (sym) => { setActiveSymbol(sym); setActiveTab('Terminal'); };
+  const handleNavigate = (sym) => { setActiveSymbol(sym); setActiveTab('Analysis'); };
 
   const filterField = (label, key, placeholder, suffix) => (
     <div style={{ marginBottom: '10px' }}>

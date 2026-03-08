@@ -466,15 +466,26 @@ function RecentEconomicReleases({ onRowClick }) {
   useEffect(() => {
     (async () => {
       try {
-        const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0];
-        const today = new Date().toISOString().split('T')[0];
-        const result = await api.economicCalendar(fourteenDaysAgo, today);
-        console.log('[RecentEcon UI] received:', Array.isArray(result) ? `${result.length} events` : typeof result);
-        // Filter to only events with actual values (already released), date <= today
-        const released = (Array.isArray(result) ? result : [])
-          .filter(e => e.actual != null && e.actual !== '' && e.date <= today)
-          .sort((a, b) => b.date.localeCompare(a.date))
-          .slice(0, 15);
+        // Try dedicated FRED-based releases endpoint first
+        let released = [];
+        try {
+          const fredResult = await api.economicReleases();
+          if (Array.isArray(fredResult) && fredResult.length > 0) {
+            console.log('[RecentEcon UI] FRED releases:', fredResult.length);
+            released = fredResult.slice(0, 15);
+          }
+        } catch {}
+        // Fallback to economic calendar endpoint
+        if (released.length === 0) {
+          const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0];
+          const today = new Date().toISOString().split('T')[0];
+          const result = await api.economicCalendar(fourteenDaysAgo, today);
+          console.log('[RecentEcon UI] calendar received:', Array.isArray(result) ? `${result.length} events` : typeof result);
+          released = (Array.isArray(result) ? result : [])
+            .filter(e => e.actual != null && e.actual !== '' && e.date <= today)
+            .sort((a, b) => b.date.localeCompare(a.date))
+            .slice(0, 15);
+        }
         setData(released);
       } catch (e) {
         console.error('[RecentEcon UI] fetch error:', e);
