@@ -9,7 +9,6 @@ import { formatPrice, formatMarketCap, formatPercent, formatDividendYield } from
 import { calculateRSI, checkCrossSignal, calculateMACD, volumeTrend, pricePosition } from '../../utils/technicals';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, Copy, Check, Save, ExternalLink, Info } from 'lucide-react';
 import TickerSearch from '../TickerSearch';
-import ProGate from '../common/ProGate';
 import InfoTooltip from '../ui/InfoTooltip';
 import PriceChart from '../terminal/PriceChart';
 import NewsFeed from '../terminal/NewsFeed';
