@@ -7,11 +7,26 @@ import { getPriceHistory } from '../../services/polygon';
 import { useApp } from '../../context/AppContext';
 import { formatPrice, formatMarketCap, formatPercent, formatDividendYield } from '../../utils/formatters';
 import { calculateRSI, checkCrossSignal, calculateMACD, volumeTrend, pricePosition } from '../../utils/technicals';
-import { Search, TrendingUp, TrendingDown, Minus, AlertTriangle, Copy, Check, Save, ExternalLink } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Minus, AlertTriangle, Copy, Check, Save, ExternalLink, Info } from 'lucide-react';
 import ProGate from '../common/ProGate';
 import InfoTooltip from '../ui/InfoTooltip';
 import PriceChart from '../terminal/PriceChart';
 import NewsFeed from '../terminal/NewsFeed';
+
+// ── RPR Fair Value Helpers ──
+const calculateAvgGrowth = (values) => {
+  if (!values || values.length < 2) return 0.08;
+  const filtered = values.filter(Boolean);
+  if (filtered.length < 2) return 0.08;
+  const growth = filtered.slice(1).map((v, i) => (v - filtered[i]) / Math.abs(filtered[i]));
+  const avg = growth.reduce((a, b) => a + b, 0) / growth.length;
+  return isFinite(avg) ? avg : 0.08;
+};
+
+const rprAverage = (values) => {
+  const filtered = values.filter(v => v != null && !isNaN(v));
+  return filtered.length ? filtered.reduce((a, b) => a + b, 0) / filtered.length : 0;
+};
 
 const CARD_STYLE = {
   backgroundColor: 'var(--bg-secondary)',
@@ -750,6 +765,257 @@ function TechnicalIndicators({ technicals, quote }) {
             <span style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>{formatPrice(quote?.yearHigh)}</span>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── RPR Fair Value ──
+function RPRFairValue({ symbol, quote }) {
+  const [rprData, setRprData] = useState(null);
+  const [rprLoading, setRprLoading] = useState(true);
+
+  useEffect(() => {
+    if (!symbol) return;
+    setRprLoading(true);
+    setRprData(null);
+    (async () => {
+      try {
+        const [finResult] = await Promise.allSettled([
+          api.modelFinancials(symbol),
+        ]);
+        const fin = finResult.status === 'fulfilled' ? finResult.value : null;
+        if (!fin || !fin.incomeStatement?.length) { setRprLoading(false); return; }
+
+        const incomeStmts = fin.incomeStatement;
+        const cashFlows = fin.cashFlow || [];
+        const balanceSheets = fin.balanceSheet || [];
+        const keyStats = fin.keyStats || {};
+        const lastIncome = incomeStmts[incomeStmts.length - 1] || {};
+        const lastBS = balanceSheets[balanceSheets.length - 1] || {};
+        const lastRev = lastIncome.revenue || 0;
+        const shares = keyStats.sharesOutstanding || (quote?.marketCap && quote?.price ? quote.marketCap / quote.price : 1);
+        const bsNetDebt = (lastBS.longTermDebt || lastBS.totalDebt || 0) - (lastBS.cashAndCashEquivalents || 0);
+
+        // 1. DCF Component
+        const avgRevGrowth = calculateAvgGrowth(incomeStmts.map(s => s.revenue));
+        const avgNetMargin = rprAverage(incomeStmts.map(s => s.netMargin).filter(Boolean));
+        const avgCapexPct = rprAverage(cashFlows.map(s =>
+          s.capitalExpenditure && lastRev ? Math.abs(s.capitalExpenditure) / (incomeStmts[cashFlows.indexOf(s)]?.revenue || lastRev) : null
+        ).filter(Boolean));
+        const avgDAPct = rprAverage(cashFlows.map(s =>
+          s.depreciationAndAmortization ? Math.abs(s.depreciationAndAmortization) / (incomeStmts[cashFlows.indexOf(s)]?.revenue || lastRev) : null
+        ).filter(Boolean));
+
+        const revenueGrowth = Math.min(avgRevGrowth * 0.8, 0.25);
+        const ebitMargin = avgNetMargin > 0 ? avgNetMargin * 1.4 : 0.15;
+        const taxRate = 0.21;
+        const wacc = 0.10;
+        const g = 0.025;
+
+        const fcfs = [1, 2, 3, 4, 5].map(y => {
+          const rev = lastRev * Math.pow(1 + revenueGrowth, y);
+          const ebit = rev * ebitMargin;
+          const nopat = ebit * (1 - taxRate);
+          const da = rev * (avgDAPct || 0.05);
+          const capex = rev * (avgCapexPct || 0.04);
+          return nopat + da - capex;
+        });
+
+        const pvFCFs = fcfs.map((f, i) => f / Math.pow(1.10, i + 1));
+        const terminalValue = fcfs[4] * (1 + g) / (wacc - g);
+        const pvTerminal = terminalValue / Math.pow(1.10, 5);
+        const ev = pvFCFs.reduce((a, b) => a + b, 0) + pvTerminal;
+        const dcfPrice = shares > 0 ? (ev - bsNetDebt) / shares : null;
+
+        // 2. Forward EPS Component
+        const forwardEPS = keyStats.forwardEPS;
+        const forwardPE = keyStats.forwardPE || 20;
+        const appliedPE = Math.min(forwardPE, 30);
+        const epsPrice = forwardEPS ? forwardEPS * appliedPE : null;
+
+        // 3. Comps EV/EBITDA Component
+        const lastEBITDA = lastIncome.ebitda || 0;
+        const medianMultiple = 12;
+        const compsPrice = lastEBITDA > 0 && shares > 0 ? (lastEBITDA * medianMultiple - bsNetDebt) / shares : null;
+
+        // Weighted composite with null handling
+        const components = [
+          { name: 'dcf', price: dcfPrice, weight: 0.40 },
+          { name: 'eps', price: epsPrice, weight: 0.35 },
+          { name: 'comps', price: compsPrice, weight: 0.25 },
+        ];
+        const available = components.filter(c => c.price != null && isFinite(c.price) && c.price > 0);
+        const totalWeight = available.reduce((s, c) => s + c.weight, 0);
+        const fairValue = totalWeight > 0
+          ? available.reduce((s, c) => s + c.price * (c.weight / totalWeight), 0)
+          : null;
+
+        // Confidence
+        const yearsOfData = incomeStmts.length;
+        let confidence = 'LOW';
+        if (available.length >= 3 && yearsOfData >= 4) confidence = 'HIGH';
+        else if (available.length >= 2 && yearsOfData >= 3) confidence = 'MEDIUM';
+
+        setRprData({
+          fairValue,
+          dcfPrice: dcfPrice && isFinite(dcfPrice) && dcfPrice > 0 ? dcfPrice : null,
+          epsPrice: epsPrice && isFinite(epsPrice) && epsPrice > 0 ? epsPrice : null,
+          compsPrice: compsPrice && isFinite(compsPrice) && compsPrice > 0 ? compsPrice : null,
+          confidence,
+          availableCount: available.length,
+        });
+      } catch (e) {
+        console.error('RPR Fair Value calc failed:', e);
+      }
+      setRprLoading(false);
+    })();
+  }, [symbol, quote?.marketCap, quote?.price]);
+
+  if (rprLoading) {
+    return (
+      <div style={{
+        ...CARD_STYLE,
+        background: 'linear-gradient(135deg, rgba(240,165,0,0.08) 0%, rgba(240,165,0,0.03) 100%)',
+        border: '1px solid rgba(240,165,0,0.3)',
+        borderLeft: '4px solid #F0A500',
+        padding: '24px',
+        textAlign: 'center',
+      }}>
+        <div className="skeleton" style={{ height: '80px', borderRadius: '8px', marginBottom: '8px' }} />
+        <div style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Calculating RPR Fair Value...</div>
+      </div>
+    );
+  }
+
+  if (!rprData?.fairValue) {
+    return (
+      <div style={{
+        ...CARD_STYLE,
+        background: 'linear-gradient(135deg, rgba(240,165,0,0.04) 0%, rgba(240,165,0,0.01) 100%)',
+        border: '1px solid rgba(240,165,0,0.15)',
+        borderLeft: '4px solid rgba(240,165,0,0.3)',
+        padding: '16px 24px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 900, backgroundColor: '#F0A500', color: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '3px' }}>RPR</span>
+          <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Insufficient data to calculate RPR Fair Value</span>
+        </div>
+      </div>
+    );
+  }
+
+  const currentPrice = quote?.price || 0;
+  const upside = currentPrice > 0 ? ((rprData.fairValue - currentPrice) / currentPrice * 100) : 0;
+  const isUnder = upside > 15;
+  const isOver = upside < -15;
+
+  const verdictStyle = isUnder
+    ? { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)', color: 'var(--green)', icon: '\u25B2', label: 'UNDERVALUED' }
+    : isOver
+    ? { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', color: 'var(--red)', icon: '\u25BC', label: 'OVERVALUED' }
+    : { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', color: '#f59e0b', icon: '\u25C6', label: 'FAIRLY VALUED' };
+
+  const confStyle = rprData.confidence === 'HIGH'
+    ? { color: 'var(--green)', label: 'Strong data coverage' }
+    : rprData.confidence === 'MEDIUM'
+    ? { color: '#f59e0b', label: 'Partial data available' }
+    : { color: 'var(--red)', label: 'Limited historical data' };
+
+  return (
+    <div style={{
+      ...CARD_STYLE,
+      background: 'linear-gradient(135deg, rgba(240,165,0,0.08) 0%, rgba(240,165,0,0.03) 100%)',
+      border: '1px solid rgba(240,165,0,0.3)',
+      borderLeft: '4px solid #F0A500',
+      padding: '16px 24px',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 900, backgroundColor: '#F0A500', color: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '3px' }}>RPR</span>
+          <span style={{ color: 'var(--text-label)', fontSize: '11px', fontWeight: 600 }}>REACH POINT RESEARCH MODEL</span>
+          <div className="tooltip-container">
+            <Info size={12} color="var(--text-tertiary)" />
+            <span className="tooltip-text">Proprietary valuation model combining DCF (40%), Forward EPS (35%), and Comparable multiples (25%). Automatically calculated using historical financials and consensus estimates.</span>
+          </div>
+        </div>
+        <span style={{ color: 'var(--text-dim)', fontSize: '9px' }}>Auto-calculated · Updates with market data</span>
+      </div>
+
+      {/* Body */}
+      <div style={{ display: 'flex', gap: '24px', marginTop: '16px', alignItems: 'flex-start' }}>
+        {/* Left — Fair Value + Verdict */}
+        <div style={{ flex: 1 }}>
+          <div style={{ color: '#F0A500', fontSize: '36px', fontWeight: 900, fontFamily: 'monospace', lineHeight: 1 }}>
+            ${rprData.fairValue.toFixed(2)}
+          </div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
+            vs ${currentPrice.toFixed(2)} current
+          </div>
+          <div style={{
+            marginTop: '8px', padding: '8px', borderRadius: '6px', textAlign: 'center',
+            backgroundColor: verdictStyle.bg, border: `1px solid ${verdictStyle.border}`,
+          }}>
+            <span style={{ color: verdictStyle.color, fontSize: '13px', fontWeight: 700 }}>
+              {verdictStyle.icon} {verdictStyle.label} {upside >= 0 ? '+' : ''}{upside.toFixed(1)}%
+            </span>
+          </div>
+        </div>
+
+        {/* Center — Component Breakdown */}
+        <div style={{ width: '280px' }}>
+          {[
+            { label: 'DCF Model', weight: '40%', val: rprData.dcfPrice },
+            { label: 'Forward EPS', weight: '35%', val: rprData.epsPrice },
+            { label: 'Comps (EV/EBITDA)', weight: '25%', val: rprData.compsPrice },
+          ].map(c => (
+            <div key={c.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{c.label}</span>
+              <span style={{ color: 'var(--text-dim)', fontSize: '10px' }}>{c.weight}</span>
+              <span style={{ color: 'var(--text-strong)', fontSize: '12px', fontFamily: 'monospace' }}>
+                {c.val != null ? `$${c.val.toFixed(2)}` : '\u2014'}
+              </span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', marginTop: '2px' }}>
+            <span style={{ color: '#F0A500', fontSize: '11px', fontWeight: 700 }}>RPR Fair Value</span>
+            <span style={{ color: '#F0A500', fontSize: '10px' }}>100%</span>
+            <span style={{ color: '#F0A500', fontSize: '12px', fontWeight: 700, fontFamily: 'monospace' }}>
+              ${rprData.fairValue.toFixed(2)}
+            </span>
+          </div>
+        </div>
+
+        {/* Right — Confidence + Upside */}
+        <div style={{ width: '200px' }}>
+          <div style={{ color: 'var(--text-dim)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: '6px' }}>
+            Model Confidence
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+            <span style={{
+              fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
+              backgroundColor: `${confStyle.color}22`, color: confStyle.color,
+            }}>{rprData.confidence}</span>
+          </div>
+          <div style={{ color: 'var(--text-faint)', fontSize: '10px', marginBottom: '16px' }}>{confStyle.label}</div>
+
+          <div style={{ color: 'var(--text-dim)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: '4px' }}>
+            Upside to Fair Value
+          </div>
+          <div style={{
+            color: upside >= 0 ? 'var(--green)' : 'var(--red)',
+            fontSize: '24px', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1,
+          }}>
+            {upside >= 0 ? '+' : ''}{upside.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+
+      {/* Disclaimer */}
+      <div style={{ color: 'var(--text-dim)', fontSize: '9px', marginTop: '12px', lineHeight: 1.4 }}>
+        RPR Fair Value is a quantitative estimate based on historical financials and consensus data.
+        Not investment advice. Past performance does not guarantee future results. · Reach Point Research
       </div>
     </div>
   );
@@ -1600,6 +1866,9 @@ export default function AnalysisTab() {
 
           {/* Row 5: Overall Signal banner (full width) */}
           {technicals && <OverallSignal technicals={technicals} valuation={valAvg} />}
+
+          {/* Row 5a: RPR Fair Value (full width) */}
+          <RPRFairValue symbol={analysisSymbol} quote={quote} />
 
           {/* Row 5b: Technical indicators + valuation (2 columns) */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

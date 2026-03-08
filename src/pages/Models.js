@@ -188,6 +188,11 @@ const SCENARIOS = [
     daaPct: 3, capexPct: 6, nwcPct: 0, riskFree: 3.5, erp: 4.5, beta: 0.8,
     preTaxDebt: 4.0, debtPct: 20, termGrowth: 3.5, entryMultiple: 16, exitMultiple: 20,
     lboDebtPct: 70, intRate: 5.5, targetPE: 35 },
+  { name: 'Custom', description: 'User-defined assumptions — all inputs manually configured',
+    revGrowth: 8, grossMargin: 42, ebitdaMargin: 25, netMargin: 15, taxRate: 21,
+    daaPct: 5, capexPct: 4, nwcPct: 1, riskFree: 4.3, erp: 5.5, beta: 1.0,
+    preTaxDebt: 5.0, debtPct: 30, termGrowth: 2.5, entryMultiple: 12, exitMultiple: 12,
+    lboDebtPct: 60, intRate: 7, targetPE: 20 },
 ];
 
 const defaultScenario = () => ({ ...SCENARIOS[2] });
@@ -1885,22 +1890,35 @@ function MasterModel({ data, quote }) {
   const [assumptions, setAssumptions] = useState(() => defaultScenario());
   const [userOverrides, setUserOverrides] = useState({});
   const [showOverrides, setShowOverrides] = useState(false);
+  const [previousScenario, setPreviousScenario] = useState(null);
 
   const applyScenario = (idx) => {
     setScenarioIndex(idx);
-    const base = { ...SCENARIOS[idx] };
-    Object.keys(userOverrides).forEach(k => { base[k] = userOverrides[k]; });
-    setAssumptions(base);
+    if (idx < 5) {
+      setPreviousScenario(null);
+      const base = { ...SCENARIOS[idx] };
+      Object.keys(userOverrides).forEach(k => { base[k] = userOverrides[k]; });
+      setAssumptions(base);
+    } else {
+      // Custom — keep current assumptions
+      setAssumptions(prev => ({ ...prev }));
+    }
   };
 
   const handleOverride = (key, val) => {
+    if (scenarioIndex < 5) {
+      setPreviousScenario(SCENARIOS[scenarioIndex].name);
+      setScenarioIndex(5);
+    }
     setUserOverrides(prev => ({ ...prev, [key]: val }));
     setAssumptions(prev => ({ ...prev, [key]: val }));
   };
 
   const clearOverrides = () => {
     setUserOverrides({});
-    setAssumptions({ ...SCENARIOS[scenarioIndex] });
+    setPreviousScenario(null);
+    setScenarioIndex(2);
+    setAssumptions({ ...SCENARIOS[2] });
   };
 
   const overrideKeys = Object.keys(userOverrides);
@@ -2032,41 +2050,46 @@ function MasterModel({ data, quote }) {
   }, [lastRev, sharesOut, netDebt, fiftyTwoLow, fiftyTwoHigh]);
 
   // Scenario comparison
-  const scenarioComparison = useMemo(() => {
-    return SCENARIOS.map(sc => {
-      const a = sc;
-      const proj = [];
-      for (let y = 0; y < 5; y++) {
-        const rev = lastRev * Math.pow(1 + a.revGrowth / 100, y + 1);
-        const ebitda = rev * a.ebitdaMargin / 100;
-        const ebit = ebitda - rev * a.daaPct / 100;
-        const ni = rev * a.netMargin / 100;
-        const nopat = ebit * (1 - a.taxRate / 100);
-        const daa = rev * a.daaPct / 100;
-        const capex = rev * a.capexPct / 100;
-        const nwc = rev * a.nwcPct / 100;
-        const fcff = nopat + daa - capex - nwc;
-        proj.push({ rev, ebitda, ni, fcff });
-      }
-      const ce = a.riskFree + a.beta * a.erp;
-      const atd = a.preTaxDebt * (1 - a.taxRate / 100);
-      const w = (ce * (100 - a.debtPct) / 100) + (atd * a.debtPct / 100);
-      const pvs = proj.map((p, i) => p.fcff / Math.pow(1 + w / 100, i + 1));
-      const tpv = pvs.reduce((s, v) => s + v, 0);
-      const tf = proj[4].fcff * (1 + a.termGrowth / 100);
-      const tv = w > a.termGrowth ? tf / ((w - a.termGrowth) / 100) : 0;
-      const pvt = tv / Math.pow(1 + w / 100, 5);
-      const dcfP = sharesOut > 0 ? (tpv + pvt - netDebt) / sharesOut : 0;
-      const eps = sharesOut > 0 ? proj[0].ni / sharesOut : 0;
-      const compP = eps * a.targetPE;
-      const up = currentPrice > 0 ? ((dcfP - currentPrice) / currentPrice * 100) : 0;
-      return {
-        name: a.name, revGrowth: a.revGrowth, ebitdaMargin: a.ebitdaMargin,
-        y5Rev: proj[4].rev, y5EBITDA: proj[4].ebitda, y5FCF: proj[4].fcff,
-        wacc: w, dcfPrice: dcfP, compsPrice: compP, upside: up,
-      };
-    });
+  const computeScenarioRow = useCallback((a) => {
+    const proj = [];
+    for (let y = 0; y < 5; y++) {
+      const rev = lastRev * Math.pow(1 + a.revGrowth / 100, y + 1);
+      const ebitda = rev * a.ebitdaMargin / 100;
+      const ebit = ebitda - rev * a.daaPct / 100;
+      const ni = rev * a.netMargin / 100;
+      const nopat = ebit * (1 - a.taxRate / 100);
+      const daa = rev * a.daaPct / 100;
+      const capex = rev * a.capexPct / 100;
+      const nwc = rev * a.nwcPct / 100;
+      const fcff = nopat + daa - capex - nwc;
+      proj.push({ rev, ebitda, ni, fcff });
+    }
+    const ce = a.riskFree + a.beta * a.erp;
+    const atd = a.preTaxDebt * (1 - a.taxRate / 100);
+    const w = (ce * (100 - a.debtPct) / 100) + (atd * a.debtPct / 100);
+    const pvs = proj.map((p, i) => p.fcff / Math.pow(1 + w / 100, i + 1));
+    const tpv = pvs.reduce((s, v) => s + v, 0);
+    const tf = proj[4].fcff * (1 + a.termGrowth / 100);
+    const tv = w > a.termGrowth ? tf / ((w - a.termGrowth) / 100) : 0;
+    const pvt = tv / Math.pow(1 + w / 100, 5);
+    const dcfP = sharesOut > 0 ? (tpv + pvt - netDebt) / sharesOut : 0;
+    const eps = sharesOut > 0 ? proj[0].ni / sharesOut : 0;
+    const compP = eps * a.targetPE;
+    const up = currentPrice > 0 ? ((dcfP - currentPrice) / currentPrice * 100) : 0;
+    return {
+      name: a.name, revGrowth: a.revGrowth, ebitdaMargin: a.ebitdaMargin,
+      y5Rev: proj[4].rev, y5EBITDA: proj[4].ebitda, y5FCF: proj[4].fcff,
+      wacc: w, dcfPrice: dcfP, compsPrice: compP, upside: up,
+    };
   }, [lastRev, sharesOut, netDebt, currentPrice]);
+
+  const scenarioComparison = useMemo(() => {
+    const rows = SCENARIOS.slice(0, 5).map(sc => computeScenarioRow(sc));
+    // Custom column uses current assumptions
+    const customRow = computeScenarioRow({ ...assumptions, name: 'Custom' });
+    rows.push(customRow);
+    return rows;
+  }, [computeScenarioRow, assumptions]);
 
   const OVERRIDE_FIELDS = [
     { key: 'revGrowth', label: 'Rev Growth %', min: -20, max: 40, step: 0.5 },
@@ -2087,7 +2110,7 @@ function MasterModel({ data, quote }) {
     { key: 'intRate', label: 'LBO Int Rate %', min: 3, max: 15, step: 0.25 },
   ];
 
-  const scenarioColors = ['var(--accent-red)', '#f59e0b', 'var(--gold)', 'var(--accent-green)', '#3b82f6'];
+  const scenarioColors = ['var(--accent-red)', '#f59e0b', 'var(--gold)', 'var(--accent-green)', '#a855f7', '#9ca3af'];
   const barColors = ['var(--gold)', '#3b82f6', 'var(--text-tertiary)'];
 
   return (
@@ -2099,11 +2122,11 @@ function MasterModel({ data, quote }) {
           {/* Slider track */}
           <div style={{ position: 'relative', marginBottom: '8px' }}>
             <input
-              type="range" min={0} max={4} step={1} value={scenarioIndex}
+              type="range" min={0} max={5} step={1} value={scenarioIndex}
               onChange={e => applyScenario(Number(e.target.value))}
               style={{
                 width: '100%', height: '6px', appearance: 'none', WebkitAppearance: 'none',
-                background: 'linear-gradient(to right, var(--accent-red), #f59e0b, var(--gold), var(--accent-green), #3b82f6)',
+                background: 'linear-gradient(to right, #dc2626, #f59e0b, #F0A500, #4ade80, #a855f7, #6b7280)',
                 borderRadius: '3px', outline: 'none', cursor: 'pointer',
               }}
             />
@@ -2114,16 +2137,29 @@ function MasterModel({ data, quote }) {
               <button key={s.name} onClick={() => applyScenario(i)} style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
                 fontSize: '11px', fontWeight: scenarioIndex === i ? 700 : 400,
-                color: scenarioIndex === i ? scenarioColors[i] : 'var(--text-tertiary)',
+                color: scenarioIndex === i ? (i === 5 ? '#ffffff' : scenarioColors[i]) : 'var(--text-tertiary)',
                 textTransform: 'uppercase', letterSpacing: '0.06em',
-                borderBottom: scenarioIndex === i ? `2px solid ${scenarioColors[i]}` : '2px solid transparent',
+                borderBottom: scenarioIndex === i ? `2px solid ${i === 5 ? '#ffffff' : scenarioColors[i]}` : '2px solid transparent',
               }}>{s.name}</button>
             ))}
           </div>
           {/* Description */}
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', fontStyle: 'italic' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: scenarioIndex === 5 ? '8px' : '12px', fontStyle: 'italic' }}>
             {SCENARIOS[scenarioIndex].description}
+            {previousScenario && scenarioIndex === 5 && (
+              <span style={{ color: 'var(--text-faint)', fontSize: '11px', marginLeft: '8px' }}>
+                (Modified from {previousScenario})
+              </span>
+            )}
           </div>
+          {/* Reset to Base button for Custom */}
+          {scenarioIndex === 5 && (
+            <button onClick={clearOverrides} style={{
+              fontSize: '11px', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer',
+              backgroundColor: 'var(--row-section-bg)', color: 'var(--gold)',
+              border: '1px solid var(--border-color)', fontWeight: 600, marginBottom: '12px',
+            }}>Reset to Base</button>
+          )}
           {/* Override pills */}
           {overrideKeys.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
@@ -2306,11 +2342,11 @@ function MasterModel({ data, quote }) {
             <thead>
               <tr>
                 <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid var(--row-border)' }}>Metric</th>
-                {SCENARIOS.map((s, i) => (
+                {scenarioComparison.map((s, i) => (
                   <th key={s.name} style={{
                     padding: '8px 12px', textAlign: 'right', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em',
                     borderBottom: '1px solid var(--row-border)',
-                    color: scenarioIndex === i ? scenarioColors[i] : 'var(--text-faint)',
+                    color: scenarioIndex === i ? (i === 5 ? '#ffffff' : scenarioColors[i]) : 'var(--text-faint)',
                     fontWeight: scenarioIndex === i ? 700 : 600,
                     backgroundColor: scenarioIndex === i ? 'var(--gold-active-bg)' : 'transparent',
                   }}>{s.name}</th>
