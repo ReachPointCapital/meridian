@@ -8,6 +8,7 @@ import { ToastProvider } from './components/Toast';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ResetPassword from './pages/ResetPassword';
+import Account from './pages/Account';
 import Navbar from './components/layout/Navbar';
 import Layout from './components/layout/Layout';
 import EarningsCalendar from './components/terminal/EarningsCalendar';
@@ -459,6 +460,7 @@ export default function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/account" element={<Account />} />
                 <Route path="/disclaimer" element={<Disclaimer />} />
                 <Route path="/*" element={<AppContent />} />
               </Routes>

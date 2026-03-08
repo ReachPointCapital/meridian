@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, LogOut, Menu, ChevronDown } from 'lucide-react';
+import { Sun, Moon, LogOut, Menu, ChevronDown, Settings } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { usePro } from '../../context/ProContext';
@@ -129,8 +129,11 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
 
   // User display name helpers
   const fullName = user?.user_metadata?.full_name || '';
-  const firstName = fullName.split(' ')[0];
-  const avatarLetter = firstName ? firstName[0].toUpperCase() : (user?.email || '?')[0].toUpperCase();
+  const displayName = user?.user_metadata?.display_name
+    || user?.user_metadata?.full_name?.split(' ')[0]
+    || user?.email?.split('@')[0]
+    || 'User';
+  const avatarLetter = displayName[0].toUpperCase();
 
   return (
     <nav style={{
@@ -322,9 +325,9 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
         {/* Auth section */}
         {authLoading ? null : user ? (
           <div ref={avatarRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {firstName && !isNarrow && (
+            {!isNarrow && (
               <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
-                Hi, {firstName}
+                Hi, {displayName}
               </span>
             )}
             <button
@@ -357,6 +360,19 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
                     {user.email}
                   </div>
                 </div>
+                <button
+                  onClick={() => { setAvatarOpen(false); nav('/account'); }}
+                  style={{
+                    width: '100%', background: 'none', border: 'none',
+                    padding: '8px 16px', color: 'var(--text-secondary)',
+                    fontSize: '12px', cursor: 'pointer', textAlign: 'left',
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                >
+                  <Settings size={14} /> Account Settings
+                </button>
                 <button
                   onClick={() => { setAvatarOpen(false); signOut(); }}
                   style={{
