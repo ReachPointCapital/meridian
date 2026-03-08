@@ -377,7 +377,7 @@ export default function PriceChart({ symbol }) {
                   dataKey="candleRange"
                   shape={<CandlestickBar />}
                   isAnimationActive={false}
-                  maxBarSize={data.length > 200 ? 4 : data.length > 100 ? 6 : 8}
+                  barSize={Math.max(4, Math.floor(900 / data.length * 0.6))}
                   minPointSize={1}
                 >
                   {data.map((d, i) => (

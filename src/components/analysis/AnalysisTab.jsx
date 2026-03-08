@@ -505,14 +505,14 @@ function AnalystConsensus({ analyst }) {
   ];
 
   return (
-    <div style={CARD_STYLE}>
+    <div style={{ ...CARD_STYLE, display: 'flex', flexDirection: 'column', height: '100%' }}>
       <h3 style={SECTION_HEADER}>Analyst Consensus</h3>
-      <div style={{ padding: '16px' }}>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
           <span style={{ backgroundColor: consensusColor + '22', color: consensusColor, fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '4px', border: `1px solid ${consensusColor}44` }}>{consensusLabel}</span>
           <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>{analyst.numberOfAnalysts || total} analysts</span>
         </div>
-        <div style={{ display: 'flex', height: '20px', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', height: '24px', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
           {segments.map(s => s.count > 0 ? (
             <div key={s.label} style={{ width: `${(s.count / total) * 100}%`, backgroundColor: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: '#000', minWidth: '16px' }}>{s.count}</div>
           ) : null)}
@@ -525,13 +525,14 @@ function AnalystConsensus({ analyst }) {
             </div>
           ))}
         </div>
+        <div style={{ flex: 1 }} />
         {analyst.targetMeanPrice != null && (() => {
           const low = analyst.targetLowPrice || analyst.targetMeanPrice * 0.7;
           const high = analyst.targetHighPrice || analyst.targetMeanPrice * 1.3;
           const range = high - low;
           const meanPos = range > 0 ? ((analyst.targetMeanPrice - low) / range) * 100 : 50;
           return (
-            <div style={{ padding: '12px', backgroundColor: 'var(--bg-primary)', borderRadius: '6px' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', marginTop: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <div style={{ textAlign: 'left' }}>
                   <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>Bear</div>
@@ -546,8 +547,7 @@ function AnalystConsensus({ analyst }) {
                   <div style={{ color: 'var(--green)', fontSize: '14px', fontWeight: 600, fontFamily: 'monospace' }}>{formatPrice(high)}</div>
                 </div>
               </div>
-              {/* Horizontal bar */}
-              <div style={{ height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', position: 'relative', background: 'linear-gradient(90deg, var(--red) 0%, var(--gold) 50%, var(--green) 100%)' }}>
+              <div style={{ height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', position: 'relative', width: '100%', background: 'linear-gradient(90deg, var(--red) 0%, var(--gold) 50%, var(--green) 100%)' }}>
                 <div style={{ position: 'absolute', top: '50%', left: `${Math.max(2, Math.min(98, meanPos))}%`, transform: 'translate(-50%, -50%)', width: '14px', height: '14px', borderRadius: '50%', backgroundColor: 'var(--gold)', border: '2px solid var(--bg-primary)', boxShadow: '0 0 6px var(--gold)' }} />
               </div>
             </div>
@@ -1845,14 +1845,8 @@ function FinancialModels({ quote, profile, financials, analyst }) {
 function KeyStatsGrid({ quote, analyst }) {
   if (!quote) return null;
 
-  const PRICE_LABELS = new Set([
-    'Market Cap', 'EPS (TTM)', '52W High', '52W Low', '50D Avg', '200D Avg',
-    'Open', 'Prev Close', 'Day High', 'Day Low', 'Target Mean', 'Enterprise Value',
-  ]);
-
-  const getColor = (label, value) => {
-    if (value === '\u2014' || value == null) return 'rgba(255,255,255,0.2)';
-    if (PRICE_LABELS.has(label)) return '#F0A500';
+  const getColor = (value) => {
+    if (value === '\u2014' || value == null) return 'rgba(255,255,255,0.25)';
     if (typeof value === 'string' && value.includes('%')) {
       const num = parseFloat(value);
       if (!isNaN(num)) return num < 0 ? '#f87171' : '#4ade80';
@@ -1904,7 +1898,7 @@ function KeyStatsGrid({ quote, analyst }) {
           <div key={rowIdx} style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)' }}>
             {row.map((s, colIdx) => (
               <div key={s.label} className="tooltip-container" style={{
-                padding: '8px 12px',
+                padding: '10px 14px',
                 borderRight: colIdx < 5 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                 borderBottom: rowIdx < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                 cursor: 'help',
@@ -1913,9 +1907,10 @@ function KeyStatsGrid({ quote, analyst }) {
                 <div style={{
                   fontSize: '9px',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
+                  letterSpacing: '0.05em',
                   color: 'rgba(255,255,255,0.35)',
-                  marginBottom: '4px',
+                  marginBottom: '5px',
+                  whiteSpace: 'nowrap',
                 }}>
                   {s.label}
                 </div>
@@ -1923,7 +1918,10 @@ function KeyStatsGrid({ quote, analyst }) {
                   fontSize: '13px',
                   fontWeight: 600,
                   fontFamily: 'monospace',
-                  color: getColor(s.label, s.value),
+                  color: getColor(s.value),
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}>
                   {s.value}
                 </div>
@@ -2063,7 +2061,7 @@ export default function AnalysisTab() {
           <KeyStatsGrid quote={quote} analyst={analyst} />
 
           {/* Row 4: Company profile + analyst consensus (55/45 split) */}
-          <div style={{ display: 'grid', gridTemplateColumns: '55fr 45fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '55fr 45fr', gap: '16px', alignItems: 'stretch' }}>
             <CompanySnapshot quote={quote} profile={profile} />
             <AnalystConsensus analyst={analyst} />
           </div>
