@@ -1203,7 +1203,7 @@ function UserNotes({ symbol }) {
 
   useEffect(() => {
     setSaved(false);
-    if (user) {
+    if (user && supabase) {
       // Load from Supabase
       supabase.from('notes').select('content').eq('user_id', user.id).eq('ticker', symbol).single()
         .then(({ data }) => {
@@ -1219,7 +1219,7 @@ function UserNotes({ symbol }) {
   }, [symbol, user]);
 
   const handleSave = async () => {
-    if (user) {
+    if (user && supabase) {
       await supabase.from('notes').upsert(
         { user_id: user.id, ticker: symbol, content: notes, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,ticker' }

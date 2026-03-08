@@ -22,6 +22,30 @@ import Models from './pages/Models';
 import Disclaimer from './pages/Disclaimer';
 import DisclaimerModal from './components/DisclaimerModal';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#F0F2F5', backgroundColor: '#0A0E1A', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ color: '#C9A84C', marginBottom: '12px' }}>Something went wrong</h2>
+          <p style={{ color: '#8A95A3', fontSize: '14px', marginBottom: '20px' }}>{this.state.error?.message || 'An unexpected error occurred'}</p>
+          <button onClick={() => window.location.reload()} style={{ background: '#C9A84C', color: '#0A0E1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function EnvBanner() {
   return null;
 }
@@ -424,22 +448,24 @@ function HomeWithLayout() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppProvider>
-          <ProProvider>
-            <DisclaimerModal />
-            <Routes>
-              <Route path="/" element={<HomeWithLayout />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/disclaimer" element={<Disclaimer />} />
-              <Route path="/*" element={<AppContent />} />
-            </Routes>
-          </ProProvider>
-        </AppProvider>
-      </ToastProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <AppProvider>
+            <ProProvider>
+              <DisclaimerModal />
+              <Routes>
+                <Route path="/" element={<HomeWithLayout />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/disclaimer" element={<Disclaimer />} />
+                <Route path="/*" element={<AppContent />} />
+              </Routes>
+            </ProProvider>
+          </AppProvider>
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

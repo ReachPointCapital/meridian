@@ -37,6 +37,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
 
   const handleSignIn = async (e) => {
     e.preventDefault()
+    if (!supabase) { setError('Auth is not configured'); return }
     setError('')
     setLoading(true)
     try {
@@ -52,6 +53,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
 
   const handleSignUp = async (e) => {
     e.preventDefault()
+    if (!supabase) { setError('Auth is not configured'); return }
     setError('')
     if (password.length < 8) { setError('Password must be at least 8 characters'); return }
     if (password !== confirmPassword) { setError('Passwords do not match'); return }
@@ -68,6 +70,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
 
   const handleForgot = async (e) => {
     e.preventDefault()
+    if (!supabase) { setError('Auth is not configured'); return }
     setError('')
     setLoading(true)
     try {
@@ -83,6 +86,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
   }
 
   const handleGoogleOAuth = async () => {
+    if (!supabase) { setError('Auth is not configured'); return }
     try {
       await supabase.auth.signInWithOAuth({
         provider: 'google',

@@ -20,6 +20,7 @@ export default function ResetPassword() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    if (!supabase) return
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true)
     })
@@ -28,6 +29,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!supabase) { setError('Auth is not configured'); return }
     setError('')
     if (password.length < 8) { setError('Password must be at least 8 characters'); return }
     if (password !== confirm) { setError('Passwords do not match'); return }

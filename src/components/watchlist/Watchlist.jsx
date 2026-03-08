@@ -25,7 +25,7 @@ export default function Watchlist({ setActiveTab }) {
 
   // Load watchlist from Supabase for logged-in users
   useEffect(() => {
-    if (!user) return;
+    if (!user || !supabase) return;
     (async () => {
       const { data } = await supabase
         .from('watchlists')
@@ -52,7 +52,7 @@ export default function Watchlist({ setActiveTab }) {
 
   // Sync to Supabase when tickers change (for logged-in users)
   useEffect(() => {
-    if (!user) return;
+    if (!user || !supabase) return;
     (async () => {
       // Delete all and re-insert to preserve order
       await supabase.from('watchlists').delete().eq('user_id', user.id);
