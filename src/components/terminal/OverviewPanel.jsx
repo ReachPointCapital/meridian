@@ -293,10 +293,8 @@ function InsiderTradingFeed({ symbol }) {
   useEffect(() => {
     if (!symbol) return;
     setLoading(true);
-    api.insiderTrading(symbol)
-      .then(data => setTrades(Array.isArray(data) ? data.slice(0, 10) : []))
-      .catch(() => setTrades([]))
-      .finally(() => setLoading(false));
+    setTrades([]);
+    setLoading(false);
   }, [symbol]);
 
   if (loading) return null;

@@ -76,8 +76,8 @@ export async function getMacroData() {
   return await api.macro();
 }
 
-export async function getInsiderTrading(symbol) {
-  return await api.insiderTrading(symbol);
+export async function getInsiderTrading() {
+  return [];
 }
 
 export async function getAnalysis(symbol) {
