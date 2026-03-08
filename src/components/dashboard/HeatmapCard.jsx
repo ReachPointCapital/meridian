@@ -34,7 +34,7 @@ export default function HeatmapCard({ onNavigate }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    fetch('/api/heatmap')
+    fetch('/api/market?type=heatmap')
       .then(r => r.json())
       .then(d => {
         if (Array.isArray(d)) setData(d.filter(s => s.price != null && s.changePercent != null));

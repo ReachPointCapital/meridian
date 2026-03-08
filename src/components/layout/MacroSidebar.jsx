@@ -108,7 +108,7 @@ export default function MacroSidebar() {
     if (prevDataRef.current.length === 0) setLoading(true);
     try {
       const symbols = INSTRUMENTS.map(i => i.symbol);
-      const res = await fetch(`/api/quote?symbol=${encodeURIComponent(symbols.join(','))}`);
+      const res = await fetch(`/api/market?type=quote&symbol=${encodeURIComponent(symbols.join(','))}`);
       const result = await res.json();
       const quoteList = Array.isArray(result) ? result : [result];
       const priceMap = {};

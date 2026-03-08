@@ -32,7 +32,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/macro');
+        const res = await fetch('/api/dashboard?type=macro');
         const data = await res.json();
         if (Array.isArray(data)) {
           const map = {};

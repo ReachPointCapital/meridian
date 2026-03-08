@@ -50,7 +50,7 @@ function useAlerts() {
     const check = async () => {
       try {
         const symbols = [...new Set(activeAlerts.map(a => a.symbol))];
-        const res = await fetch(`/api/quote?symbol=${encodeURIComponent(symbols.join(','))}`);
+        const res = await fetch(`/api/market?type=quote&symbol=${encodeURIComponent(symbols.join(','))}`);
         const data = await res.json();
         const quoteList = Array.isArray(data) ? data : [data];
         const priceMap = {};
