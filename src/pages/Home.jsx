@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TickerSearch from '../components/TickerSearch';
 
 const TICKER_CHIPS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'SPY', 'BTC-USD'];
 
@@ -25,9 +26,7 @@ const PRICE_TILES = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
   const [prices, setPrices] = useState({});
-  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -42,14 +41,6 @@ export default function Home() {
       } catch {}
     })();
   }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const ticker = search.trim().toUpperCase();
-    if (ticker) {
-      navigate(`/analysis?ticker=${encodeURIComponent(ticker)}`);
-    }
-  };
 
   const handleChipClick = (ticker) => {
     navigate(`/analysis?ticker=${encodeURIComponent(ticker)}`);
@@ -95,44 +86,14 @@ export default function Home() {
           Institutional-grade market intelligence. No subscription required.
         </p>
 
-        {/* Search Bar — bigger */}
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', marginBottom: '16px', width: '100%', maxWidth: '640px' }}>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+        {/* Search Bar */}
+        <div style={{ width: '100%', maxWidth: '640px', marginBottom: '16px' }}>
+          <TickerSearch
+            size="lg"
             placeholder="Search any ticker, ETF, or company..."
-            style={{
-              flex: 1,
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              padding: '16px 24px',
-              color: 'var(--text-primary)',
-              fontSize: '16px',
-              fontFamily: 'monospace',
-              outline: 'none',
-              boxShadow: searchFocused ? '0 0 0 2px rgba(240,165,0,0.3)' : 'none',
-              transition: 'box-shadow 150ms ease, border-color 150ms ease',
-            }}
-            onFocus={e => { e.target.style.borderColor = 'var(--gold)'; setSearchFocused(true); }}
-            onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; setSearchFocused(false); }}
+            onSelect={(symbol) => navigate(`/analysis?ticker=${encodeURIComponent(symbol)}`)}
           />
-          <button type="submit" style={{
-            backgroundColor: 'var(--gold)',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '16px 32px',
-            color: 'var(--bg-primary)',
-            fontSize: '15px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'opacity 150ms ease',
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            Search
-          </button>
-        </form>
+        </div>
 
         {/* Ticker Chips */}
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '32px', marginTop: '4px' }}>

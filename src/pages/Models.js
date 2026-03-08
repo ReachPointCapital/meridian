@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search, ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import TickerSearch from '../components/TickerSearch';
 import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
@@ -1558,8 +1559,6 @@ function ThreeStatementModel({ data, quote }) {
 
 // ── M&A Model ──
 function MergerModel() {
-  const [acqTicker, setAcqTicker] = useState('');
-  const [tgtTicker, setTgtTicker] = useState('');
   const [acqData, setAcqData] = useState(null);
   const [tgtData, setTgtData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -1591,8 +1590,6 @@ function MergerModel() {
     setLoading(false);
   }, []);
 
-  const handleAcqSearch = (e) => { e.preventDefault(); const t = acqTicker.trim().toUpperCase(); if (t) fetchCompany(t, setAcqData); };
-  const handleTgtSearch = (e) => { e.preventDefault(); const t = tgtTicker.trim().toUpperCase(); if (t) fetchCompany(t, setTgtData); };
 
   const resetDefaults = () => { setPremium(30); setCashPct(50); setCashIntRate(5); setSynY1(0); setSynY2(0); setMaTaxRate(21); setDaWriteups(0); };
 
@@ -1680,16 +1677,17 @@ function MergerModel() {
     </div>
   );
 
-  const searchBox = (label, value, onChange, onSubmit) => (
-    <form onSubmit={onSubmit} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+  const searchBox = (label, onSelectFn) => (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
       <span style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', minWidth: '60px' }}>{label}</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', flex: 1 }}>
-        <Search size={12} color="var(--text-tertiary)" />
-        <input value={value} onChange={e => onChange(e.target.value.toUpperCase())} placeholder="TICKER"
-          style={{ background: 'transparent', border: 'none', color: 'var(--gold)', fontSize: '13px', fontFamily: 'monospace', fontWeight: 600, outline: 'none', width: '100%' }}
+      <div style={{ flex: 1 }}>
+        <TickerSearch
+          size="sm"
+          placeholder={`Search ${label.toLowerCase()}...`}
+          onSelect={onSelectFn}
         />
       </div>
-    </form>
+    </div>
   );
 
   // Empty state for M&A
@@ -1702,10 +1700,10 @@ function MergerModel() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
           <div>
-            {searchBox('Acquirer', acqTicker, setAcqTicker, handleAcqSearch)}
+            {searchBox('Acquirer', (sym) => { fetchCompany(sym, setAcqData); })}
           </div>
           <div>
-            {searchBox('Target', tgtTicker, setTgtTicker, handleTgtSearch)}
+            {searchBox('Target', (sym) => { fetchCompany(sym, setTgtData); })}
           </div>
         </div>
         <p style={{ color: 'var(--text-faint)', fontSize: '11px' }}>Enter both tickers and press Enter to load data</p>
@@ -1717,8 +1715,8 @@ function MergerModel() {
     <div>
       {/* Ticker search row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-        {searchBox('Acquirer', acqTicker, setAcqTicker, handleAcqSearch)}
-        {searchBox('Target', tgtTicker, setTgtTicker, handleTgtSearch)}
+        {searchBox('Acquirer', (sym) => { fetchCompany(sym, setAcqData); })}
+        {searchBox('Target', (sym) => { fetchCompany(sym, setTgtData); })}
       </div>
 
       {loading && <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>Loading...</div>}
@@ -2449,8 +2447,6 @@ export default function Models() {
   const [quote, setQuote] = useState(null);
   const [activeModel, setActiveModel] = useState('master');
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
   useEffect(() => {
     if (activeSymbol && activeSymbol !== ticker) setTicker(activeSymbol);
   }, [activeSymbol]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -2478,13 +2474,6 @@ export default function Models() {
   const handleSearch = (sym) => {
     setTicker(sym);
     setActiveSymbol(sym);
-    setSearchQuery('');
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    const t = searchQuery.trim().toUpperCase();
-    if (t) handleSearch(t);
   };
 
   if (!ticker && activeModel !== 'ma') return <ModelsEmptyState onSearch={handleSearch} />;
@@ -2509,17 +2498,13 @@ export default function Models() {
             {!quote && !loading && <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Financial Models</span>}
           </div>
 
-          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '300px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px 12px' }}>
-              <Search size={14} color="var(--text-tertiary)" />
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Change ticker..."
-                style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '12px', outline: 'none', fontFamily: 'inherit', width: '140px' }}
-              />
-            </div>
-          </form>
+          <div style={{ maxWidth: '260px', width: '260px' }}>
+            <TickerSearch
+              size="sm"
+              placeholder="Change ticker..."
+              onSelect={(symbol) => handleSearch(symbol)}
+            />
+          </div>
         </div>
 
         {/* Model tabs */}

@@ -7,7 +7,8 @@ import { getPriceHistory } from '../../services/polygon';
 import { useApp } from '../../context/AppContext';
 import { formatPrice, formatMarketCap, formatPercent, formatDividendYield } from '../../utils/formatters';
 import { calculateRSI, checkCrossSignal, calculateMACD, volumeTrend, pricePosition } from '../../utils/technicals';
-import { Search, TrendingUp, TrendingDown, Minus, AlertTriangle, Copy, Check, Save, ExternalLink, Info } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Copy, Check, Save, ExternalLink, Info } from 'lucide-react';
+import TickerSearch from '../TickerSearch';
 import ProGate from '../common/ProGate';
 import InfoTooltip from '../ui/InfoTooltip';
 import PriceChart from '../terminal/PriceChart';
@@ -72,75 +73,15 @@ function addRecentSearch(symbol, name, price, changePct) {
   localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, 5)));
 }
 
-// ── Search Bar ──
+// ── Search Bar (uses shared TickerSearch) ──
 function AnalysisSearchBar({ onSearch }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [highlighted, setHighlighted] = useState(0);
-  const containerRef = React.useRef(null);
-
-  useEffect(() => {
-    if (query.length < 1) { setResults([]); setOpen(false); return; }
-    const timer = setTimeout(async () => {
-      try {
-        const data = await api.search(query);
-        const list = Array.isArray(data) ? data.slice(0, 8) : [];
-        setResults(list);
-        setOpen(list.length > 0);
-        setHighlighted(0);
-      } catch { setResults([]); }
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  const select = (sym) => { onSearch(sym); setOpen(false); setQuery(''); };
-
-  const handleKeyDown = (e) => {
-    if (!open || results.length === 0) {
-      if (e.key === 'Enter' && query) { onSearch(query.toUpperCase()); setOpen(false); setQuery(''); }
-      return;
-    }
-    if (e.key === 'ArrowDown') { e.preventDefault(); setHighlighted(h => Math.min(h + 1, results.length - 1)); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlighted(h => Math.max(h - 1, 0)); }
-    else if (e.key === 'Enter') { e.preventDefault(); if (results[highlighted]) select(results[highlighted].symbol); }
-    else if (e.key === 'Escape') { setOpen(false); }
-  };
-
   return (
-    <div ref={containerRef} style={{ position: 'relative', marginBottom: '20px', maxWidth: '400px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px 12px' }}>
-        <Search size={16} color="var(--text-tertiary)" />
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder="Search any ticker..."
-          style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit' }}
-        />
-      </div>
-      {open && results.length > 0 && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '0 0 8px 8px', zIndex: 50, maxHeight: '280px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
-          {results.map((r, i) => (
-            <div key={i} onClick={() => select(r.symbol)}
-              style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid var(--border-color)', transition: 'background 100ms', backgroundColor: i === highlighted ? 'var(--bg-tertiary)' : 'transparent', display: 'flex', alignItems: 'center', gap: '8px' }}
-              onMouseEnter={() => setHighlighted(i)}>
-              <span style={{ backgroundColor: 'var(--gold)', color: 'var(--bg-primary)', fontSize: '10px', fontWeight: 700, padding: '1px 6px', borderRadius: '3px', fontFamily: 'monospace' }}>{r.symbol}</span>
-              <span style={{ color: 'var(--text-primary)', fontSize: '11px' }}>{r.name || ''}</span>
-              <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', marginLeft: 'auto' }}>{r.exchange || ''}</span>
-            </div>
-          ))}
-        </div>
-      )}
+    <div style={{ maxWidth: '400px', marginBottom: '20px' }}>
+      <TickerSearch
+        size="sm"
+        placeholder="Search any ticker..."
+        onSelect={(symbol) => onSearch(symbol)}
+      />
     </div>
   );
 }
@@ -166,9 +107,6 @@ function EmptyState({ onSearch }) {
   const [recent, setRecent] = useState(getRecentSearches());
   const [trending, setTrending] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
-  const [heroQuery, setHeroQuery] = useState('');
-  const [heroFocused, setHeroFocused] = useState(false);
-
   useEffect(() => {
     (async () => {
       try {
@@ -188,12 +126,6 @@ function EmptyState({ onSearch }) {
     })();
   }, []);
 
-  const handleHeroSearch = (e) => {
-    e.preventDefault();
-    const ticker = heroQuery.trim().toUpperCase();
-    if (ticker) onSearch(ticker);
-  };
-
   const clearRecent = () => {
     localStorage.removeItem(RECENT_KEY);
     setRecent([]);
@@ -208,43 +140,13 @@ function EmptyState({ onSearch }) {
       </div>
 
       {/* 2. Hero Search */}
-      <form onSubmit={handleHeroSearch} style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '580px' }}>
-        <input
-          value={heroQuery}
-          onChange={e => setHeroQuery(e.target.value)}
+      <div style={{ width: '100%', maxWidth: '580px' }}>
+        <TickerSearch
+          size="lg"
           placeholder="Search any ticker, ETF, or company..."
-          style={{
-            flex: 1,
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            padding: '16px 24px',
-            color: 'var(--text-primary)',
-            fontSize: '16px',
-            fontFamily: 'monospace',
-            outline: 'none',
-            boxShadow: heroFocused ? '0 0 0 2px rgba(240,165,0,0.3)' : 'none',
-            transition: 'box-shadow 150ms ease, border-color 150ms ease',
-          }}
-          onFocus={e => { e.target.style.borderColor = 'var(--gold)'; setHeroFocused(true); }}
-          onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; setHeroFocused(false); }}
+          onSelect={(symbol) => onSearch(symbol)}
         />
-        <button type="submit" style={{
-          backgroundColor: 'var(--gold)',
-          border: 'none',
-          borderRadius: '8px',
-          padding: '16px 32px',
-          color: 'var(--bg-primary)',
-          fontSize: '15px',
-          fontWeight: 600,
-          cursor: 'pointer',
-          transition: 'opacity 150ms ease',
-        }}
-        onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-        onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-          Search
-        </button>
-      </form>
+      </div>
 
       {/* 3. Popular to Analyze chips */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', maxWidth: '680px' }}>

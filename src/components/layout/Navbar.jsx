@@ -4,7 +4,7 @@ import { Sun, Moon } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { usePro } from '../../context/ProContext';
-import SearchBar from '../terminal/SearchBar';
+import TickerSearch from '../TickerSearch';
 
 function isMarketOpen() {
   const now = new Date();
@@ -138,7 +138,13 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
             </button>
           ))}
         </div>
-        <SearchBar onSelect={(sym) => { setActiveSymbol(sym); setActiveTab('Analysis'); }} />
+        <div style={{ width: '320px', maxWidth: '320px' }}>
+          <TickerSearch
+            size="sm"
+            placeholder="Search ticker or company..."
+            onSelect={(sym) => { setActiveSymbol(sym); setActiveTab('Analysis'); }}
+          />
+        </div>
       </div>
 
       {/* Right: Pro badge + Theme toggle + Alert badge + Market status + time */}
