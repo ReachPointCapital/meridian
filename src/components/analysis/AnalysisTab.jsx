@@ -486,7 +486,7 @@ function ValuationScorecard({ quote, analyst }) {
 }
 
 // ── Analyst Consensus ──
-function AnalystConsensus({ analyst }) {
+function AnalystConsensus({ analyst, quote }) {
   if (!analyst) return null;
   const { strongBuy = 0, buy = 0, hold = 0, sell = 0, strongSell = 0 } = analyst;
   const total = strongBuy + buy + hold + sell + strongSell;
@@ -495,6 +495,14 @@ function AnalystConsensus({ analyst }) {
   const consensus = analyst.recommendation || 'hold';
   const consensusLabel = consensus.charAt(0).toUpperCase() + consensus.slice(1).replace('_', ' ');
   const consensusColor = consensus.includes('buy') ? 'var(--green)' : consensus.includes('sell') ? 'var(--red)' : 'var(--gold)';
+
+  const pctBullish = ((strongBuy + buy) / total * 100).toFixed(0);
+  const pctNeutral = (hold / total * 100).toFixed(0);
+  const pctBearish = ((sell + strongSell) / total * 100).toFixed(0);
+
+  const currentPrice = quote?.price;
+  const meanTarget = analyst.targetMeanPrice;
+  const upside = currentPrice && meanTarget ? ((meanTarget - currentPrice) / currentPrice * 100) : null;
 
   const segments = [
     { label: 'Strong Buy', count: strongBuy, color: '#22c55e' },
@@ -507,16 +515,19 @@ function AnalystConsensus({ analyst }) {
   return (
     <div style={{ ...CARD_STYLE, display: 'flex', flexDirection: 'column', height: '100%' }}>
       <h3 style={SECTION_HEADER}>Analyst Consensus</h3>
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
           <span style={{ backgroundColor: consensusColor + '22', color: consensusColor, fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '4px', border: `1px solid ${consensusColor}44` }}>{consensusLabel}</span>
           <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>{analyst.numberOfAnalysts || total} analysts</span>
         </div>
+        {/* Consensus bar */}
         <div style={{ display: 'flex', height: '24px', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
           {segments.map(s => s.count > 0 ? (
             <div key={s.label} style={{ width: `${(s.count / total) * 100}%`, backgroundColor: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: '#000', minWidth: '16px' }}>{s.count}</div>
           ) : null)}
         </div>
+        {/* Legend */}
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
           {segments.map(s => (
             <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -525,7 +536,28 @@ function AnalystConsensus({ analyst }) {
             </div>
           ))}
         </div>
-        <div style={{ flex: 1 }} />
+        {/* Consensus summary boxes */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <div style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#4ade80', fontFamily: 'monospace' }}>{pctBullish}%</div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Bullish</div>
+          </div>
+          <div style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#eab308', fontFamily: 'monospace' }}>{pctNeutral}%</div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Neutral</div>
+          </div>
+          <div style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#f87171', fontFamily: 'monospace' }}>{pctBearish}%</div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Bearish</div>
+          </div>
+        </div>
+        {/* Upside line */}
+        {upside != null && (
+          <div style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px' }}>
+            Consensus implies <span style={{ color: upside >= 0 ? '#4ade80' : '#f87171', fontWeight: 600 }}>{upside >= 0 ? '+' : ''}{upside.toFixed(1)}%</span> upside to mean target of {formatPrice(meanTarget)}
+          </div>
+        )}
+        {/* Price target section */}
         {analyst.targetMeanPrice != null && (() => {
           const low = analyst.targetLowPrice || analyst.targetMeanPrice * 0.7;
           const high = analyst.targetHighPrice || analyst.targetMeanPrice * 1.3;
@@ -2064,7 +2096,7 @@ export default function AnalysisTab() {
           {/* Row 4: Company profile + analyst consensus (55/45 split) */}
           <div style={{ display: 'grid', gridTemplateColumns: '55fr 45fr', gap: '16px', alignItems: 'stretch' }}>
             <CompanySnapshot quote={quote} profile={profile} />
-            <AnalystConsensus analyst={analyst} />
+            <AnalystConsensus analyst={analyst} quote={quote} />
           </div>
 
           {/* Row 5: Overall Signal banner (full width) */}
