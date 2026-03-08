@@ -11,7 +11,7 @@ const NAV_TILES = [
   { label: 'Options', desc: 'Black-Scholes calculator and analytics', path: '/options' },
   { label: 'Screener', desc: 'Filter stocks by any metric', path: '/screener' },
   { label: 'Global Markets', desc: 'World indices and macro data', path: '/dashboard' },
-  { label: 'Models', desc: 'DCF, EPS, LBO, and Comps models', path: '/models' },
+  { label: 'News', desc: 'Market news and top stories', path: '/news' },
 ];
 
 const PRICE_TILES = [
@@ -92,7 +92,7 @@ export default function Home() {
           by Reach Point Research
         </p>
         <p style={{ color: 'var(--text-secondary)', fontSize: '15px', margin: '0 0 24px' }}>
-          Bloomberg-grade market intelligence. No subscription required.
+          Institutional-grade market intelligence. No subscription required.
         </p>
 
         {/* Search Bar — bigger */}
@@ -254,6 +254,52 @@ export default function Home() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Models Hero Tile — full width */}
+          <div
+            onClick={() => navigate('/models')}
+            style={{
+              background: 'linear-gradient(135deg, #1a0d2e 0%, #0D1117 100%)',
+              borderLeft: '4px solid #F0A500',
+              border: '1px solid var(--border-color)',
+              borderLeftWidth: '4px',
+              borderLeftColor: '#F0A500',
+              borderRadius: '8px',
+              height: '120px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '24px 28px',
+              cursor: 'pointer',
+              transition: 'filter 150ms ease',
+              marginBottom: '16px',
+            }}
+            onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
+            onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
+          >
+            <div>
+              <div style={{ color: 'white', fontSize: '20px', fontWeight: 700, letterSpacing: '0.02em' }}>
+                MODELS
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '4px' }}>
+                Integrated DCF, LBO, 3-Statement and scenario analysis for any stock
+              </div>
+              <div style={{ color: '#F0A500', fontSize: '13px', fontWeight: 600, marginTop: '8px' }}>
+                Open Models →
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+              {['DCF', 'LBO', '3-Statement', 'Football Field'].map(pill => (
+                <div key={pill} style={{
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  fontSize: '10px',
+                  color: 'rgba(255,255,255,0.5)',
+                }}>{pill}</div>
+              ))}
             </div>
           </div>
 
