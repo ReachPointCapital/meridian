@@ -14,6 +14,8 @@ import Screener from './components/screener/Screener';
 import AnalysisTab from './components/analysis/AnalysisTab';
 import Home from './pages/Home';
 import Models from './pages/Models';
+import Disclaimer from './pages/Disclaimer';
+import DisclaimerModal from './components/DisclaimerModal';
 
 function EnvBanner() {
   return null;
@@ -377,6 +379,12 @@ function AppContent() {
             <button onClick={() => window.print()} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Printer size={12} /> Export PDF
             </button>
+            <a href="/disclaimer" style={{ color: 'var(--text-tertiary)', fontSize: '11px', textDecoration: 'none', transition: 'opacity 0.15s' }}
+              onMouseEnter={e => e.target.style.opacity = '0.7'}
+              onMouseLeave={e => e.target.style.opacity = '1'}
+            >
+              Disclaimer
+            </a>
             <span style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>
               Data: FMP, Polygon, Alpha Vantage, Tiingo, Yahoo Finance
             </span>
@@ -413,8 +421,10 @@ export default function App() {
   return (
     <AppProvider>
       <ProProvider>
+        <DisclaimerModal />
         <Routes>
           <Route path="/" element={<HomeWithLayout />} />
+          <Route path="/disclaimer" element={<Disclaimer />} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
       </ProProvider>
