@@ -13,6 +13,7 @@ import Portfolio from './components/portfolio/Portfolio';
 import Screener from './components/screener/Screener';
 import AnalysisTab from './components/analysis/AnalysisTab';
 import Home from './pages/Home';
+import Models from './pages/Models';
 
 function EnvBanner() {
   return null;
@@ -182,6 +183,7 @@ function ShortcutsModal({ onClose }) {
     { key: 'Escape', desc: 'Clear search / close modal' },
     { key: 'D', desc: 'Dashboard' },
     { key: 'A', desc: 'Analysis' },
+    { key: 'M', desc: 'Models' },
     { key: 'W', desc: 'Watchlist' },
     { key: 'P', desc: 'Portfolio' },
     { key: 'E', desc: 'Earnings' },
@@ -227,6 +229,7 @@ function ShortcutsModal({ onClose }) {
 const PATH_TO_TAB = {
   '/dashboard': 'Dashboard',
   '/analysis': 'Analysis',
+  '/models': 'Models',
   '/watchlist': 'Watchlist',
   '/portfolio': 'Portfolio',
   '/earnings': 'Earnings',
@@ -237,6 +240,7 @@ const PATH_TO_TAB = {
 const TAB_TO_PATH = {
   'Dashboard': '/dashboard',
   'Analysis': '/analysis',
+  'Models': '/models',
   'Watchlist': '/watchlist',
   'Portfolio': '/portfolio',
   'Earnings': '/earnings',
@@ -276,6 +280,7 @@ function AppContent() {
       Earnings: 'Meridian | Earnings',
       Options: 'Meridian | Options',
       Screener: 'Meridian | Screener',
+      Models: 'Meridian | Models',
       Analysis: `${tickerSuffix}Meridian | Analysis`,
     };
     document.title = titles[activeTab] || 'Meridian';
@@ -322,6 +327,7 @@ function AppContent() {
         case 'w': case 'W': handleTabChange('Watchlist'); break;
         case 't': case 'T': handleTabChange('Dashboard'); break;
         case 'a': case 'A': handleTabChange('Analysis'); break;
+        case 'm': case 'M': handleTabChange('Models'); break;
         case 'p': case 'P': handleTabChange('Portfolio'); break;
         case 's': case 'S': handleTabChange('Screener'); break;
         case '?': setShortcutsOpen(true); break;
@@ -345,6 +351,7 @@ function AppContent() {
           {activeTab === 'Options' && <OptionsCalculator />}
           {activeTab === 'Screener' && <Screener setActiveTab={handleTabChange} />}
           {activeTab === 'Analysis' && <AnalysisTab setActiveTab={handleTabChange} />}
+          {activeTab === 'Models' && <Models />}
         </div>
 
         {/* Footer */}

@@ -40,4 +40,6 @@ export const api = {
   insiderTradingFeed: () => get(`${BASE}/api/insider-trading-feed`),
   dailyBrief: () => get(`${BASE}/api/daily-brief`),
   heatmap: () => get(`${BASE}/api/heatmap`),
+  modelData: (symbol) => get(`${BASE}/api/model-data?symbol=${encodeURIComponent(symbol)}`),
+  peers: (symbol) => get(`${BASE}/api/model-data?symbol=${encodeURIComponent(symbol)}`),
 };

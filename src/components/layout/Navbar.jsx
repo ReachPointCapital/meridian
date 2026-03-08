@@ -69,7 +69,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
     nav('/');
   };
 
-  const tabs = ['Dashboard', 'Analysis', 'Watchlist', 'Portfolio', 'Earnings', 'Options', 'Screener'];
+  const tabs = ['Dashboard', 'Analysis', 'Models', 'Watchlist', 'Portfolio', 'Earnings', 'Options', 'Screener'];
 
   return (
     <nav style={{
