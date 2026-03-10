@@ -420,6 +420,15 @@ function AppContent() {
               Data: FMP, Polygon, Alpha Vantage, Tiingo, Yahoo Finance
             </span>
           </div>
+          <div style={{ width: '100%', textAlign: 'center', marginTop: '8px' }}>
+            <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', opacity: 0.7 }}>
+              Meridian is a product of Reach Point Research, a division of{' '}
+              <a href="https://reachpointcapital.com" target="_blank" rel="noopener" style={{ color: 'var(--text-tertiary)', textDecoration: 'none', borderBottom: '1px solid transparent', transition: 'border-color 0.15s' }}
+                onMouseEnter={e => e.target.style.borderColor = 'var(--text-tertiary)'}
+                onMouseLeave={e => e.target.style.borderColor = 'transparent'}
+              >Reach Point Capital LLC</a>
+            </span>
+          </div>
         </footer>
       </Layout>
 
