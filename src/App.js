@@ -23,6 +23,7 @@ import Home from './pages/Home';
 import Models from './pages/Models';
 import Disclaimer from './pages/Disclaimer';
 import DisclaimerModal from './components/DisclaimerModal';
+import { Analytics } from '@vercel/analytics/react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -480,6 +481,7 @@ export default function App() {
         </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
+    <Analytics />
     </HelmetProvider>
   );
 }
