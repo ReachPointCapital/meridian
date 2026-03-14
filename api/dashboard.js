@@ -45,13 +45,11 @@ function parseFredSeries(json, seriesId) {
   const points = [];
   if (json.observations && Array.isArray(json.observations)) {
     const valid = json.observations.filter(o => o.value !== '.' && o.value != null);
-    const slice = valid.slice(-24);
-    for (const item of slice) { const value = parseFloat(item.value); if (!isNaN(value)) points.push({ date: item.date, value }); }
+    for (const item of valid) { const value = parseFloat(item.value); if (!isNaN(value)) points.push({ date: item.date, value }); }
     return points;
   }
   if (json[seriesId]?.data && Array.isArray(json[seriesId].data)) {
-    const data = json[seriesId].data.slice(-24);
-    for (const item of data) {
+    for (const item of json[seriesId].data) {
       const date = Array.isArray(item) ? item[0] : item.date;
       const value = parseFloat(Array.isArray(item) ? item[1] : item.value);
       if (!isNaN(value)) points.push({ date, value });
@@ -422,9 +420,11 @@ module.exports = async (req, res) => {
 
     if (FRED_API_KEY) {
       try {
+        const today = new Date().toISOString().split('T')[0];
+        const tenYearsAgo = new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const results = await Promise.allSettled(
           M2_SERIES.map(async (s) => {
-            const url = `${FRED_API}?series_id=${s.id}&sort_order=asc&limit=24&offset=0&file_type=json&api_key=${FRED_API_KEY}&observation_start=2024-01-01`;
+            const url = `${FRED_API}?series_id=${s.id}&observation_start=${tenYearsAgo}&observation_end=${today}&limit=200&sort_order=asc&api_key=${FRED_API_KEY}&file_type=json`;
             console.log(`[M2] Fetching FRED API: ${s.name} (${s.id})`);
             const json = await (await fetch(url)).json();
             const points = []; const obs = json?.observations;
