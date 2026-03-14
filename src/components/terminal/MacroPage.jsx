@@ -195,9 +195,8 @@ function CentralBankTracker({ onRowClick }) {
 }
 
 // ── M2 Money Supply (FRED API) ──
-const M2_POINTS = { '1Y': 12, '3Y': 36, '5Y': 60, '10Y': 120 };
 function M2MoneySupply() {
-  const [series, setSeries] = useState([]);
+  const [m2FullData, setM2FullData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [m2Timeframe, setM2Timeframe] = useState('3Y');
@@ -209,7 +208,7 @@ function M2MoneySupply() {
         if (data?.message) {
           setError(data.message);
         } else if (Array.isArray(data)) {
-          setSeries(data);
+          setM2FullData(data);
         }
       } catch {
         setError('Failed to load M2 data');
@@ -218,24 +217,36 @@ function M2MoneySupply() {
     })();
   }, []);
 
-  const filteredSeries = useMemo(() => series.map(s => ({
-    ...s,
-    data: s.data.slice(-(M2_POINTS[m2Timeframe] || s.data.length)),
-  })), [series, m2Timeframe]);
+  const m2DisplayData = useMemo(() => {
+    if (!m2FullData || m2FullData.length === 0) return [];
+    const limits = { '1Y': 12, '3Y': 36, '5Y': 60, '10Y': 120 };
+    const limit = limits[m2Timeframe] || 36;
+    return m2FullData.map(s => ({
+      ...s,
+      data: s.data.slice(-limit),
+    }));
+  }, [m2FullData, m2Timeframe]);
 
   return (
     <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>M2 Money Supply</span>
         <div style={{ display: 'flex', gap: '2px' }}>
-          {['1Y', '3Y', '5Y', '10Y'].map(tf => (
-            <button key={tf} onClick={() => setM2Timeframe(tf)} style={{
-              background: m2Timeframe === tf ? '#F0A500' : 'none',
-              border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer',
-              color: m2Timeframe === tf ? 'var(--bg-primary)' : 'rgba(255,255,255,0.4)',
-              fontSize: '10px', fontWeight: m2Timeframe === tf ? 600 : 400,
-              transition: 'all 150ms',
-            }}>{tf}</button>
+          {['1Y', '3Y', '5Y', '10Y'].map(period => (
+            <button
+              key={period}
+              onClick={() => setM2Timeframe(period)}
+              style={{
+                background: m2Timeframe === period ? '#F0A500' : 'transparent',
+                color: m2Timeframe === period ? '#000000' : 'rgba(255,255,255,0.4)',
+                fontSize: '10px', fontWeight: '600',
+                padding: '2px 8px', borderRadius: '4px',
+                border: 'none', cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {period}
+            </button>
           ))}
         </div>
       </div>
@@ -243,13 +254,13 @@ function M2MoneySupply() {
         <div style={{ padding: '12px' }}><div className="skeleton" style={{ height: '120px' }} /></div>
       ) : error ? (
         <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>{error}</div>
-      ) : series.length === 0 ? (
+      ) : m2FullData.length === 0 ? (
         <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>
           M2 money supply data temporarily unavailable
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: filteredSeries.length > 1 ? '1fr 1fr' : '1fr', gap: '12px', padding: '12px' }}>
-          {filteredSeries.map(s => (
+        <div style={{ display: 'grid', gridTemplateColumns: m2DisplayData.length > 1 ? '1fr 1fr' : '1fr', gap: '12px', padding: '12px' }}>
+          {m2DisplayData.map(s => (
             <div key={s.seriesId}>
               <div style={{ marginBottom: '6px' }}>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600 }}>{s.name}</span>
