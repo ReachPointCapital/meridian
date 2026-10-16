@@ -1,11 +1,11 @@
 const { yf: yahooFinance } = require('./_yf');
 const { getLegacyStatements } = require('./_fundamentals');
 
-async function yahooQuote(symbol) {
-  const quote = await yahooFinance.quote(symbol);
+// A raw Yahoo quote in the shape the frontend reads. dividendYield is a percentage (0.32 means 0.32%).
+function mapQuote(quote) {
   return {
     symbol: quote.symbol,
-    name: quote.longName || quote.shortName || symbol,
+    name: quote.longName || quote.shortName || quote.symbol,
     price: quote.regularMarketPrice,
     open: quote.regularMarketOpen,
     high: quote.regularMarketDayHigh,
@@ -31,6 +31,36 @@ async function yahooQuote(symbol) {
     priceAvg200: quote.twoHundredDayAverage,
     source: 'yahoo'
   };
+}
+
+async function yahooQuote(symbol) {
+  return mapQuote(await yahooFinance.quote(symbol));
+}
+
+// The quotes for `requested`, in the order asked, skipping any Yahoo did not return.
+function quotesInOrder(requested, results) {
+  const bySymbol = new Map(results.filter(Boolean).map((q) => [String(q.symbol).toUpperCase(), q]));
+  return requested.map((s) => bySymbol.get(String(s).toUpperCase())).filter(Boolean);
+}
+
+// Many symbols in a few requests: Yahoo's quote() takes an array, so ~300 symbols are 3 calls instead of 300.
+// A failed batch is logged and skipped so it cannot blank the others. If every batch fails it throws instead, so a
+// caller can tell an outage (throws) from symbols Yahoo does not know (an empty list).
+async function getQuotes(symbols, { client = yahooFinance, chunk = 100 } = {}) {
+  const batches = [];
+  for (let i = 0; i < symbols.length; i += chunk) batches.push(symbols.slice(i, i + chunk));
+  const settled = await Promise.allSettled(batches.map((batch) => client.quote(batch)));
+  if (settled.length > 0 && settled.every((r) => r.status === 'rejected')) throw settled[0].reason;
+  const out = [];
+  settled.forEach((r, i) => {
+    if (r.status === 'fulfilled') out.push(...(Array.isArray(r.value) ? r.value : [r.value]).filter(Boolean));
+    else console.warn(`[yahoo] quote batch ${i + 1}/${batches.length} failed:`, r.reason && r.reason.message);
+  });
+  return out;
+}
+
+async function getQuoteMap(symbols, opts) {
+  return new Map((await getQuotes(symbols, opts)).map((q) => [q.symbol, q]));
 }
 
 async function yahooProfile(symbol) {
@@ -119,8 +149,7 @@ async function yahooGeneralNews() {
 }
 
 async function yahooQuotes(symbols) {
-  const results = await Promise.allSettled(symbols.map(s => yahooQuote(s)));
-  return results.filter(r => r.status === 'fulfilled').map(r => r.value);
+  return quotesInOrder(symbols, await getQuotes(symbols)).map(mapQuote);
 }
 
 async function yahooAnalyst(symbol) {
@@ -186,26 +215,21 @@ async function yahooSectors() {
     'Utilities': 'XLU', 'Communication Services': 'XLC'
   };
   const symbols = Object.values(sectorETFs);
-  const quotes = await Promise.allSettled(symbols.map(s => yahooFinance.quote(s)));
+  const quotes = await getQuoteMap(symbols);
   const result = {};
-  Object.entries(sectorETFs).forEach(([sector, etf], i) => {
-    const q = quotes[i];
-    if (q.status === 'fulfilled' && q.value) {
-      result[sector] = (q.value.regularMarketChangePercent || 0).toFixed(2) + '%';
-    }
+  Object.entries(sectorETFs).forEach(([sector, etf]) => {
+    const q = quotes.get(etf);
+    if (q) result[sector] = (q.regularMarketChangePercent || 0).toFixed(2) + '%';
   });
   return result;
 }
 
 async function yahooYields() {
   const yieldSymbols = { '3M': '^IRX', '2Y': '2YY=F', '5Y': '^FVX', '10Y': '^TNX', '30Y': '^TYX' };
-  const results = await Promise.allSettled(
-    Object.entries(yieldSymbols).map(async ([maturity, sym]) => {
-      const q = await yahooFinance.quote(sym);
-      return { maturity, yield: q.regularMarketPrice, change: q.regularMarketChangePercent };
-    })
-  );
-  return results.filter(r => r.status === 'fulfilled').map(r => r.value);
+  const quotes = await getQuoteMap(Object.values(yieldSymbols));
+  return Object.entries(yieldSymbols)
+    .filter(([, sym]) => quotes.has(sym))
+    .map(([maturity, sym]) => ({ maturity, yield: quotes.get(sym).regularMarketPrice, change: quotes.get(sym).regularMarketChangePercent }));
 }
 
 async function yahooCrypto() {
@@ -216,14 +240,14 @@ async function yahooCrypto() {
     { symbol: 'XRP-USD', name: 'XRP', ticker: 'XRP' },
     { symbol: 'ADA-USD', name: 'Cardano', ticker: 'ADA' }
   ];
-  const results = await Promise.allSettled(cryptos.map(c => yahooFinance.quote(c.symbol)));
-  return cryptos.map((c, i) => {
-    const r = results[i];
-    if (r.status === 'fulfilled') {
+  const quotes = await getQuoteMap(cryptos.map(c => c.symbol));
+  return cryptos.map((c) => {
+    const q = quotes.get(c.symbol);
+    if (q) {
       return {
-        ...c, price: r.value.regularMarketPrice, change: r.value.regularMarketChange,
-        changePercent: r.value.regularMarketChangePercent, marketCap: r.value.marketCap,
-        volume: r.value.regularMarketVolume
+        ...c, price: q.regularMarketPrice, change: q.regularMarketChange,
+        changePercent: q.regularMarketChangePercent, marketCap: q.marketCap,
+        volume: q.regularMarketVolume
       };
     }
     return { ...c, price: null };
@@ -258,14 +282,14 @@ async function yahooMacro() {
     { symbol: 'LINK-USD', label: 'Chainlink' }, { symbol: 'DOT-USD', label: 'Polkadot' },
     { symbol: 'LTC-USD', label: 'Litecoin' }, { symbol: 'XLM-USD', label: 'Stellar' },
   ];
-  const results = await Promise.allSettled(instruments.map(inst => yahooFinance.quote(inst.symbol)));
-  return instruments.map((inst, i) => {
-    const r = results[i];
-    if (r.status === 'fulfilled' && r.value) {
+  const quotes = await getQuoteMap(instruments.map(inst => inst.symbol));
+  return instruments.map((inst) => {
+    const q = quotes.get(inst.symbol);
+    if (q) {
       return {
         symbol: inst.symbol, label: inst.label,
-        price: r.value.regularMarketPrice, change: r.value.regularMarketChange,
-        changePercent: r.value.regularMarketChangePercent
+        price: q.regularMarketPrice, change: q.regularMarketChange,
+        changePercent: q.regularMarketChangePercent
       };
     }
     return { symbol: inst.symbol, label: inst.label, price: null };
@@ -287,6 +311,7 @@ async function yahooFullAnalysis(symbol) {
 }
 
 module.exports = {
+  mapQuote, quotesInOrder, getQuotes, getQuoteMap,
   yahooQuote, yahooProfile, yahooChart, yahooFinancials,
   yahooNews, yahooGeneralNews, yahooQuotes, yahooAnalyst, yahooEarnings,
   yahooScreener, yahooSectors, yahooYields, yahooCrypto, yahooMacro, yahooFullAnalysis
