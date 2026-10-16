@@ -14,7 +14,7 @@ function getHeatColor(pct) {
 }
 
 function getTextColor(pct) {
-  if (pct != null && pct >= 3) return '#4ade80';
+  if (pct != null && pct >= 3) return '#5CF0B8';
   return 'white';
 }
 
@@ -23,7 +23,7 @@ function formatPct(pct) {
   return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
 }
 
-const BORDER = '1px solid #0D1117';
+const BORDER = '1px solid var(--bg-primary)';
 
 export default function HeatmapCard({ onNavigate }) {
   const [data, setData] = useState([]);
@@ -177,9 +177,9 @@ export default function HeatmapCard({ onNavigate }) {
   };
 
   const tabStyle = (active) => ({
-    background: active ? '#F0A500' : 'none',
+    background: active ? 'var(--gold)' : 'none',
     color: active ? '#000' : 'rgba(255,255,255,0.4)',
-    border: active ? '1px solid #F0A500' : '1px solid rgba(255,255,255,0.2)',
+    border: active ? '1px solid var(--gold)' : '1px solid rgba(255,255,255,0.2)',
     fontSize: '10px',
     fontWeight: active ? 600 : 400,
     padding: '2px 8px',
@@ -192,7 +192,7 @@ export default function HeatmapCard({ onNavigate }) {
     <div style={{
       background: 'var(--bg-secondary)',
       border: '1px solid var(--border-color)',
-      borderRadius: '8px',
+      borderRadius: 'var(--radius-md)',
       overflow: 'hidden',
       boxShadow: 'var(--card-shadow)',
       width: '100%',
@@ -262,7 +262,7 @@ export default function HeatmapCard({ onNavigate }) {
           <span style={{ marginLeft: '6px' }}>
             {hovered.price != null ? '$' + Number(hovered.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
           </span>
-          <span style={{ marginLeft: '6px', fontWeight: 600, color: (hovered.changePercent || 0) >= 0 ? '#22c55e' : '#ef4444' }}>
+          <span style={{ marginLeft: '6px', fontWeight: 600, color: (hovered.changePercent || 0) >= 0 ? '#2EE6A6' : '#FF6B87' }}>
             {formatPct(hovered.changePercent)}
           </span>
         </div>

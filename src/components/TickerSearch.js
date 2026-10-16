@@ -92,7 +92,7 @@ export default function TickerSearch({ onSelect, placeholder, defaultValue, auto
   // Type badge colors
   const typeBadge = (type) => {
     const map = {
-      EQUITY: { label: 'Stock', color: '#F0A500' },
+      EQUITY: { label: 'Stock', color: '#E5B94E' },
       ETF: { label: 'ETF', color: '#3b82f6' },
       CRYPTOCURRENCY: { label: 'Crypto', color: '#a855f7' },
       INDEX: { label: 'Index', color: '#6b7280' },
@@ -110,12 +110,12 @@ export default function TickerSearch({ onSelect, placeholder, defaultValue, auto
         display: 'flex', alignItems: 'center',
         background: lt ? (open ? '#ffffff' : 'rgba(0,0,0,0.04)') : (open ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.05)'),
         border: open
-          ? (lt ? '1px solid #b45309' : '1px solid rgba(240,165,0,0.4)')
+          ? (lt ? '1px solid #b45309' : '1px solid rgba(229,185,78,0.4)')
           : (lt ? '1px solid #e5e7eb' : '1px solid rgba(255,255,255,0.1)'),
-        borderRadius: '8px',
+        borderRadius: 'var(--radius-md)',
         padding: isLarge ? '12px 16px' : '6px 12px',
         gap: '10px',
-        boxShadow: open ? (lt ? '0 0 0 2px rgba(180,83,9,0.12)' : '0 0 0 2px rgba(240,165,0,0.15)') : 'none',
+        boxShadow: open ? (lt ? '0 0 0 2px rgba(180,83,9,0.12)' : '0 0 0 2px rgba(229,185,78,0.15)') : 'none',
         transition: 'all 0.15s',
       }}>
         <Search size={isLarge ? 18 : 14} style={{ color: lt ? '#9ca3af' : 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
@@ -137,8 +137,8 @@ export default function TickerSearch({ onSelect, placeholder, defaultValue, auto
         {loading && (
           <div style={{
             width: '14px', height: '14px', borderRadius: '50%',
-            border: lt ? '2px solid rgba(180,83,9,0.2)' : '2px solid rgba(240,165,0,0.3)',
-            borderTop: lt ? '2px solid #b45309' : '2px solid #F0A500',
+            border: lt ? '2px solid rgba(180,83,9,0.2)' : '2px solid rgba(229,185,78,0.3)',
+            borderTop: lt ? '2px solid #b45309' : '2px solid #E5B94E',
             animation: 'tickerSearchSpin 0.6s linear infinite',
             flexShrink: 0,
           }} />
@@ -156,7 +156,7 @@ export default function TickerSearch({ onSelect, placeholder, defaultValue, auto
           position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
           background: lt ? '#ffffff' : '#13181f',
           border: lt ? '1px solid #e5e7eb' : '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-md)',
           zIndex: 1000,
           overflow: 'hidden',
           boxShadow: lt ? '0 8px 32px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.4)',
@@ -172,7 +172,7 @@ export default function TickerSearch({ onSelect, placeholder, defaultValue, auto
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '10px 14px',
                   background: highlighted === i
-                    ? (lt ? '#f9fafb' : 'rgba(240,165,0,0.08)')
+                    ? (lt ? '#f9fafb' : 'rgba(229,185,78,0.08)')
                     : 'transparent',
                   cursor: 'pointer',
                   borderBottom: i < results.length - 1
@@ -185,7 +185,7 @@ export default function TickerSearch({ onSelect, placeholder, defaultValue, auto
                 <div style={{
                   minWidth: '52px',
                   fontSize: '13px', fontWeight: 700,
-                  color: lt ? '#b45309' : '#F0A500',
+                  color: lt ? '#b45309' : '#E5B94E',
                   fontFamily: 'monospace',
                 }}>
                   {r.symbol}

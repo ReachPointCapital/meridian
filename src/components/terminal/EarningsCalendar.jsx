@@ -56,7 +56,7 @@ function SurpriseBadge({ actual, estimate }) {
     <span style={{
       display: 'inline-block',
       padding: '2px 8px',
-      borderRadius: '12px',
+      borderRadius: 'var(--radius-lg)',
       fontSize: '11px',
       fontWeight: 600,
       fontVariantNumeric: 'tabular-nums',
@@ -116,8 +116,8 @@ export default function EarningsCalendar({ setActiveTab }) {
     const estimate = row.epsEstimate ?? row.epsEstimated;
     if (actual == null) return 'transparent'; // upcoming
     if (estimate == null) return 'transparent';
-    if (actual >= estimate) return 'rgba(34,197,94,0.06)'; // beat
-    return 'rgba(239,68,68,0.06)'; // miss
+    if (actual >= estimate) return 'rgba(46,230,166,0.06)'; // beat
+    return 'rgba(255,107,135,0.06)'; // miss
   };
 
   return (
@@ -166,7 +166,7 @@ export default function EarningsCalendar({ setActiveTab }) {
           gap: '8px',
           backgroundColor: 'var(--bg-secondary)',
           border: '1px solid var(--border-color)',
-          borderRadius: '6px',
+          borderRadius: 'var(--radius-sm)',
           padding: '5px 10px',
           flex: '0 0 240px',
         }}>
@@ -193,7 +193,7 @@ export default function EarningsCalendar({ setActiveTab }) {
       </div>
 
       {/* Table */}
-      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
         {loading ? (
           <div style={{ padding: '16px' }}>
             {Array.from({ length: 10 }).map((_, i) => (

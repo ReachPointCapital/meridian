@@ -36,7 +36,11 @@
     <meta name="twitter:site" content="@ReachPointCap" />
 
     <!-- Theme -->
-    <meta name="theme-color" content="#0D1117" />
+    <meta name="theme-color" content="#070B16" />
+    <!-- Apply the saved theme before first paint (ThemeContext does it after React mounts, which flashed dark for light-theme users) -->
+    <script>
+      try { var t = localStorage.getItem('meridian-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+    </script>
     <meta name="application-name" content="Meridian" />
 
     <!-- Preconnect hints -->

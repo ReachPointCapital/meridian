@@ -94,7 +94,7 @@ export default function Screener({ setActiveTab }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px' }}>
         {/* Filter Sidebar */}
-        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '14px', boxShadow: 'var(--card-shadow)', alignSelf: 'start' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '14px', boxShadow: 'var(--card-shadow)', alignSelf: 'start' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
             <Filter size={14} color="var(--gold)" />
             <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Filters</span>
@@ -136,7 +136,7 @@ export default function Screener({ setActiveTab }) {
         </div>
 
         {/* Results */}
-        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
               {PRESETS.find(p => p.key === preset)?.label || 'Results'}

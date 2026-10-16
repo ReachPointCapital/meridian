@@ -26,7 +26,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '160px',
-    borderRadius: '12px',
+    borderRadius: 'var(--radius-lg)',
     backgroundColor: 'var(--bg-secondary)',
     border: '1px solid var(--border-color)',
     overflow: 'hidden',
@@ -64,7 +64,7 @@ const styles = {
     color: '#000',
     backgroundColor: 'var(--gold)',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
   },
 };

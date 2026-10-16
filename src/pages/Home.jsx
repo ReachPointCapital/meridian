@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import TickerSearch from '../components/TickerSearch';
 import { formatPct } from '../utils/format';
 import { formatQuoteValue } from '../utils/formatters';
+import { useApp } from '../context/AppContext';
+import PriceFlash from '../components/ui/PriceFlash';
 
 const TICKER_CHIPS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'SPY', 'BTC-USD'];
 
@@ -15,7 +17,7 @@ const NAV_TILES = [
   { label: 'Options', desc: 'Black-Scholes calculator and analytics', path: '/options' },
   { label: 'Screener', desc: 'Filter stocks by any metric', path: '/screener' },
   { label: 'Global Markets', desc: 'World indices and macro data', path: '/dashboard' },
-  { label: 'News', desc: 'Market news and top stories', path: '/news' },
+  { label: 'News', desc: 'Market news and top stories', path: '/dashboard' },
 ];
 
 // Real index levels, not the SPY/QQQ/DIA ETF prices (an ETF price is ~1/10 of the index and was labelled as the index)
@@ -30,6 +32,7 @@ const PRICE_TILES = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const { setActiveSymbol } = useApp();
   const [prices, setPrices] = useState({});
 
   useEffect(() => {
@@ -47,9 +50,12 @@ export default function Home() {
     })();
   }, []);
 
-  const handleChipClick = (ticker) => {
-    navigate(`/analysis?ticker=${encodeURIComponent(ticker)}`);
+  // The Analysis page reads the active symbol from the app context (it ignores ?ticker=), so set it before navigating.
+  const openAnalysis = (symbol) => {
+    setActiveSymbol(symbol);
+    navigate('/analysis');
   };
+  const handleChipClick = openAnalysis;
 
   // Mini stat pills for Dashboard hero tile
   const miniStats = [
@@ -66,7 +72,6 @@ export default function Home() {
     </Helmet>
     <div style={{
       minHeight: '100vh',
-      backgroundColor: 'var(--bg-primary)',
       display: 'flex',
       flexDirection: 'column',
     }}>
@@ -77,17 +82,20 @@ export default function Home() {
         flexDirection: 'column',
         alignItems: 'center',
         padding: '64px 24px 48px',
+        position: 'relative',
       }}>
+        <div className="hero-glow" aria-hidden="true" />
         {/* Branding */}
-        <h1 style={{
-          color: 'var(--gold)',
-          fontSize: '28px',
-          fontWeight: 700,
-          letterSpacing: '0.3em',
+        <h1 className="gradient-text" style={{
+          fontSize: 'clamp(30px, 7vw, 46px)',
+          fontWeight: 800,
+          letterSpacing: '0.28em',
+          paddingLeft: '0.28em', /* balances the trailing letter-space so the word is truly centred */
           textTransform: 'uppercase',
-          margin: '0 0 6px',
+          whiteSpace: 'nowrap',
+          margin: '0 0 8px',
         }}>
-          M E R I D I A N
+          Meridian
         </h1>
         <p style={{ color: 'var(--text-tertiary)', fontSize: '13px', margin: '0 0 4px', letterSpacing: '0.05em' }}>
           by Reach Point Research
@@ -101,7 +109,7 @@ export default function Home() {
           <TickerSearch
             size="lg"
             placeholder="Search any ticker, ETF, or company..."
-            onSelect={(symbol) => navigate(`/analysis?ticker=${encodeURIComponent(symbol)}`)}
+            onSelect={openAnalysis}
           />
         </div>
 
@@ -114,7 +122,7 @@ export default function Home() {
               style={{
                 background: 'none',
                 border: '1px solid var(--border-color)',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 padding: '5px 12px',
                 color: 'var(--gold)',
                 fontSize: '12px',
@@ -132,17 +140,17 @@ export default function Home() {
         </div>
 
         {/* Live Price Tiles — 6 across */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px', maxWidth: '860px', width: '100%', margin: '0 auto 24px auto' }}>
+        <div className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px', maxWidth: '860px', width: '100%', margin: '0 auto 24px auto' }}>
           {PRICE_TILES.map(tile => {
             const data = prices[tile.symbol];
             const price = data?.price;
             const changePct = data?.changePercent ?? data?.changesPercentage ?? 0;
             const isPos = changePct >= 0;
             return (
-              <div key={tile.symbol} onClick={() => navigate('/dashboard')} style={{
+              <div key={tile.symbol} className="lift" onClick={() => navigate('/dashboard')} style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-md)',
                 padding: '12px 16px',
                 textAlign: 'center',
                 boxShadow: 'var(--card-shadow)',
@@ -155,7 +163,7 @@ export default function Home() {
                   {tile.label}
                 </div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '2px' }}>
-                  {formatQuoteValue(tile.symbol, price)}
+                  <PriceFlash value={price}>{formatQuoteValue(tile.symbol, price)}</PriceFlash>
                 </div>
                 <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
                   {price != null ? `${isPos ? '+' : ''}${formatPct(changePct, 2)}` : ''}
@@ -169,15 +177,16 @@ export default function Home() {
         <div style={{ maxWidth: '860px', width: '100%', margin: '0 auto' }}>
           {/* Dashboard Hero Tile — full width */}
           <div
+            className="hero-tile"
             onClick={() => navigate('/dashboard')}
             style={{
-              background: 'linear-gradient(135deg, #1B3A6B 0%, #0D1117 100%)',
-              borderLeft: '4px solid #F0A500',
+              background: 'linear-gradient(135deg, #1F4396 0%, #12306B 38%, #0F1A33 100%)',
+              borderLeft: '4px solid var(--gold)',
               border: '1px solid var(--border-color)',
               borderLeftWidth: '4px',
-              borderLeftColor: '#F0A500',
-              borderRadius: '8px',
-              height: '120px',
+              borderLeftColor: 'var(--gold)',
+              borderRadius: 'var(--radius-md)',
+              minHeight: '120px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -193,14 +202,14 @@ export default function Home() {
               <div style={{ color: 'white', fontSize: '20px', fontWeight: 700, letterSpacing: '0.02em' }}>
                 DASHBOARD
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '4px' }}>
+              <div style={{ color: 'rgba(255,255,255,0.74)', fontSize: '13px', marginTop: '4px' }}>
                 Real-time market intelligence — indices, sectors, heatmap, movers
               </div>
-              <div style={{ color: '#F0A500', fontSize: '13px', fontWeight: 600, marginTop: '8px' }}>
+              <div style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 600, marginTop: '8px' }}>
                 Open Terminal →
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
+            <div className="home-hero-extras" style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
               {miniStats.map(s => {
                 const d = prices[s.symbol];
                 const pct = d?.changePercent ?? d?.changesPercentage ?? null;
@@ -208,17 +217,17 @@ export default function Home() {
                 return (
                   <div key={s.symbol} style={{
                     backgroundColor: 'rgba(255,255,255,0.06)',
-                    borderRadius: '6px',
+                    borderRadius: 'var(--radius-sm)',
                     padding: '6px 10px',
                     textAlign: 'center',
                     minWidth: '72px',
                   }}>
-                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.06em' }}>{s.label}</div>
-                    <div style={{ color: '#F0A500', fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', marginTop: '2px' }}>
+                    <div style={{ color: 'rgba(255,255,255,0.74)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.06em' }}>{s.label}</div>
+                    <div style={{ color: 'var(--gold)', fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', marginTop: '2px' }}>
                       {formatQuoteValue(s.symbol, d?.price)}
                     </div>
                     {pct != null && (
-                      <div style={{ color: isPos ? '#22C55E' : '#EF4444', fontSize: '10px', fontWeight: 600, fontFamily: 'monospace' }}>
+                      <div style={{ color: isPos ? '#2EE6A6' : '#FF6B87', fontSize: '10px', fontWeight: 600, fontFamily: 'monospace' }}>
                         {isPos ? '+' : ''}{formatPct(pct, 2)}
                       </div>
                     )}
@@ -230,15 +239,16 @@ export default function Home() {
 
           {/* Models Hero Tile — full width */}
           <div
+            className="hero-tile"
             onClick={() => navigate('/models')}
             style={{
-              background: 'linear-gradient(135deg, #1a0d2e 0%, #0D1117 100%)',
-              borderLeft: '4px solid #F0A500',
+              background: 'linear-gradient(135deg, #3B2A7A 0%, #241A52 38%, #0F1A33 100%)',
+              borderLeft: '4px solid var(--gold)',
               border: '1px solid var(--border-color)',
               borderLeftWidth: '4px',
-              borderLeftColor: '#F0A500',
-              borderRadius: '8px',
-              height: '120px',
+              borderLeftColor: 'var(--gold)',
+              borderRadius: 'var(--radius-md)',
+              minHeight: '120px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -254,28 +264,28 @@ export default function Home() {
               <div style={{ color: 'white', fontSize: '20px', fontWeight: 700, letterSpacing: '0.02em' }}>
                 MODELS
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '4px' }}>
+              <div style={{ color: 'rgba(255,255,255,0.74)', fontSize: '13px', marginTop: '4px' }}>
                 Integrated DCF, LBO, 3-Statement and scenario analysis for any stock
               </div>
-              <div style={{ color: '#F0A500', fontSize: '13px', fontWeight: 600, marginTop: '8px' }}>
+              <div style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 600, marginTop: '8px' }}>
                 Open Models →
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <div className="home-hero-extras" style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
               {['DCF', 'LBO', '3-Statement', 'Football Field'].map(pill => (
                 <div key={pill} style={{
                   backgroundColor: 'rgba(255,255,255,0.05)',
                   borderRadius: '4px',
                   padding: '4px 8px',
                   fontSize: '10px',
-                  color: 'rgba(255,255,255,0.5)',
+                  color: 'rgba(255,255,255,0.74)',
                 }}>{pill}</div>
               ))}
             </div>
           </div>
 
           {/* Remaining nav tiles — 4 columns */}
-          <div style={{
+          <div className="stagger" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: '12px',
@@ -283,11 +293,12 @@ export default function Home() {
             {NAV_TILES.map(tile => (
               <div
                 key={tile.label}
+                className="lift"
                 onClick={() => navigate(tile.path)}
                 style={{
                   backgroundColor: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--radius-md)',
                   padding: '16px 14px',
                   height: '90px',
                   boxSizing: 'border-box',
@@ -318,12 +329,14 @@ export default function Home() {
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '16px 32px',
-        borderTop: '1px solid rgba(255,255,255,0.05)',
+        borderTop: '1px solid var(--border-color)',
+        flexWrap: 'wrap',
+        gap: '8px',
       }}>
-        <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px' }}>
+        <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>
           © 2026 Reach Point Research · A Reach Point Capital Company
         </span>
-        <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px' }}>
+        <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>
           meridian.reachpointcapital.com
         </span>
       </div>
@@ -333,6 +346,7 @@ export default function Home() {
           div[style*="repeat(6, 1fr)"] { grid-template-columns: repeat(3, 1fr) !important; }
         }
         @media (max-width: 700px) {
+          .home-hero-extras { display: none !important; }
           div[style*="repeat(6, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
           div[style*="repeat(4, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
         }

@@ -24,7 +24,7 @@ export default function Layout({ children }) {
   const sidebarWidth = collapsed ? 32 : 200;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
+    <div style={{ minHeight: '100vh' }}>
       <MacroSidebar />
       <main className="main-content" style={{
         paddingTop: '72px',

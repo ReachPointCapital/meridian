@@ -16,7 +16,7 @@ function InfoTooltip({ text }) {
         <div style={{
           position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
           backgroundColor: '#1a1a2e', color: '#e0e0e0', fontSize: '11px', padding: '8px 10px',
-          borderRadius: '6px', border: '1px solid #333', whiteSpace: 'nowrap', zIndex: 100,
+          borderRadius: 'var(--radius-sm)', border: '1px solid #333', whiteSpace: 'nowrap', zIndex: 100,
           boxShadow: '0 4px 12px rgba(0,0,0,0.4)', marginBottom: '4px', maxWidth: '240px',
           lineHeight: 1.4,
         }}>
@@ -47,7 +47,7 @@ function InputField({ label, value, onChange, type = 'text', placeholder, min, m
             width: '100%',
             backgroundColor: 'var(--bg-primary)',
             border: '1px solid var(--border-color)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             color: 'var(--text-primary)',
             fontSize: '13px',
             padding: suffix ? '8px 32px 8px 10px' : '8px 10px',
@@ -109,7 +109,7 @@ function PayoffDiagram({ result, optionType }) {
   const maxProfit = optionType === 'call' ? 'Unlimited' : ((K - premium) * 100).toFixed(0);
 
   return (
-    <div style={{ marginTop: '16px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
+    <div style={{ marginTop: '16px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
       <h3 style={{ color: 'var(--text-secondary)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 12px' }}>
         P&L Payoff Diagram {'\u2014'} {optionType === 'call' ? 'Call' : 'Put'} (1 Contract)
       </h3>
@@ -122,7 +122,7 @@ function PayoffDiagram({ result, optionType }) {
             if (!active || !payload?.length) return null;
             const d = payload[0].payload;
             return (
-              <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
+              <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px' }}>
                 <div style={{ color: 'var(--text-primary)' }}>Stock: ${d.price}</div>
                 <div style={{ color: 'var(--gold)' }}>Now: ${d.now}</div>
                 <div style={{ color: 'var(--text-secondary)' }}>At Expiry: ${d.atExpiry}</div>
@@ -196,7 +196,7 @@ function PLGrid({ result }) {
   };
 
   return (
-    <div style={{ marginTop: '16px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
+    <div style={{ marginTop: '16px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
       <h3 style={{ color: 'var(--text-secondary)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 12px' }}>
         P&L Scenarios {'\u2014'} Call (1 Contract)
       </h3>
@@ -308,7 +308,7 @@ export default function OptionsCalculator() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '16px', alignItems: 'start' }}>
         {/* Input Panel */}
-        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
           <h3 style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 16px' }}>
             Inputs
           </h3>
@@ -327,7 +327,7 @@ export default function OptionsCalculator() {
                   flex: 1,
                   backgroundColor: 'var(--bg-primary)',
                   border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-primary)',
                   fontSize: '13px',
                   padding: '8px 10px',
@@ -345,7 +345,7 @@ export default function OptionsCalculator() {
                 style={{
                   backgroundColor: 'var(--bg-tertiary)',
                   border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-secondary)',
                   fontSize: '11px',
                   padding: '6px 10px',
@@ -375,7 +375,7 @@ export default function OptionsCalculator() {
                 width: '100%',
                 backgroundColor: 'var(--bg-primary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 color: 'var(--text-primary)',
                 fontSize: '13px',
                 padding: '8px 10px',
@@ -432,7 +432,7 @@ export default function OptionsCalculator() {
             <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
               Option Type
             </label>
-            <div style={{ display: 'flex', gap: '0', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', gap: '0', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
               {['call', 'put'].map(t => (
                 <button
                   key={t}
@@ -462,7 +462,7 @@ export default function OptionsCalculator() {
               width: '100%',
               backgroundColor: 'var(--gold)',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               color: 'var(--bg-primary)',
               fontSize: '13px',
               fontWeight: 700,
@@ -485,7 +485,7 @@ export default function OptionsCalculator() {
             <div style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border-color)',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-md)',
               padding: '48px',
               textAlign: 'center',
               boxShadow: 'var(--card-shadow)',
@@ -499,7 +499,7 @@ export default function OptionsCalculator() {
               <div style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-md)',
                 padding: '16px',
                 marginBottom: '16px',
                 boxShadow: 'var(--card-shadow)',
@@ -508,13 +508,13 @@ export default function OptionsCalculator() {
                   Option Prices
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                  <div style={{ textAlign: 'center', padding: '16px', backgroundColor: 'var(--green-muted)', border: '1px solid #16623A', borderRadius: '8px' }}>
+                  <div style={{ textAlign: 'center', padding: '16px', backgroundColor: 'var(--green-muted)', border: '1px solid #16623A', borderRadius: 'var(--radius-md)' }}>
                     <div style={{ color: 'var(--green)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>Call Price</div>
                     <div style={{ color: 'var(--green)', fontSize: '32px', fontFamily: 'monospace', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                       ${result.call.price.toFixed(2)}
                     </div>
                   </div>
-                  <div style={{ textAlign: 'center', padding: '16px', backgroundColor: 'var(--red-muted)', border: '1px solid #7F1D1D', borderRadius: '8px' }}>
+                  <div style={{ textAlign: 'center', padding: '16px', backgroundColor: 'var(--red-muted)', border: '1px solid #7F1D1D', borderRadius: 'var(--radius-md)' }}>
                     <div style={{ color: 'var(--red)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>Put Price</div>
                     <div style={{ color: 'var(--red)', fontSize: '32px', fontFamily: 'monospace', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                       ${result.put.price.toFixed(2)}
@@ -536,7 +536,7 @@ export default function OptionsCalculator() {
                 </div>
               </div>
 
-              <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
+              <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
                 <h3 style={{ color: 'var(--text-secondary)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 8px' }}>
                   Greeks {'\u2014'} {inputs.optionType === 'call' ? 'Call' : 'Put'}
                 </h3>
