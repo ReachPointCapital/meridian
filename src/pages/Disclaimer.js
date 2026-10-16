@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 const sectionHeaderStyle = {
-  color: '#F0A500',
+  color: 'var(--gold)',
   textTransform: 'uppercase',
   fontSize: '11px',
   fontWeight: 700,
@@ -28,7 +28,7 @@ export default function Disclaimer() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#0A0E1A',
+      backgroundColor: 'var(--bg-primary)',
       padding: '64px 32px',
     }}>
       <div style={{ maxWidth: '860px', margin: '0 auto' }}>
@@ -38,7 +38,7 @@ export default function Disclaimer() {
           style={{
             background: 'none',
             border: 'none',
-            color: '#F0A500',
+            color: 'var(--gold)',
             fontSize: '13px',
             cursor: 'pointer',
             padding: '0',
@@ -55,7 +55,7 @@ export default function Disclaimer() {
         <div style={{ marginBottom: '48px' }}>
           <div style={{
             display: 'inline-block',
-            background: '#F0A500',
+            background: 'var(--gold)',
             color: '#000000',
             fontSize: '11px',
             fontWeight: '800',

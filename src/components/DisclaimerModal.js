@@ -24,9 +24,9 @@ export default function DisclaimerModal() {
       padding: '24px',
     }}>
       <div style={{
-        background: '#0D1117',
-        border: '1px solid rgba(240,165,0,0.3)',
-        borderRadius: '12px',
+        background: 'var(--bg-secondary)',
+        border: '1px solid rgba(229,185,78,0.3)',
+        borderRadius: 'var(--radius-lg)',
         maxWidth: '560px',
         width: '100%',
         padding: '36px',
@@ -35,7 +35,7 @@ export default function DisclaimerModal() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <div style={{
-            background: '#F0A500', color: '#000000',
+            background: 'var(--gold)', color: '#000000',
             fontSize: '11px', fontWeight: '800',
             padding: '3px 8px', borderRadius: '4px', letterSpacing: '0.05em',
           }}>
@@ -80,7 +80,7 @@ export default function DisclaimerModal() {
         }}>
           <a
             href="/disclaimer"
-            style={{ fontSize: '11px', color: 'rgba(240,165,0,0.7)', textDecoration: 'underline', cursor: 'pointer' }}
+            style={{ fontSize: '11px', color: 'rgba(229,185,78,0.7)', textDecoration: 'underline', cursor: 'pointer' }}
           >
             Read full disclaimer →
           </a>
@@ -94,10 +94,10 @@ export default function DisclaimerModal() {
           onClick={handleAccept}
           style={{
             width: '100%',
-            background: '#F0A500',
+            background: 'var(--gold)',
             color: '#000000',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: 'var(--radius-md)',
             padding: '14px',
             fontSize: '14px',
             fontWeight: '700',

@@ -30,7 +30,7 @@ function CustomTooltip({ active, payload, label, timeframe }) {
     <div style={{
       backgroundColor: 'var(--bg-secondary)',
       border: '1px solid var(--border-color)',
-      borderRadius: '6px',
+      borderRadius: 'var(--radius-sm)',
       padding: '10px 14px',
       fontSize: '12px',
       boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
@@ -58,7 +58,7 @@ function CandlestickBar(props) {
 
   const { o, h, l, c } = payload;
   const isGreen = c >= o;
-  const color = isGreen ? '#22C55E' : '#EF4444';
+  const color = isGreen ? '#2EE6A6' : '#FF6B87';
 
   // y is top of wick (high), y+height is bottom (low)
   // We need to compute body position relative to wick
@@ -204,7 +204,7 @@ export default function PriceChart({ symbol }) {
     <div style={{
       backgroundColor: 'var(--bg-secondary)',
       border: '1px solid var(--border-color)',
-      borderRadius: '8px',
+      borderRadius: 'var(--radius-md)',
       padding: '16px',
       marginBottom: '16px',
       boxShadow: 'var(--card-shadow)',
@@ -321,7 +321,7 @@ export default function PriceChart({ symbol }) {
               content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
                 return (
-                  <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px 14px', fontSize: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
+                  <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', fontSize: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
                     {payload.map(p => (
                       <div key={p.dataKey} style={{ color: p.color, marginBottom: '2px' }}>
                         {p.dataKey}: {Number(p.value).toFixed(2)}%
@@ -395,7 +395,7 @@ export default function PriceChart({ symbol }) {
               <YAxis hide />
               <Bar dataKey="v" maxBarSize={8}>
                 {data.map((d, i) => (
-                  <Cell key={i} fill={d.c >= d.o ? '#22C55E' : '#EF4444'} opacity={0.6} />
+                  <Cell key={i} fill={d.c >= d.o ? '#2EE6A6' : '#FF6B87'} opacity={0.6} />
                 ))}
               </Bar>
             </ComposedChart>

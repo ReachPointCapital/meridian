@@ -128,7 +128,7 @@ export default function Watchlist({ setActiveTab }) {
         </p>
       </div>
 
-      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
             Watchlist
@@ -284,7 +284,7 @@ function WatchlistLogo({ sym }) {
   if (failed) {
     return (
       <div style={{
-        width: '24px', height: '24px', borderRadius: '8px',
+        width: '24px', height: '24px', borderRadius: 'var(--radius-md)',
         backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: 'var(--gold)', fontSize: '11px', fontWeight: 700, fontFamily: 'monospace',
       }}>
@@ -296,7 +296,7 @@ function WatchlistLogo({ sym }) {
     <img
       src={`https://financialmodelingprep.com/image-stock/${sym}.png`}
       alt={sym}
-      style={{ width: '24px', height: '24px', borderRadius: '8px', objectFit: 'cover', backgroundColor: 'var(--bg-tertiary)' }}
+      style={{ width: '24px', height: '24px', borderRadius: 'var(--radius-md)', objectFit: 'cover', backgroundColor: 'var(--bg-tertiary)' }}
       onError={() => setFailed(true)}
     />
   );

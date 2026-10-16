@@ -11,7 +11,7 @@ export default function GuestGate({ children, feature = 'this feature' }) {
   return (
     <>
       <div style={{
-        position: 'relative', borderRadius: '8px', overflow: 'hidden',
+        position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden',
         border: '1px solid var(--border-color)',
       }}>
         <div style={{ filter: 'blur(3px)', opacity: 0.4, pointerEvents: 'none' }}>
@@ -32,7 +32,7 @@ export default function GuestGate({ children, feature = 'this feature' }) {
             onClick={() => setShowAuth(true)}
             style={{
               background: 'var(--gold)', color: 'var(--bg-primary)', border: 'none',
-              borderRadius: '6px', padding: '8px 20px', fontSize: '12px', fontWeight: 600,
+              borderRadius: 'var(--radius-sm)', padding: '8px 20px', fontSize: '12px', fontWeight: 600,
               cursor: 'pointer',
             }}
           >

@@ -25,7 +25,7 @@ const rprAverage = (values) => {
 const CARD_STYLE = {
   backgroundColor: 'var(--bg-secondary)',
   border: '1px solid var(--border-color)',
-  borderRadius: '8px',
+  borderRadius: 'var(--radius-md)',
   overflow: 'hidden',
   boxShadow: 'var(--card-shadow)',
   marginBottom: '16px',
@@ -145,7 +145,7 @@ function EmptyState({ onSearch }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', maxWidth: '680px' }}>
         {POPULAR_TICKERS.map(sym => (
           <button key={sym} onClick={() => onSearch(sym)} style={{
-            backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '6px',
+            backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)',
             color: 'var(--gold)', fontSize: '12px', fontWeight: 600, fontFamily: 'monospace',
             padding: '6px 14px', cursor: 'pointer', transition: 'all 150ms',
           }}
@@ -162,7 +162,7 @@ function EmptyState({ onSearch }) {
         <div style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Trending Today</div>
         {trendingLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
-            {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '100px', borderRadius: '8px' }} />)}
+            {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '100px', borderRadius: 'var(--radius-md)' }} />)}
           </div>
         ) : trending.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
@@ -173,7 +173,7 @@ function EmptyState({ onSearch }) {
               return (
                 <div key={`${t.symbol}-${i}`} onClick={() => onSearch(t.symbol)} style={{
                   backgroundColor: 'var(--row-section-bg)',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--radius-md)',
                   padding: '12px',
                   cursor: 'pointer',
                   transition: 'background 150ms ease',
@@ -205,7 +205,7 @@ function EmptyState({ onSearch }) {
             <button key={s.ticker} onClick={() => onSearch(s.ticker)} style={{
               backgroundColor: 'var(--row-section-bg)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-md)',
               padding: '8px 14px',
               cursor: 'pointer',
               transition: 'background 150ms ease',
@@ -279,7 +279,7 @@ function CompanySnapshot({ quote, profile }) {
       <div style={{ padding: '16px' }}>
         <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
           {logoUrl && (
-            <div style={{ width: '64px', height: '64px', borderRadius: '8px', border: '1px solid var(--border-color)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-primary)' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-primary)' }}>
               <img src={logoUrl} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; }} />
             </div>
           )}
@@ -294,7 +294,7 @@ function CompanySnapshot({ quote, profile }) {
               {quote.exchange && <span style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>{quote.exchange}</span>}
             </div>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {profile?.sector && <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 600, backgroundColor: 'rgba(234,179,8,0.1)', color: 'var(--gold)', border: '1px solid rgba(234,179,8,0.2)' }}>{profile.sector}</span>}
+              {profile?.sector && <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 600, backgroundColor: 'rgba(229,185,78,0.1)', color: 'var(--gold)', border: '1px solid rgba(229,185,78,0.2)' }}>{profile.sector}</span>}
               {profile?.industry && <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 600, backgroundColor: 'rgba(59,130,246,0.1)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.2)' }}>{profile.industry}</span>}
             </div>
           </div>
@@ -376,7 +376,7 @@ function ValuationScorecard({ quote, analyst }) {
     <div style={CARD_STYLE}>
       <h3 style={SECTION_HEADER}>Valuation Scorecard <InfoTooltip text="Composite score based on P/E, P/B, PEG ratio, and dividend yield" /></h3>
       <div style={{ padding: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '12px 16px', backgroundColor: 'var(--bg-primary)', borderRadius: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '12px 16px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)' }}>
           <div style={{ fontSize: '36px', fontWeight: 700, fontFamily: 'monospace', color: scoreColor(avgScore), lineHeight: 1 }}>{avgScore.toFixed(1)}</div>
           <div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: scoreColor(avgScore) }}>{scoreLabel(avgScore)}</div>
@@ -448,15 +448,15 @@ function AnalystConsensus({ analyst, quote }) {
         </div>
         {/* Consensus summary boxes */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: 'var(--radius-sm)', padding: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-green)', fontFamily: 'monospace' }}>{pctBullish}%</div>
             <div style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '2px' }}>Bullish</div>
           </div>
-          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: 'var(--radius-sm)', padding: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gold)', fontFamily: 'monospace' }}>{pctNeutral}%</div>
             <div style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '2px' }}>Neutral</div>
           </div>
-          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
+          <div style={{ flex: 1, backgroundColor: 'var(--row-section-bg)', borderRadius: 'var(--radius-sm)', padding: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-red)', fontFamily: 'monospace' }}>{pctBearish}%</div>
             <div style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '2px' }}>Bearish</div>
           </div>
@@ -474,7 +474,7 @@ function AnalystConsensus({ analyst, quote }) {
           const range = high - low;
           const meanPos = range > 0 ? ((analyst.targetMeanPrice - low) / range) * 100 : 50;
           return (
-            <div style={{ padding: '12px', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', marginTop: 'auto' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)', marginTop: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <div style={{ textAlign: 'left' }}>
                   <div style={{ color: 'var(--text-tertiary)', fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>Bear</div>
@@ -523,7 +523,7 @@ function EarningsHistoryChart({ earnings }) {
               if (!active || !payload?.length) return null;
               const d = payload[0].payload;
               return (
-                <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
+                <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px' }}>
                   <div style={{ color: 'var(--text-primary)' }}>Actual: {formatPrice(d.actual)}</div>
                   <div style={{ color: 'var(--text-secondary)' }}>Est: {formatPrice(d.estimate)}</div>
                   {d.surprise != null && <div style={{ color: d.surprise >= 0 ? 'var(--green)' : 'var(--red)' }}>Surprise: {d.surprise >= 0 ? '+' : ''}{d.surprise.toFixed(1)}%</div>}
@@ -565,7 +565,7 @@ function RevenueTrend({ financials }) {
               if (!active || !payload?.length) return null;
               const d = payload[0].payload;
               return (
-                <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
+                <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px' }}>
                   <div style={{ color: 'var(--text-primary)' }}>Revenue: {formatMarketCap(d.revenue)}</div>
                   <div style={{ color: d.netIncome >= 0 ? 'var(--green)' : 'var(--red)' }}>Net Income: {formatMarketCap(d.netIncome)}</div>
                 </div>
@@ -669,8 +669,8 @@ function TechnicalIndicators({ technicals, quote }) {
 const RPB_SCENARIOS = {
   0: { label: 'Bear', color: '#dc2626', wacc: 13.0, revenueGrowth: -2.0, netMargin: 4.0, ebitdaMargin: 16.0, terminalGrowth: 1.0 },
   1: { label: 'Conservative', color: '#f59e0b', wacc: 11.5, revenueGrowth: 4.0, netMargin: 7.0, ebitdaMargin: 21.0, terminalGrowth: 2.0 },
-  2: { label: 'Base', color: '#F0A500', wacc: 10.0, revenueGrowth: 8.0, netMargin: 10.0, ebitdaMargin: 25.0, terminalGrowth: 2.5 },
-  3: { label: 'Bull', color: '#4ade80', wacc: 8.5, revenueGrowth: 15.0, netMargin: 14.0, ebitdaMargin: 30.0, terminalGrowth: 3.0 },
+  2: { label: 'Base', color: '#E5B94E', wacc: 10.0, revenueGrowth: 8.0, netMargin: 10.0, ebitdaMargin: 25.0, terminalGrowth: 2.5 },
+  3: { label: 'Bull', color: '#5CF0B8', wacc: 8.5, revenueGrowth: 15.0, netMargin: 14.0, ebitdaMargin: 30.0, terminalGrowth: 3.0 },
   4: { label: 'Aggressive', color: '#a855f7', wacc: 7.0, revenueGrowth: 25.0, netMargin: 20.0, ebitdaMargin: 38.0, terminalGrowth: 4.0 },
 };
 
@@ -783,13 +783,13 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
     return (
       <div style={{
         ...CARD_STYLE,
-        background: 'linear-gradient(135deg, rgba(240,165,0,0.08) 0%, rgba(240,165,0,0.03) 100%)',
-        border: '1px solid rgba(240,165,0,0.3)',
-        borderLeft: '4px solid #F0A500',
+        background: 'linear-gradient(135deg, rgba(229,185,78,0.08) 0%, rgba(229,185,78,0.03) 100%)',
+        border: '1px solid rgba(229,185,78,0.3)',
+        borderLeft: '4px solid #E5B94E',
         padding: '24px',
         textAlign: 'center',
       }}>
-        <div className="skeleton" style={{ height: '80px', borderRadius: '8px', marginBottom: '8px' }} />
+        <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-md)', marginBottom: '8px' }} />
         <div style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Calculating RPR Fair Value...</div>
       </div>
     );
@@ -799,13 +799,13 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
     return (
       <div style={{
         ...CARD_STYLE,
-        background: 'linear-gradient(135deg, rgba(240,165,0,0.04) 0%, rgba(240,165,0,0.01) 100%)',
-        border: '1px solid rgba(240,165,0,0.15)',
-        borderLeft: '4px solid rgba(240,165,0,0.3)',
+        background: 'linear-gradient(135deg, rgba(229,185,78,0.04) 0%, rgba(229,185,78,0.01) 100%)',
+        border: '1px solid rgba(229,185,78,0.15)',
+        borderLeft: '4px solid rgba(229,185,78,0.3)',
         padding: '16px 24px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '10px', fontWeight: 900, backgroundColor: '#F0A500', color: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '3px' }}>RPR</span>
+          <span style={{ fontSize: '10px', fontWeight: 900, backgroundColor: '#E5B94E', color: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '3px' }}>RPR</span>
           <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Insufficient data to calculate RPR Fair Value</span>
         </div>
       </div>
@@ -818,9 +818,9 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
   const isOver = upside < -15;
 
   const verdictStyle = isUnder
-    ? { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)', color: 'var(--green)', icon: '\u25B2', label: 'UNDERVALUED' }
+    ? { bg: 'rgba(46,230,166,0.12)', border: 'rgba(46,230,166,0.3)', color: 'var(--green)', icon: '\u25B2', label: 'UNDERVALUED' }
     : isOver
-    ? { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', color: 'var(--red)', icon: '\u25BC', label: 'OVERVALUED' }
+    ? { bg: 'rgba(255,107,135,0.12)', border: 'rgba(255,107,135,0.3)', color: 'var(--red)', icon: '\u25BC', label: 'OVERVALUED' }
     : { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', color: '#f59e0b', icon: '\u25C6', label: 'FAIRLY VALUED' };
 
   const confStyle = rprData.confidence === 'HIGH'
@@ -832,15 +832,15 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
   return (
     <div style={{
       ...CARD_STYLE,
-      background: 'linear-gradient(135deg, rgba(240,165,0,0.08) 0%, rgba(240,165,0,0.03) 100%)',
-      border: '1px solid rgba(240,165,0,0.3)',
-      borderLeft: '4px solid #F0A500',
+      background: 'linear-gradient(135deg, rgba(229,185,78,0.08) 0%, rgba(229,185,78,0.03) 100%)',
+      border: '1px solid rgba(229,185,78,0.3)',
+      borderLeft: '4px solid #E5B94E',
       padding: '16px 24px',
     }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '10px', fontWeight: 900, backgroundColor: '#F0A500', color: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '3px' }}>RPR</span>
+          <span style={{ fontSize: '10px', fontWeight: 900, backgroundColor: '#E5B94E', color: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '3px' }}>RPR</span>
           <span style={{ color: 'var(--text-label)', fontSize: '11px', fontWeight: 600 }}>REACH POINT RESEARCH MODEL</span>
           <div className="tooltip-container">
             <Info size={12} color="var(--text-tertiary)" />
@@ -852,7 +852,7 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
           {setActiveTab && (
             <span
               onClick={() => { if (setActiveSymbol) setActiveSymbol(symbol); setActiveTab('Models'); }}
-              style={{ color: '#F0A500', fontSize: '11px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+              style={{ color: '#E5B94E', fontSize: '11px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
@@ -902,14 +902,14 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
       <div style={{ display: 'flex', gap: '24px', marginTop: '16px', alignItems: 'flex-start' }}>
         {/* Left — Fair Value + Verdict */}
         <div style={{ flex: 1 }}>
-          <div style={{ color: '#F0A500', fontSize: '36px', fontWeight: 900, fontFamily: 'monospace', lineHeight: 1 }}>
+          <div style={{ color: '#E5B94E', fontSize: '36px', fontWeight: 900, fontFamily: 'monospace', lineHeight: 1 }}>
             {formatPrice(rprData.fairValue)}
           </div>
           <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
             vs {formatPrice(currentPrice)} current
           </div>
           <div style={{
-            marginTop: '8px', padding: '8px', borderRadius: '6px', textAlign: 'center',
+            marginTop: '8px', padding: '8px', borderRadius: 'var(--radius-sm)', textAlign: 'center',
             backgroundColor: verdictStyle.bg, border: `1px solid ${verdictStyle.border}`,
           }}>
             <span style={{ color: verdictStyle.color, fontSize: '13px', fontWeight: 700 }}>
@@ -934,9 +934,9 @@ function RPRFairValue({ symbol, quote, setActiveTab, setActiveSymbol }) {
             </div>
           ))}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', marginTop: '2px' }}>
-            <span style={{ color: '#F0A500', fontSize: '11px', fontWeight: 700 }}>RPR Fair Value</span>
-            <span style={{ color: '#F0A500', fontSize: '10px' }}>100%</span>
-            <span style={{ color: '#F0A500', fontSize: '12px', fontWeight: 700, fontFamily: 'monospace' }}>
+            <span style={{ color: '#E5B94E', fontSize: '11px', fontWeight: 700 }}>RPR Fair Value</span>
+            <span style={{ color: '#E5B94E', fontSize: '10px' }}>100%</span>
+            <span style={{ color: '#E5B94E', fontSize: '12px', fontWeight: 700, fontFamily: 'monospace' }}>
               {formatPrice(rprData.fairValue)}
             </span>
           </div>
@@ -999,10 +999,10 @@ function OverallSignal({ technicals, valuation }) {
   else if (bearish > bullish && bearish >= 3) { overall = 'BEARISH'; overallColor = 'var(--red)'; OverallIcon = TrendingDown; }
 
   const bgGradient = overall === 'BULLISH'
-    ? 'linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(10,14,26,0) 100%)'
+    ? 'linear-gradient(135deg, rgba(46,230,166,0.08) 0%, rgba(10,14,26,0) 100%)'
     : overall === 'BEARISH'
-    ? 'linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(10,14,26,0) 100%)'
-    : 'linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(10,14,26,0) 100%)';
+    ? 'linear-gradient(135deg, rgba(255,107,135,0.08) 0%, rgba(10,14,26,0) 100%)'
+    : 'linear-gradient(135deg, rgba(229,185,78,0.08) 0%, rgba(10,14,26,0) 100%)';
 
   return (
     <div style={{ ...CARD_STYLE, background: bgGradient, borderLeft: `3px solid ${overallColor}` }}>
@@ -1018,7 +1018,7 @@ function OverallSignal({ technicals, valuation }) {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end', maxWidth: '400px' }}>
           {signals.map((s, i) => (
-            <span key={i} style={{ fontSize: '10px', fontWeight: 600, padding: '3px 10px', borderRadius: '12px', backgroundColor: s.type === 'bullish' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: s.type === 'bullish' ? 'var(--green)' : 'var(--red)', border: `1px solid ${s.type === 'bullish' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
+            <span key={i} style={{ fontSize: '10px', fontWeight: 600, padding: '3px 10px', borderRadius: 'var(--radius-lg)', backgroundColor: s.type === 'bullish' ? 'rgba(46,230,166,0.15)' : 'rgba(255,107,135,0.15)', color: s.type === 'bullish' ? 'var(--green)' : 'var(--red)', border: `1px solid ${s.type === 'bullish' ? 'rgba(46,230,166,0.3)' : 'rgba(255,107,135,0.3)'}` }}>
               {s.label}
             </span>
           ))}
@@ -1152,7 +1152,7 @@ function AutoThesis({ quote, analyst, technicals, valuation, profile, financials
         {(bullPoints.length > 0 || bearPoints.length > 0) && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             {bullPoints.length > 0 && (
-              <div style={{ backgroundColor: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '8px', padding: '14px' }}>
+              <div style={{ backgroundColor: 'rgba(46,230,166,0.06)', border: '1px solid rgba(46,230,166,0.2)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
                 <div style={{ color: 'var(--green)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '8px' }}>BULL CASE</div>
                 {bullPoints.map((p, i) => (
                   <div key={i} style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.6, marginBottom: '4px', display: 'flex', gap: '6px' }}>
@@ -1163,7 +1163,7 @@ function AutoThesis({ quote, analyst, technicals, valuation, profile, financials
               </div>
             )}
             {bearPoints.length > 0 && (
-              <div style={{ backgroundColor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', padding: '14px' }}>
+              <div style={{ backgroundColor: 'rgba(255,107,135,0.06)', border: '1px solid rgba(255,107,135,0.2)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
                 <div style={{ color: 'var(--red)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '8px' }}>BEAR CASE</div>
                 {bearPoints.map((p, i) => (
                   <div key={i} style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.6, marginBottom: '4px', display: 'flex', gap: '6px' }}>
@@ -1238,15 +1238,15 @@ function UserNotes({ symbol }) {
       <div style={{ padding: '16px' }}>
         <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Write your notes..."
           rows={expanded ? 6 : 2}
-          style={{ width: '100%', resize: 'vertical', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.6, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color 150ms ease' }}
+          style={{ width: '100%', resize: 'vertical', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '12px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.6, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color 150ms ease' }}
           onFocus={e => { e.target.style.borderColor = 'var(--gold)'; setExpanded(true); }}
           onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; if (!notes.trim()) setExpanded(false); }} />
         {expanded && (
           <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-            <button onClick={handleSave} style={{ backgroundColor: 'var(--gold)', border: 'none', borderRadius: '6px', padding: '8px 16px', color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button onClick={handleSave} style={{ backgroundColor: 'var(--gold)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {saved ? <><Check size={12} /> Saved!</> : <><Save size={12} /> Save</>}
             </button>
-            <button onClick={handleExport} style={{ backgroundColor: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 16px', color: 'var(--text-secondary)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button onClick={handleExport} style={{ backgroundColor: 'transparent', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', color: 'var(--text-secondary)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Export</>}
             </button>
           </div>
@@ -1345,8 +1345,8 @@ function KeyRisks({ quote, analyst, technicals, profile, financials }) {
   if (risks.length === 0) return null;
 
   const severityStyles = {
-    High: { bg: 'rgba(239,68,68,0.12)', color: 'var(--red)', border: 'rgba(239,68,68,0.25)', badge: 'var(--red)' },
-    Medium: { bg: 'rgba(234,179,8,0.12)', color: 'var(--gold)', border: 'rgba(234,179,8,0.25)', badge: 'var(--gold)' },
+    High: { bg: 'rgba(255,107,135,0.12)', color: 'var(--red)', border: 'rgba(255,107,135,0.25)', badge: 'var(--red)' },
+    Medium: { bg: 'rgba(229,185,78,0.12)', color: 'var(--gold)', border: 'rgba(229,185,78,0.25)', badge: 'var(--gold)' },
     Low: { bg: 'rgba(59,130,246,0.12)', color: '#3B82F6', border: 'rgba(59,130,246,0.25)', badge: '#3B82F6' },
   };
 
@@ -1357,7 +1357,7 @@ function KeyRisks({ quote, analyst, technicals, profile, financials }) {
         {risks.map((r, i) => {
           const s = severityStyles[r.severity] || severityStyles.Low;
           return (
-            <div key={i} style={{ backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '6px', padding: '10px 12px' }}>
+            <div key={i} style={{ backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <AlertTriangle size={12} color={s.color} />
                 <span style={{ color: s.color, fontSize: '12px', fontWeight: 600 }}>{r.label}</span>
@@ -1438,7 +1438,7 @@ function ComparableCompanies({ symbol, profile, quote }) {
                   <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{formatDividendYield(q.dividendYield)}</td>
                 </tr>
               ))}
-              <tr style={{ backgroundColor: 'rgba(234,179,8,0.06)' }}>
+              <tr style={{ backgroundColor: 'rgba(229,185,78,0.06)' }}>
                 <td style={{ ...COL, textAlign: 'left', fontWeight: 700, color: 'var(--gold)', fontSize: '10px' }}>MEDIAN</td>
                 <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{formatPrice(median(rows, r => r.price))}</td>
                 <td style={{ ...COL, textAlign: 'right', color: 'var(--text-secondary)' }}>{formatPercent(median(rows, r => r.changesPercentage))}</td>
@@ -1825,7 +1825,7 @@ export default function AnalysisTab({ setActiveTab }) {
       ) : loading ? (
         <div>{[1, 2, 3].map(i => (<div key={i} style={{ ...CARD_STYLE, padding: '16px' }}><SkeletonBlock width="40%" height="14px" style={{ marginBottom: '16px' }} /><SkeletonBlock width="100%" height="24px" style={{ marginBottom: '8px' }} /><SkeletonBlock width="80%" height="16px" /></div>))}</div>
       ) : error ? (
-        <div style={{ padding: '20px', backgroundColor: 'var(--red-muted)', border: '1px solid #7F1D1D', borderRadius: '8px' }}>
+        <div style={{ padding: '20px', backgroundColor: 'var(--red-muted)', border: '1px solid #7F1D1D', borderRadius: 'var(--radius-md)' }}>
           <p style={{ color: 'var(--red)', margin: '0 0 8px', fontSize: '13px' }}>{error}</p>
           <button onClick={fetchData} style={{ background: 'var(--red)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Retry</button>
         </div>

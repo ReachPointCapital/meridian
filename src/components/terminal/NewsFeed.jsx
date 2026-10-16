@@ -21,7 +21,7 @@ function sourceInitial(source) {
   return (source || '?').charAt(0).toUpperCase();
 }
 
-const SOURCE_COLORS = ['#C9A84C', '#22C55E', '#3B82F6', '#8B5CF6', '#EC4899', '#F97316'];
+const SOURCE_COLORS = ['var(--gold)', '#2EE6A6', '#3B82F6', '#8B5CF6', '#EC4899', '#F97316'];
 function getSourceColor(source) {
   let hash = 0;
   for (let i = 0; i < (source || '').length; i++) hash += source.charCodeAt(i);
@@ -50,7 +50,7 @@ function SourceAvatar({ site, url }) {
       width: '36px', height: '36px', borderRadius: '50%',
       backgroundColor: getSourceColor(site),
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#0A0E1A', fontWeight: 700, fontSize: '14px', flexShrink: 0,
+      color: 'var(--bg-primary)', fontWeight: 700, fontSize: '14px', flexShrink: 0,
     }}>
       {sourceInitial(site)}
     </div>
@@ -141,11 +141,11 @@ function NewsItem({ item, isLast }) {
           animation: 'fadeIn 150ms ease',
         }}>
           {loadingSummary ? (
-            <div className="skeleton" style={{ height: '48px', borderRadius: '6px' }} />
+            <div className="skeleton" style={{ height: '48px', borderRadius: 'var(--radius-sm)' }} />
           ) : (
             <p style={{
               color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.5, margin: 0,
-              backgroundColor: 'var(--bg-tertiary)', borderRadius: '6px', padding: '10px 12px',
+              backgroundColor: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', padding: '10px 12px',
             }}>
               {summary}
             </p>
@@ -179,7 +179,7 @@ export default function NewsFeed({ symbol }) {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
       <h3 style={{ color: 'var(--text-secondary)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 12px' }}>News</h3>
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid var(--border-color)' }}>
@@ -194,7 +194,7 @@ export default function NewsFeed({ symbol }) {
   );
 
   if (error) return (
-    <div style={{ backgroundColor: 'var(--red-muted)', border: '1px solid #7F1D1D', borderRadius: '8px', padding: '16px' }}>
+    <div style={{ backgroundColor: 'var(--red-muted)', border: '1px solid #7F1D1D', borderRadius: 'var(--radius-md)', padding: '16px' }}>
       <p style={{ color: 'var(--red)', margin: '0 0 8px', fontSize: '13px' }}>{error}</p>
       <button onClick={load} style={{ background: 'var(--red)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
         Retry
@@ -205,7 +205,7 @@ export default function NewsFeed({ symbol }) {
   const visible = news.slice(0, showing);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px', boxShadow: 'var(--card-shadow)' }}>
       <h3 style={{ color: 'var(--text-secondary)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 4px' }}>
         Latest News {'\u2014'} {symbol}
       </h3>
@@ -225,7 +225,7 @@ export default function NewsFeed({ symbol }) {
               onClick={() => setShowing(s => s + 10)}
               style={{
                 display: 'block', width: '100%', marginTop: '12px', padding: '8px',
-                background: 'none', border: '1px solid var(--border-color)', borderRadius: '6px',
+                background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)',
                 color: 'var(--text-secondary)', fontSize: '12px', cursor: 'pointer', transition: 'all 150ms ease',
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}

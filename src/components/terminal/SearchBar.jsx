@@ -134,7 +134,7 @@ export default function SearchBar({ onSelect, large }) {
           right: 0,
           backgroundColor: 'var(--bg-secondary)',
           border: '1px solid var(--border-color)',
-          borderRadius: '6px',
+          borderRadius: 'var(--radius-sm)',
           zIndex: 200,
           overflow: 'hidden',
           boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
