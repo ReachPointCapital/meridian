@@ -24,13 +24,15 @@
     "swr": "^2.4.1",
     "tailwindcss": "^4.2.1",
     "web-vitals": "^2.1.4",
-    "yahoo-finance2": "^3.13.2"
+    "yahoo-finance2": "^4.0.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:api": "node --test \"test/**/*.test.js\"",
+    "test:utils": "TZ=America/Los_Angeles CI=true react-scripts test --watchAll=false src/utils"
   },
   "eslintConfig": {
     "extends": [
@@ -49,5 +51,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

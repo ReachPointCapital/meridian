@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import TickerSearch from '../components/TickerSearch';
-import { formatPrice, formatPct } from '../utils/format';
+import { formatPct } from '../utils/format';
+import { formatQuoteValue } from '../utils/formatters';
 
 const TICKER_CHIPS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'SPY', 'BTC-USD'];
 
@@ -17,10 +18,11 @@ const NAV_TILES = [
   { label: 'News', desc: 'Market news and top stories', path: '/news' },
 ];
 
+// Real index levels, not the SPY/QQQ/DIA ETF prices (an ETF price is ~1/10 of the index and was labelled as the index)
 const PRICE_TILES = [
-  { symbol: 'SPY', label: 'S&P 500' },
-  { symbol: 'QQQ', label: 'NASDAQ' },
-  { symbol: 'DIA', label: 'Dow Jones' },
+  { symbol: '^GSPC', label: 'S&P 500' },
+  { symbol: '^NDX', label: 'NASDAQ 100' },
+  { symbol: '^DJI', label: 'Dow Jones' },
   { symbol: 'GC=F', label: 'Gold' },
   { symbol: '^VIX', label: 'VIX' },
   { symbol: 'BTC-USD', label: 'Bitcoin' },
@@ -33,7 +35,8 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/dashboard?type=macro');
+        const symbols = PRICE_TILES.map(t => t.symbol).join(',');
+        const res = await fetch(`/api/market?type=quote&symbol=${encodeURIComponent(symbols)}`);
         const data = await res.json();
         if (Array.isArray(data)) {
           const map = {};
@@ -50,8 +53,8 @@ export default function Home() {
 
   // Mini stat pills for Dashboard hero tile
   const miniStats = [
-    { symbol: 'SPY', label: 'S&P' },
-    { symbol: 'QQQ', label: 'NDX' },
+    { symbol: '^GSPC', label: 'S&P' },
+    { symbol: '^NDX', label: 'NDX' },
     { symbol: 'BTC-USD', label: 'BTC' },
   ];
 
@@ -152,7 +155,7 @@ export default function Home() {
                   {tile.label}
                 </div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace', marginBottom: '2px' }}>
-                  {price != null ? formatPrice(price) : '\u2014'}
+                  {formatQuoteValue(tile.symbol, price)}
                 </div>
                 <div style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
                   {price != null ? `${isPos ? '+' : ''}${formatPct(changePct, 2)}` : ''}
@@ -212,7 +215,7 @@ export default function Home() {
                   }}>
                     <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '9px', fontWeight: 600, letterSpacing: '0.06em' }}>{s.label}</div>
                     <div style={{ color: '#F0A500', fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', marginTop: '2px' }}>
-                      {d?.price != null ? formatPrice(d.price) : '\u2014'}
+                      {formatQuoteValue(s.symbol, d?.price)}
                     </div>
                     {pct != null && (
                       <div style={{ color: isPos ? '#22C55E' : '#EF4444', fontSize: '10px', fontWeight: 600, fontFamily: 'monospace' }}>

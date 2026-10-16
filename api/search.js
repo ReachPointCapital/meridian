@@ -1,5 +1,5 @@
 const { getCached, setCached } = require('./_cache');
-const yahooFinance = require('yahoo-finance2').default;
+const { yf: yahooFinance } = require('./_yf');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
