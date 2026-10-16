@@ -29,7 +29,8 @@ module.exports = async (req, res) => {
       const response = await fetch(url);
       const data = await response.json();
       const result = Array.isArray(data) ? data : [];
-      setCached(cacheKey, result, 3600); res.setHeader('X-Cache', 'MISS'); res.setHeader('X-Source', 'fmp'); return res.json(result);
+      if (result.length > 0) setCached(cacheKey, result, 3600); // don't pin an empty answer for an hour
+      res.setHeader('X-Cache', 'MISS'); res.setHeader('X-Source', 'fmp'); return res.json(result);
     } catch (e) { console.error('News Tier2 (FMP) failed:', e.message); }
 
     return res.status(500).json({ error: 'All news sources failed' });
@@ -85,7 +86,7 @@ module.exports = async (req, res) => {
       let context = '';
       try {
         const macro = await yahooMacro();
-        context = macro.filter(m => m.price != null).map(m => `${m.label}: $${Number(m.price).toFixed(2)} (${(m.changePercent ?? 0) >= 0 ? '+' : ''}${Number(m.changePercent ?? 0).toFixed(2)}%)`).join(', ');
+        context = macro.filter(m => m.price != null).map(m => `${m.label}: ${Number(m.price).toFixed(2)} (${(m.changePercent ?? 0) >= 0 ? '+' : ''}${Number(m.changePercent ?? 0).toFixed(2)}%)`).join(', ');
       } catch {}
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',

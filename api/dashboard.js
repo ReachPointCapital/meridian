@@ -1,8 +1,7 @@
 const { getCached, setCached } = require('./_cache');
 const { FMP_KEY, FMP_BASE } = require('./_helpers');
 const { yahooMacro, yahooYields, yahooCrypto } = require('./_yahoo');
-const YahooFinance = require('yahoo-finance2').default;
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+const { yf: yahooFinance } = require('./_yf');
 
 // ── Central Banks constants ──
 const FRED_API = 'https://api.stlouisfed.org/fred/series/observations';
@@ -299,18 +298,7 @@ module.exports = async (req, res) => {
       } catch (e) { console.error(`[IPOs] Tier ${i + 1} failed:`, e.message); }
     }
 
-    // Tier 5: Yahoo screener
-    try {
-      console.log('[IPOs] Tier 5: Yahoo screener');
-      const result = await yahooFinance.screener({ scrIds: 'ipo_upcoming', count: 25 });
-      const quotes = result.quotes || [];
-      if (quotes.length > 0) {
-        const mapped = quotes.map(q => ({ symbol: q.symbol, company: q.longName || q.shortName || q.symbol, date: q.ipoExpectedDate || from, exchange: q.fullExchangeName || q.exchange, priceRange: q.ipoExpectedPrice ? `$${q.ipoExpectedPrice}` : null }));
-        setCached(cacheKey, mapped, 86400); return res.json(mapped);
-      }
-    } catch (e) { console.error('[IPOs] Tier 5 (Yahoo screener) failed:', e.message); }
-
-    // Tier 6: SEC EDGAR
+    // Tier 5: SEC EDGAR (Yahoo has no upcoming-IPO screener: 'ipo_upcoming' is not a valid scrId)
     try {
       console.log('[IPOs] Tier 6: SEC EDGAR S-1/424B4');
       const headers = { 'User-Agent': 'Meridian/1.0 info@reachpointcapital.com' };
