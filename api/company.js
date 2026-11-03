@@ -1,262 +1,208 @@
 const { getCached, setCached } = require('./_cache');
 const { FMP_KEY, FMP_BASE } = require('./_helpers');
-const { yahooFullAnalysis, yahooAnalyst, yahooProfile, yahooEarnings } = require('./_yahoo');
+const { yahooFullAnalysis, yahooAnalyst, yahooProfile, yahooEarnings, getQuoteMap } = require('./_yahoo');
 const { yf: yahooFinance } = require('./_yf');
+const { earningsSymbols, mapFmpEarnings } = require('./_calendar');
+const { withApi, redactUrl } = require('./_api');
 
-// ── Earnings calendar mapper ──
-const mapFMPEarning = (e) => ({
-  symbol: e.symbol, name: e.name || e.symbol, date: e.date,
-  epsEstimate: e.epsEstimated, epsActual: e.eps,
-  revenueEstimate: e.revenueEstimated, revenueActual: e.revenue,
-  time: e.time || 'unknown', fiscalDateEnding: e.fiscalDateEnding,
-});
+const DAY = 86400000;
+const isoDate = (d) => d.toISOString().slice(0, 10);
+const warn = (label, e) => console.warn(`[company] ${label}: ${redactUrl((e && e.message) || e)}`);
 
-// ── Shorts screener IDs ──
-const SHORTS_SCREENER_IDS = ['most_shorted_stocks']; // the only short-interest screener Yahoo's predefined list has
+// Seconds, used both in memory and as the CDN s-maxage.
+const TTL = { analysis: 3600, analyst: 3600, profile: 86400, earnings: 21600, earningshistory: 3600, shorts: 3600 };
 
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
-  const { type } = req.query;
+// ── per-symbol lookups: analysis, analyst, earningshistory ──
+// A loader resolves to the data, or null when the symbol does not exist.
+const SYMBOL_LOADERS = new Map([
+  ['analysis', async (symbol) => {
+    const data = await yahooFullAnalysis(symbol); // never throws: missing parts come back null
+    return data.quote || data.profile ? data : null;
+  }],
+  ['analyst', yahooAnalyst],
+  ['earningshistory', yahooEarnings],
+]);
 
-  // ── analysis ──
-  if (type === 'analysis') {
-    const { symbol } = req.query;
-    if (!symbol) return res.status(400).json({ error: 'symbol required' });
-    const cacheKey = `analysis_${symbol}`;
-    const cached = getCached(cacheKey);
-    if (cached) { res.setHeader('X-Cache', 'HIT'); return res.json(cached); }
+async function forSymbol(type, req, res) {
+  const { symbol } = req.query;
+  if (!symbol) return res.status(400).json({ error: 'symbol required' });
+  const cacheKey = `${type}_${symbol}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    res.setHeader('X-Cache', 'HIT');
+    return res.json(cached);
+  }
+  const data = await SYMBOL_LOADERS.get(type)(symbol);
+  if (data == null) return res.status(404).json({ error: 'Symbol not found' });
+  setCached(cacheKey, data, TTL[type]);
+  res.setHeader('X-Cache', 'MISS');
+  return res.json(data);
+}
+
+// ── profile ──
+async function fmpProfile(symbol) {
+  const response = await fetch(`${FMP_BASE}/profile?symbol=${encodeURIComponent(symbol)}&apikey=${FMP_KEY}`, { signal: AbortSignal.timeout(5000) });
+  if (!response.ok) throw new Error(`FMP profile responded ${response.status}`);
+  const data = await response.json();
+  if (!Array.isArray(data) || data.length === 0) throw new Error('FMP returned no profile');
+  return data;
+}
+
+async function profile(req, res) {
+  const { symbol } = req.query;
+  if (!symbol) return res.status(400).json({ error: 'symbol required' });
+  const cacheKey = `profile_${symbol}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    res.setHeader('X-Cache', 'HIT');
+    return res.json(cached);
+  }
+  let data;
+  let source = 'yahoo';
+  try {
+    data = await yahooProfile(symbol);
+  } catch (yahooError) {
+    if (/not found/i.test(yahooError.message)) throw yahooError; // an unknown ticker is unknown to FMP too
+    warn('profile (Yahoo)', yahooError);
     try {
-      const data = await yahooFullAnalysis(symbol);
-      setCached(cacheKey, data, 3600); res.setHeader('X-Cache', 'MISS'); return res.json(data);
-    } catch (error) {
-      console.error(`Analysis failed for ${symbol}:`, error.message);
-      return res.status(500).json({ error: 'Failed to fetch analysis data' });
+      data = await fmpProfile(symbol);
+      source = 'fmp';
+    } catch (fmpError) {
+      warn('profile (FMP)', fmpError);
+      throw yahooError;
     }
   }
+  setCached(cacheKey, data, TTL.profile);
+  res.setHeader('X-Cache', 'MISS');
+  res.setHeader('X-Source', source);
+  return res.json(data);
+}
 
-  // ── analyst ──
-  if (type === 'analyst') {
-    const { symbol } = req.query;
-    if (!symbol) return res.status(400).json({ error: 'symbol required' });
-    const cacheKey = `analyst_${symbol}`;
-    const cached = getCached(cacheKey);
-    if (cached) { res.setHeader('X-Cache', 'HIT'); return res.json(cached); }
+// ── earnings calendar ──
+// FMP's current endpoint is /stable/earnings-calendar (the old code called /stable/earning_calendar, which 404s).
+// It lists thousands of tickers, so names and market caps are looked up (batched) only for the covered US ones.
+async function fmpEarnings(from, to) {
+  const response = await fetch(`${FMP_BASE}/earnings-calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`, { signal: AbortSignal.timeout(6000) });
+  if (!response.ok) throw new Error(`FMP earnings responded ${response.status}`);
+  const rows = await response.json();
+  if (!Array.isArray(rows)) throw new Error('FMP earnings returned an unexpected payload');
+
+  const wanted = new Set(earningsSymbols(rows));
+  const quotes = await getQuoteMap([...wanted]).catch((e) => { warn('earnings names (Yahoo)', e); return new Map(); });
+  const names = new Map([...quotes].map(([symbol, q]) => [symbol, { name: q.longName || q.shortName || symbol, marketCap: q.marketCap ?? null }]));
+  return mapFmpEarnings(rows.filter((r) => wanted.has(r.symbol)), names);
+}
+
+// Last resort when FMP is unavailable: the next report date for a fixed list of the largest companies.
+const MAJOR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA', 'JPM', 'V', 'JNJ', 'WMT', 'PG', 'MA', 'HD', 'DIS', 'NFLX', 'ADBE', 'CRM', 'INTC', 'AMD'];
+
+async function majorEarnings(from, to) {
+  const settled = await Promise.allSettled(MAJOR_TICKERS.map((s) => yahooFinance.quoteSummary(s, { modules: ['calendarEvents', 'price'] })));
+  const rows = [];
+  settled.forEach((r, i) => {
+    if (r.status !== 'fulfilled') return;
+    const calendar = r.value?.calendarEvents?.earnings;
+    if (!calendar?.earningsDate?.[0]) return;
+    const date = isoDate(new Date(calendar.earningsDate[0]));
+    if (date < from || date > to) return;
+    const price = r.value.price;
+    const estimate = typeof calendar.epsEstimate === 'number' ? calendar.epsEstimate : calendar.epsEstimate?.raw ?? null;
+    rows.push({ symbol: MAJOR_TICKERS[i], name: price?.longName || price?.shortName || MAJOR_TICKERS[i], date, epsEstimate: estimate, time: 'unknown' });
+  });
+  return rows.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+async function earnings(req, res) {
+  const today = new Date();
+  const from = req.query.from || isoDate(today);
+  const to = req.query.to || isoDate(new Date(today.getTime() + 14 * DAY));
+  const cacheKey = `earnings_${from}_${to}`;
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  let rows = [];
+  try {
+    rows = await fmpEarnings(from, to);
+  } catch (e) {
+    warn('earnings (FMP)', e);
+  }
+  if (rows.length === 0) {
     try {
-      const data = await yahooAnalyst(symbol);
-      setCached(cacheKey, data, 3600); res.setHeader('X-Cache', 'MISS'); return res.json(data);
-    } catch (error) {
-      console.error(`Analyst failed for ${symbol}:`, error.message);
-      return res.status(500).json({ error: 'Failed to fetch analyst data' });
+      rows = await majorEarnings(from, to);
+    } catch (e) {
+      warn('earnings (Yahoo majors)', e);
     }
   }
-
-  // ── profile ──
-  if (type === 'profile') {
-    const { symbol } = req.query;
-    if (!symbol) return res.status(400).json({ error: 'symbol required' });
-    const cacheKey = `profile_${symbol}`;
-    const cached = getCached(cacheKey);
-    if (cached) { res.setHeader('X-Cache', 'HIT'); return res.json(cached); }
-    try {
-      const data = await yahooProfile(symbol);
-      setCached(cacheKey, data, 86400); res.setHeader('X-Cache', 'MISS'); res.setHeader('X-Source', 'yahoo'); return res.json(data);
-    } catch (e) { console.error('Profile Tier1 (Yahoo) failed:', e.message); }
-    try {
-      const response = await fetch(`${FMP_BASE}/profile?symbol=${encodeURIComponent(symbol)}&apikey=${FMP_KEY}`);
-      const data = await response.json();
-      setCached(cacheKey, data, 86400); res.setHeader('X-Cache', 'MISS'); res.setHeader('X-Source', 'fmp'); return res.json(data);
-    } catch (e) { console.error('Profile Tier2 (FMP) failed:', e.message); }
-    return res.status(500).json({ error: 'All profile sources failed' });
-  }
-
-  // ── earnings (calendar) ──
-  if (type === 'earnings') {
-    const today = new Date();
-    const from = req.query.from || today.toISOString().split('T')[0];
-    const fourteenDays = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
-    const to = req.query.to || fourteenDays.toISOString().split('T')[0];
-    console.log(`[Earnings] Fetching from=${from} to=${to}`);
-    const cacheKey = `earnings_${from}_${to}`;
-    const cached = getCached(cacheKey);
-    if (cached) return res.json(cached);
-
-    // Tier 1: FMP stable
-    try {
-      const url = `${FMP_BASE}/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
-      console.log('[Earnings] Tier 1:', url);
-      const response = await fetch(url);
-      console.log('[Earnings] Tier 1 status:', response.status);
-      if (response.status === 401 || response.status === 403) console.error('[Earnings] FMP auth error on Tier 1');
-      const text = await response.text();
-      console.log('[Earnings] Tier 1 raw:', text.substring(0, 500));
-      const data = JSON.parse(text);
-      if (Array.isArray(data) && data.length > 0) { const mapped = data.map(mapFMPEarning); setCached(cacheKey, mapped, 21600); return res.json(mapped); }
-    } catch (e) { console.error('[Earnings] Tier 1 failed:', e.message); }
-
-    // Tier 2: FMP v3
-    try {
-      const url = `https://financialmodelingprep.com/api/v3/earning_calendar?from=${from}&to=${to}&apikey=${FMP_KEY}`;
-      console.log('[Earnings] Tier 2:', url);
-      const response = await fetch(url);
-      console.log('[Earnings] Tier 2 status:', response.status);
-      if (response.status === 401 || response.status === 403) console.error('[Earnings] FMP auth error on Tier 2');
-      const text = await response.text();
-      console.log('[Earnings] Tier 2 raw:', text.substring(0, 500));
-      const data = JSON.parse(text);
-      if (Array.isArray(data) && data.length > 0) { const mapped = data.map(mapFMPEarning); setCached(cacheKey, mapped, 21600); return res.json(mapped); }
-    } catch (e) { console.error('[Earnings] Tier 2 failed:', e.message); }
-
-    // Tier 3: FMP v3 without date params
-    try {
-      const url = `https://financialmodelingprep.com/api/v3/earning_calendar?apikey=${FMP_KEY}`;
-      console.log('[Earnings] Tier 3 (no dates):', url);
-      const response = await fetch(url);
-      console.log('[Earnings] Tier 3 status:', response.status);
-      const text = await response.text();
-      console.log('[Earnings] Tier 3 raw:', text.substring(0, 500));
-      const data = JSON.parse(text);
-      if (Array.isArray(data) && data.length > 0) {
-        const upcoming = data.filter(e => e.date >= from);
-        if (upcoming.length > 0) { const mapped = upcoming.map(mapFMPEarning); setCached(cacheKey, mapped, 21600); return res.json(mapped); }
-      }
-    } catch (e) { console.error('[Earnings] Tier 3 failed:', e.message); }
-
-    // Tier 4: Yahoo Finance earnings calendar page scrape
-    try {
-      console.log('[Earnings] Tier 4: Yahoo earnings calendar scrape');
-      const yahooUrl = `https://finance.yahoo.com/calendar/earnings?from=${from}&to=${to}`;
-      const resp = await fetch(yahooUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' } });
-      const html = await resp.text();
-      const match = html.match(/root\.App\.main\s*=\s*(\{.*?\});\s*\n/s) || html.match(/"rows"\s*:\s*(\[.*?\])/s);
-      if (match) {
-        let rows = [];
-        try {
-          const parsed = JSON.parse(match[1]);
-          rows = parsed?.context?.dispatcher?.stores?.ScreenerResultsStore?.results?.rows || parsed?.context?.dispatcher?.stores?.QuoteStore?.quotes || (Array.isArray(parsed) ? parsed : []);
-        } catch { rows = []; }
-        if (rows.length > 0) {
-          const earnings = rows.slice(0, 30).map(r => ({
-            symbol: r.ticker || r.symbol, name: r.companyshortname || r.shortName || r.ticker || r.symbol,
-            date: r.startdatetime ? new Date(r.startdatetime).toISOString().split('T')[0] : from,
-            epsEstimate: r.epsestimate ?? null, epsActual: r.epsactual ?? null,
-            time: r.startdatetimetype === 'BMO' ? 'bmo' : r.startdatetimetype === 'AMC' ? 'amc' : 'unknown',
-          })).filter(e => e.symbol);
-          if (earnings.length > 0) { console.log(`[Earnings] Tier 4: ${earnings.length} earnings scraped`); setCached(cacheKey, earnings, 21600); return res.json(earnings); }
-        }
-      }
-    } catch (e) { console.error('[Earnings] Tier 4 (Yahoo scrape) failed:', e.message); }
-
-    // Tier 5: yahoo-finance2 SPY top holdings
-    try {
-      console.log('[Earnings] Tier 5: Yahoo SPY holdings');
-      const spyHoldings = await yahooFinance.quoteSummary('SPY', { modules: ['topHoldings'] });
-      const tickers = (spyHoldings?.topHoldings?.holdings || []).map(h => h.symbol).filter(Boolean).slice(0, 50);
-      if (tickers.length > 0) {
-        const results = await Promise.allSettled(tickers.map(s => yahooFinance.quoteSummary(s, { modules: ['calendarEvents'] })));
-        const earnings = [];
-        results.forEach((r, i) => {
-          if (r.status === 'fulfilled') {
-            const events = r.value?.calendarEvents?.earnings;
-            if (events?.earningsDate?.[0]) {
-              const date = new Date(events.earningsDate[0]); const dateStr = date.toISOString().split('T')[0];
-              if (dateStr >= from && dateStr <= to) {
-                const epsEst = typeof events.epsEstimate === 'number' ? events.epsEstimate : events.epsEstimate?.raw ?? null;
-                earnings.push({ symbol: tickers[i], name: tickers[i], date: dateStr, epsEstimate: epsEst, time: 'unknown' });
-              }
-            }
-          }
-        });
-        console.log(`[Earnings] Tier 5: ${earnings.length} earnings found`);
-        if (earnings.length > 0) { setCached(cacheKey, earnings, 21600); return res.json(earnings); }
-      }
-    } catch (e) { console.error('[Earnings] Tier 5 (Yahoo) failed:', e.message); }
-
-    // Tier 6: Hardcoded major upcoming earnings
-    try {
-      console.log('[Earnings] Tier 6: Major companies fallback');
-      const MAJOR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA', 'JPM', 'V', 'JNJ', 'WMT', 'PG', 'MA', 'HD', 'DIS', 'NFLX', 'ADBE', 'CRM', 'INTC', 'AMD'];
-      const results = await Promise.allSettled(MAJOR_TICKERS.map(s => yahooFinance.quoteSummary(s, { modules: ['calendarEvents', 'price'] })));
-      const earnings = [];
-      results.forEach((r, i) => {
-        if (r.status === 'fulfilled') {
-          const cal = r.value?.calendarEvents?.earnings; const price = r.value?.price;
-          if (cal?.earningsDate?.[0]) {
-            const date = new Date(cal.earningsDate[0]); const dateStr = date.toISOString().split('T')[0];
-            const epsEst = typeof cal.epsEstimate === 'number' ? cal.epsEstimate : cal.epsEstimate?.raw ?? null;
-            earnings.push({ symbol: MAJOR_TICKERS[i], name: price?.longName || price?.shortName || MAJOR_TICKERS[i], date: dateStr, epsEstimate: epsEst, time: 'unknown' });
-          }
-        }
-      });
-      earnings.sort((a, b) => new Date(a.date) - new Date(b.date));
-      if (earnings.length > 0) { console.log(`[Earnings] Tier 6: ${earnings.length} major earnings found`); setCached(cacheKey, earnings, 21600); return res.json(earnings); }
-    } catch (e) { console.error('[Earnings] Tier 6 (major companies) failed:', e.message); }
-
-    console.log('[Earnings] All tiers exhausted, returning empty');
+  if (rows.length === 0) {
+    res.setHeader('Cache-Control', 'no-store'); // do not pin an empty answer
     return res.json([]);
   }
+  setCached(cacheKey, rows, TTL.earnings);
+  return res.json(rows);
+}
 
-  // ── earningshistory ──
-  if (type === 'earningshistory') {
-    const { symbol } = req.query;
-    if (!symbol) return res.status(400).json({ error: 'symbol required' });
-    const cacheKey = `earnings_history_${symbol}`;
-    const cached = getCached(cacheKey);
-    if (cached) { res.setHeader('X-Cache', 'HIT'); return res.json(cached); }
-    try {
-      const data = await yahooEarnings(symbol);
-      setCached(cacheKey, data, 3600); res.setHeader('X-Cache', 'MISS'); return res.json(data);
-    } catch (error) {
-      console.error(`Earnings history failed for ${symbol}:`, error.message);
-      return res.status(500).json({ error: 'Failed to fetch earnings history' });
-    }
+// ── shorts ──
+const shortRow = (q, stats = {}) => ({
+  ticker: q.symbol,
+  name: q.longName || q.shortName || q.symbol,
+  price: q.regularMarketPrice,
+  changePercent: q.regularMarketChangePercent,
+  shortPercentOfFloat: stats.shortPercentOfFloat ?? q.shortPercentOfFloat ?? null,
+  shortRatio: stats.shortRatio ?? q.shortRatio ?? null,
+});
+
+// Yahoo's predefined short-interest screener, or (if it is empty) the most active stocks enriched one by one.
+async function mostShorted() {
+  try {
+    const { quotes = [] } = await yahooFinance.screener({ scrIds: 'most_shorted_stocks', count: 20 });
+    if (quotes.length > 0) return { data: quotes.map((q) => shortRow(q)), source: 'yahoo-most_shorted_stocks' };
+  } catch (e) {
+    warn('shorts screener', e);
   }
+  try {
+    const { quotes = [] } = await yahooFinance.screener({ scrIds: 'most_actives', count: 25 });
+    const enriched = await Promise.allSettled(quotes.slice(0, 20).map(async (q) => {
+      const summary = await yahooFinance.quoteSummary(q.symbol, { modules: ['defaultKeyStatistics'] }).catch(() => ({}));
+      const stats = summary.defaultKeyStatistics || {};
+      return shortRow(q, { shortPercentOfFloat: stats.shortPercentOfFloat?.raw ?? stats.shortPercentOfFloat, shortRatio: stats.shortRatio?.raw ?? stats.shortRatio });
+    }));
+    const data = enriched.filter((r) => r.status === 'fulfilled' && r.value.ticker).map((r) => r.value)
+      .sort((a, b) => (b.shortPercentOfFloat || 0) - (a.shortPercentOfFloat || 0));
+    if (data.length > 0) return { data, source: 'yahoo-actives-enriched' };
+  } catch (e) {
+    warn('shorts enrichment', e);
+  }
+  return null;
+}
 
-  // ── shorts ──
-  if (type === 'shorts') {
-    const cacheKey = 'most_shorted';
-    const cached = getCached(cacheKey);
-    if (cached) { res.setHeader('X-Cache', 'HIT'); return res.json(cached); }
-
-    for (const scrId of SHORTS_SCREENER_IDS) {
-      try {
-        const result = await yahooFinance.screener({ scrIds: scrId, count: 20 });
-        const quotes = result.quotes || [];
-        if (quotes.length > 0) {
-          const data = quotes.map(q => ({
-            ticker: q.symbol, name: q.longName || q.shortName || q.symbol,
-            price: q.regularMarketPrice, changePercent: q.regularMarketChangePercent,
-            shortPercentOfFloat: q.shortPercentOfFloat ?? null, shortRatio: q.shortRatio ?? null,
-          }));
-          setCached(cacheKey, data, 3600); res.setHeader('X-Cache', 'MISS'); res.setHeader('X-Source', `yahoo-${scrId}`); return res.json(data);
-        }
-      } catch (e) { console.error(`Shorts screener "${scrId}" failed:`, e.message); }
-    }
-
-    try {
-      const result = await yahooFinance.screener({ scrIds: 'most_actives', count: 25 });
-      const quotes = result.quotes || [];
-      if (quotes.length > 0) {
-        const enriched = await Promise.allSettled(
-          quotes.slice(0, 20).map(async (q) => {
-            try {
-              const summary = await yahooFinance.quoteSummary(q.symbol, { modules: ['defaultKeyStatistics', 'price'] });
-              const stats = summary.defaultKeyStatistics || {};
-              const spf = stats.shortPercentOfFloat?.raw ?? stats.shortPercentOfFloat ?? null;
-              const sr = stats.shortRatio?.raw ?? stats.shortRatio ?? null;
-              return { ticker: q.symbol, name: q.longName || q.shortName || q.symbol, price: q.regularMarketPrice, changePercent: q.regularMarketChangePercent, shortPercentOfFloat: spf, shortRatio: sr };
-            } catch {
-              return { ticker: q.symbol, name: q.longName || q.shortName || q.symbol, price: q.regularMarketPrice, changePercent: q.regularMarketChangePercent, shortPercentOfFloat: null, shortRatio: null };
-            }
-          })
-        );
-        const data = enriched.filter(r => r.status === 'fulfilled').map(r => r.value).filter(d => d.ticker).sort((a, b) => (b.shortPercentOfFloat || 0) - (a.shortPercentOfFloat || 0));
-        if (data.length > 0) { setCached(cacheKey, data, 3600); res.setHeader('X-Cache', 'MISS'); res.setHeader('X-Source', 'yahoo-actives-enriched'); return res.json(data); }
-      }
-    } catch (e) { console.error('Shorts actives enrichment failed:', e.message); }
-
+async function shorts(req, res) {
+  const cacheKey = 'most_shorted';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    res.setHeader('X-Cache', 'HIT');
+    return res.json(cached);
+  }
+  const found = await mostShorted();
+  if (!found) {
+    res.setHeader('Cache-Control', 'no-store');
     return res.json({ data: [], message: 'Short interest data temporarily unavailable' });
   }
+  setCached(cacheKey, found.data, TTL.shorts);
+  res.setHeader('X-Cache', 'MISS');
+  res.setHeader('X-Source', found.source);
+  return res.json(found.data);
+}
 
+async function handler(req, res) {
+  const { type } = req.query;
+  if (SYMBOL_LOADERS.has(type)) return forSymbol(type, req, res);
+  if (type === 'profile') return profile(req, res);
+  if (type === 'earnings') return earnings(req, res);
+  if (type === 'shorts') return shorts(req, res);
   return res.status(400).json({ error: 'Invalid type. Expected: analysis, analyst, profile, earnings, earningshistory, shorts' });
-};
+}
+
+module.exports = withApi(handler, {
+  name: 'company',
+  cache: (query) => (Object.hasOwn(TTL, query.type) ? { sMaxAge: TTL[query.type], swr: TTL[query.type] } : null),
+});
