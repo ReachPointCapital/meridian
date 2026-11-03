@@ -1,8 +1,7 @@
 const { getCached, setCached } = require('./_cache');
 const { FMP_KEY, FMP_BASE } = require('./_helpers');
 const { yahooFullAnalysis, yahooAnalyst, yahooProfile, yahooEarnings } = require('./_yahoo');
-const YahooFinance = require('yahoo-finance2').default;
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+const { yf: yahooFinance } = require('./_yf');
 
 // ── Earnings calendar mapper ──
 const mapFMPEarning = (e) => ({
@@ -13,7 +12,7 @@ const mapFMPEarning = (e) => ({
 });
 
 // ── Shorts screener IDs ──
-const SHORTS_SCREENER_IDS = ['most_shorted_stocks', 'short_squeeze_stocks', 'aggressive_small_caps'];
+const SHORTS_SCREENER_IDS = ['most_shorted_stocks']; // the only short-interest screener Yahoo's predefined list has
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

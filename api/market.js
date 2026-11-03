@@ -1,8 +1,7 @@
 const { getCached, setCached } = require('./_cache');
 const { FMP_KEY, FMP_BASE, ALPHA_KEY, ALPHA_BASE } = require('./_helpers');
 const { yahooQuote, yahooQuotes, yahooScreener, yahooSectors } = require('./_yahoo');
-const YahooFinance = require('yahoo-finance2').default;
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+const { yf: yahooFinance } = require('./_yf');
 
 // ── Heatmap constants ──
 const SP500_STOCKS = [

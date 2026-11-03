@@ -1,5 +1,5 @@
-const YahooFinance = require('yahoo-finance2').default;
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+const { yf: yahooFinance } = require('./_yf');
+const { getLegacyStatements } = require('./_fundamentals');
 
 async function yahooQuote(symbol) {
   const quote = await yahooFinance.quote(symbol);
@@ -72,52 +72,9 @@ async function yahooChart(symbol, period1, interval) {
     }));
 }
 
+// Statements come from fundamentalsTimeSeries; the old quoteSummary statement modules now return zeros.
 async function yahooFinancials(symbol, period = 'annual') {
-  const modules = period === 'annual'
-    ? ['incomeStatementHistory', 'balanceSheetHistory', 'cashflowStatementHistory']
-    : ['incomeStatementHistoryQuarterly', 'balanceSheetHistoryQuarterly', 'cashflowStatementHistoryQuarterly'];
-  const result = await yahooFinance.quoteSummary(symbol, { modules });
-
-  const mapIncome = (stmt) => ({
-    date: stmt.endDate,
-    revenue: stmt.totalRevenue,
-    costOfRevenue: stmt.costOfRevenue,
-    grossProfit: stmt.grossProfit,
-    operatingExpenses: stmt.totalOperatingExpenses,
-    operatingIncome: stmt.operatingIncome,
-    netIncome: stmt.netIncome,
-    ebitda: stmt.ebitda,
-    eps: stmt.dilutedEPS,
-    epsDiluted: stmt.dilutedEPS,
-    researchAndDevelopmentExpenses: stmt.researchDevelopment
-  });
-  const mapBalance = (stmt) => ({
-    date: stmt.endDate,
-    totalAssets: stmt.totalAssets,
-    totalCurrentAssets: stmt.totalCurrentAssets,
-    cashAndCashEquivalents: stmt.cash,
-    totalLiabilities: stmt.totalLiab,
-    totalCurrentLiabilities: stmt.totalCurrentLiabilities,
-    totalDebt: stmt.totalDebt || stmt.longTermDebt,
-    totalEquity: stmt.totalStockholderEquity,
-    retainedEarnings: stmt.retainedEarnings
-  });
-  const mapCashFlow = (stmt) => ({
-    date: stmt.endDate,
-    operatingCashFlow: stmt.totalCashFromOperatingActivities,
-    capitalExpenditure: stmt.capitalExpenditures,
-    freeCashFlow: stmt.freeCashFlow ||
-      (stmt.totalCashFromOperatingActivities && stmt.capitalExpenditures
-        ? stmt.totalCashFromOperatingActivities + stmt.capitalExpenditures : null),
-    dividendsPaid: stmt.dividendsPaid,
-    netCashUsedForInvestingActivites: stmt.totalCashflowsFromInvestingActivities
-  });
-
-  const key = period === 'annual' ? '' : 'Quarterly';
-  const income = result[`incomeStatementHistory${key}`]?.incomeStatementHistory?.map(mapIncome) || [];
-  const balance = result[`balanceSheetHistory${key}`]?.balanceSheetStatements?.map(mapBalance) || [];
-  const cashflow = result[`cashflowStatementHistory${key}`]?.cashflowStatements?.map(mapCashFlow) || [];
-  return { income, balance, cashflow };
+  return getLegacyStatements(symbol, period);
 }
 
 async function yahooNews(symbol) {
@@ -146,7 +103,7 @@ async function yahooNews(symbol) {
         source: 'yahoo'
       };
     });
-  } catch { return []; }
+  } catch (e) { console.warn(`[yahoo] news failed for ${symbol}:`, e.message); return []; }
 }
 
 async function yahooGeneralNews() {
@@ -218,7 +175,7 @@ async function yahooScreener(scrId, count = 20) {
       changesPercentage: q.regularMarketChangePercent,
       volume: q.regularMarketVolume,
     }));
-  } catch { return []; }
+  } catch (e) { console.warn(`[yahoo] screener ${scrId} failed:`, e.message); return []; }
 }
 
 async function yahooSectors() {
@@ -276,8 +233,9 @@ async function yahooCrypto() {
 async function yahooMacro() {
   const instruments = [
     // US Indices
-    { symbol: 'SPY', label: 'S&P 500' }, { symbol: 'QQQ', label: 'NASDAQ 100' },
-    { symbol: 'DIA', label: 'Dow Jones' }, { symbol: 'IWM', label: 'Russell 2000' },
+    // ETF proxies: label them as ETFs (their price is not the index level)
+    { symbol: 'SPY', label: 'S&P 500 ETF (SPY)' }, { symbol: 'QQQ', label: 'NASDAQ 100 ETF (QQQ)' },
+    { symbol: 'DIA', label: 'Dow Jones ETF (DIA)' }, { symbol: 'IWM', label: 'Russell 2000 ETF (IWM)' },
     { symbol: '^VIX', label: 'VIX' },
     { symbol: 'ES=F', label: 'S&P Futures' }, { symbol: 'NQ=F', label: 'Nasdaq Futures' },
     { symbol: 'YM=F', label: 'Dow Futures' },
@@ -289,7 +247,7 @@ async function yahooMacro() {
     { symbol: 'EURUSD=X', label: 'EUR/USD' },
     { symbol: 'SI=F', label: 'Silver' }, { symbol: 'NG=F', label: 'Natural Gas' },
     { symbol: 'BZ=F', label: 'Brent Crude' },
-    { symbol: '^IRX', label: '2Y Yield' }, { symbol: '^TYX', label: '30Y Yield' },
+    { symbol: '^IRX', label: '3M T-Bill Yield' }, { symbol: '^TYX', label: '30Y Yield' },
     { symbol: 'GBPUSD=X', label: 'GBP/USD' }, { symbol: 'JPY=X', label: 'USD/JPY' },
     // Digital Assets
     { symbol: 'BTC-USD', label: 'Bitcoin' }, { symbol: 'ETH-USD', label: 'Ethereum' },

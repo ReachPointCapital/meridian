@@ -1,7 +1,6 @@
 const { getCached, setCached } = require('./_cache');
 const { yahooCrypto } = require('./_yahoo');
-const YahooFinance = require('yahoo-finance2').default;
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+const { yf: yahooFinance } = require('./_yf');
 
 // ── Forex pairs ──
 const FOREX_PAIRS = [

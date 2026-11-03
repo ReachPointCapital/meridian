@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import { api } from '../../services/api';
-import { formatPrice, formatPercent } from '../../utils/formatters';
+import { formatPrice, formatPercent, formatQuoteValue, formatLevel } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
 import SearchBar from './SearchBar';
 import DetailPanel from '../ui/DetailPanel';
@@ -46,7 +46,7 @@ function HeroBar({ onItemClick }) {
               style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', whiteSpace: 'nowrap', fontSize: '12px', cursor: 'pointer' }}
             >
               <span style={{ color: 'var(--gold)', fontWeight: 600, fontFamily: 'monospace' }}>{item.label || item.symbol}</span>
-              <span style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>{formatPrice(item.price)}</span>
+              <span style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>{formatQuoteValue(item.symbol, item.price)}</span>
               <span style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontFamily: 'monospace', fontWeight: 600 }}>
                 {formatPercent(item.changePercent ?? item.changesPercentage)}
               </span>
@@ -55,6 +55,24 @@ function HeroBar({ onItemClick }) {
         })}
       </div>
     </div>
+  );
+}
+
+// Yahoo marketState: REGULAR, PRE/PREPRE, POST/POSTPOST, CLOSED. Showing "CLOSED" at 8:50am ET was misleading.
+const MARKET_STATES = {
+  REGULAR: { label: 'OPEN', bg: 'rgba(34,197,94,0.15)', color: 'var(--green)' },
+  PRE: { label: 'PRE-MKT', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
+  PREPRE: { label: 'PRE-MKT', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
+  POST: { label: 'AFTER-HRS', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
+  POSTPOST: { label: 'AFTER-HRS', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
+};
+
+function MarketStateBadge({ state }) {
+  const s = MARKET_STATES[state] || { label: 'CLOSED', bg: 'rgba(239,68,68,0.15)', color: 'var(--red)' };
+  return (
+    <span style={{ fontSize: '9px', fontWeight: 600, padding: '2px 6px', borderRadius: '3px', backgroundColor: s.bg, color: s.color }}>
+      {s.label}
+    </span>
   );
 }
 
@@ -106,13 +124,11 @@ function GlobalMarketsOverview({ onRowClick }) {
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <td style={{ padding: '8px 12px', color: 'var(--text-primary)', fontWeight: 500 }}>{idx.name}</td>
                     <td style={{ padding: '8px 12px', color: 'var(--text-tertiary)', fontSize: '10px', letterSpacing: '0.05em' }}>{idx.region}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 600 }}>{idx.price != null ? formatPrice(idx.price) : '\u2014'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 600 }}>{formatLevel(idx.price)}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'right', color: isPos ? 'var(--green)' : 'var(--red)', fontFamily: 'monospace' }}>{idx.change != null ? (idx.change >= 0 ? '+' : '') + Number(idx.change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '\u2014'}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'right', color: isPos ? 'var(--green)' : 'var(--red)', fontFamily: 'monospace', fontWeight: 600 }}>{idx.changePercent != null ? formatPercent(idx.changePercent) : '\u2014'}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                      <span style={{ fontSize: '9px', fontWeight: 600, padding: '2px 6px', borderRadius: '3px', backgroundColor: idx.marketState === 'REGULAR' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: idx.marketState === 'REGULAR' ? 'var(--green)' : 'var(--red)' }}>
-                        {idx.marketState === 'REGULAR' ? 'OPEN' : 'CLOSED'}
-                      </span>
+                      <MarketStateBadge state={idx.marketState} />
                     </td>
                   </tr>
                 );
@@ -593,7 +609,7 @@ export default function MacroPage({ setActiveTab }) {
     openDetail(name, (
       <div>
         <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'monospace', marginBottom: '4px' }}>
-          {item.price != null ? formatPrice(item.price) : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
+          {item.price != null ? (item.symbol ? formatQuoteValue(item.symbol, item.price) : formatPrice(item.price)) : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
         </div>
         {(item.changePercent ?? item.changesPercentage) != null && (
           <div style={{ color: (item.changePercent ?? item.changesPercentage) >= 0 ? 'var(--green)' : 'var(--red)', fontSize: '14px', fontWeight: 600, fontFamily: 'monospace', marginBottom: '16px' }}>

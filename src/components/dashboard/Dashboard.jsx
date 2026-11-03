@@ -8,7 +8,7 @@ import {
   getGainers, getLosers, getActives, getEarningsCalendar, getMacroData,
 } from '../../services/fmp';
 import { api } from '../../services/api';
-import { formatPrice, formatPercent, formatDate, formatVolume, formatTimeAgo } from '../../utils/formatters';
+import { formatPrice, formatPercent, formatDate, formatVolume, formatTimeAgo, formatQuoteValue } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { ExternalLink, Maximize2, Minimize2, Plus, X } from 'lucide-react';
@@ -24,10 +24,10 @@ const SNAPSHOT_GROUPS = [
   {
     label: 'US INDICES',
     items: [
-      { symbol: 'SPY', label: 'S&P 500' },
-      { symbol: 'QQQ', label: 'NASDAQ 100' },
-      { symbol: 'DIA', label: 'Dow Jones' },
-      { symbol: 'IWM', label: 'Russell 2000' },
+      { symbol: 'SPY', label: 'S&P 500 ETF' },
+      { symbol: 'QQQ', label: 'NASDAQ 100 ETF' },
+      { symbol: 'DIA', label: 'Dow Jones ETF' },
+      { symbol: 'IWM', label: 'Russell 2000 ETF' },
       { symbol: '^VIX', label: 'VIX' },
     ],
   },
@@ -109,7 +109,7 @@ function MarketSnapshot({ onNavigate }) {
                 </div>
                 <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace' }}>
-                    {d?.price != null ? formatPrice(d.price) : '\u2014'}
+                    {formatQuoteValue(item.symbol, d?.price)}
                   </span>
                   <span style={{ color: pct != null ? (isPos ? 'var(--green)' : 'var(--red)') : 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace', minWidth: '55px', textAlign: 'right' }}>
                     {pct != null ? formatPercent(pct) : '\u2014'}
@@ -1500,7 +1500,7 @@ export default function Dashboard({ setActiveTab }) {
     setDetailContent(
       <div>
         <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'monospace', marginBottom: '4px' }}>
-          {item.price != null ? formatPrice(item.price) : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
+          {item.price != null ? (item.symbol ? formatQuoteValue(item.symbol, item.price) : formatPrice(item.price)) : (item.rate != null ? Number(item.rate).toFixed(4) : '\u2014')}
         </div>
         {(item.changePercent ?? item.changesPercentage) != null && (
           <div style={{ color: (item.changePercent ?? item.changesPercentage) >= 0 ? 'var(--green)' : 'var(--red)', fontSize: '14px', fontWeight: 600, fontFamily: 'monospace', marginBottom: '0' }}>

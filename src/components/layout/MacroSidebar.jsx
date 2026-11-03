@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, Menu } from 'lucide-react';
-import { formatPrice, formatPercent } from '../../utils/formatters';
+import { formatQuoteValue, formatPercent } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
 
 const INSTRUMENTS = [
   // US Indices
-  { symbol: 'SPY', label: 'S&P 500', group: 'US INDICES' },
-  { symbol: 'QQQ', label: 'NASDAQ', group: null },
-  { symbol: 'DIA', label: 'Dow Jones', group: null },
-  { symbol: 'IWM', label: 'Russell 2000', group: null },
+  { symbol: '^GSPC', label: 'S&P 500', group: 'US INDICES' },
+  { symbol: '^NDX', label: 'NASDAQ 100', group: null },
+  { symbol: '^DJI', label: 'Dow Jones', group: null },
+  { symbol: '^RUT', label: 'Russell 2000', group: null },
   // Futures
   { symbol: 'ES=F', label: 'S&P Futures', group: 'FUTURES' },
   { symbol: 'NQ=F', label: 'Nasdaq Futures', group: null },
@@ -39,7 +39,8 @@ const INSTRUMENTS = [
   { symbol: 'USDJPY=X', label: 'USD/JPY', group: null },
   { symbol: 'USDCNY=X', label: 'USD/CNY', group: null },
   // Bonds
-  { symbol: '^IRX', label: '2Y Yield', group: 'BONDS' },
+  { symbol: '^IRX', label: '3M Yield', group: 'BONDS' },
+  { symbol: '2YY=F', label: '2Y Yield', group: null },
   { symbol: '^FVX', label: '5Y Yield', group: null },
   { symbol: '^TNX', label: '10Y Yield', group: null },
   { symbol: '^TYX', label: '30Y Yield', group: null },
@@ -76,7 +77,7 @@ function MacroItem({ item, onSelect }) {
           fontFamily: 'monospace',
           fontVariantNumeric: 'tabular-nums',
         }}>
-          {item.price != null ? formatPrice(item.price) : '\u2014'}
+          {formatQuoteValue(item.symbol, item.price)}
         </span>
         <span style={{
           color: changeColor,

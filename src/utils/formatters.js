@@ -34,11 +34,16 @@ export function formatVolume(num) {
   return n.toLocaleString();
 }
 
+// "2026-10-28" and Yahoo's UTC-midnight period dates ("2025-09-30T00:00:00.000Z") name a calendar day, not an
+// instant. new Date() reads them as UTC midnight, so a US browser would show the day before: format them in UTC.
+const CALENDAR_DAY = /^\d{4}-\d{2}-\d{2}(T00:00:00(\.0+)?Z)?$/;
+
 export function formatDate(dateStr) {
   if (!dateStr) return '—';
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const opts = { year: 'numeric', month: 'short', day: 'numeric' };
+  return d.toLocaleDateString('en-US', CALENDAR_DAY.test(String(dateStr)) ? { ...opts, timeZone: 'UTC' } : opts);
 }
 
 export function formatTimeAgo(dateStr) {
@@ -67,12 +72,37 @@ export function formatLargeNumber(num) {
   return `${sign}$${abs.toFixed(2)}`;
 }
 
+// The API sends dividend yield as a percentage (0.32 means 0.32%), the same unit the scorecard thresholds use.
+// (Guessing "below 1 means a fraction" turned AAPL's 0.32% into 32%.)
 export function formatDividendYield(value) {
   if (value == null || isNaN(value)) return '—';
-  const n = Number(value);
-  // Values < 1 are likely decimals (e.g. 0.025 = 2.5%), values >= 1 are already percentages
-  const pct = n < 1 ? n * 100 : n;
-  return `${pct.toFixed(2)}%`;
+  return `${Number(value).toFixed(2)}%`;
+}
+
+// ── Quote values by instrument type: a $ only belongs on dollar prices ──
+const INDEX_FUTURES = /^(ES|NQ|YM|RTY|VX)=F$/;
+const YIELD_SYMBOLS = new Set(['^IRX', '^FVX', '^TNX', '^TYX', '2YY=F']);
+
+export function unitFor(symbol = '') {
+  if (YIELD_SYMBOLS.has(symbol)) return 'yield';
+  if (symbol.endsWith('=X')) return 'fx';
+  if (symbol.startsWith('^') || INDEX_FUTURES.test(symbol)) return 'index';
+  return 'usd';
+}
+
+export function formatLevel(num, decimals = 2) {
+  if (num == null || isNaN(num)) return '—';
+  return Number(num).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+export function formatQuoteValue(symbol, value) {
+  if (value == null || isNaN(value)) return '—';
+  switch (unitFor(symbol)) {
+    case 'yield': return `${Number(value).toFixed(2)}%`;
+    case 'fx': return Number(value).toFixed(4);
+    case 'index': return formatLevel(value);
+    default: return formatPrice(value);
+  }
 }
 
 export function getPriceColor(change) {
