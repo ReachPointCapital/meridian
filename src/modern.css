@@ -1,0 +1,362 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400..700&display=swap');
+
+/* Meridian's modern look ("Graphite & Champagne", Refined): layered over index.css.
+   Colour comes from the theme tokens the app already reads everywhere via var(--token); the rest is typography,
+   surfaces, the floating nav and a few details. <html> carries data-look="modern" data-tier="refined" (set in
+   public/index.html), and every rule below is scoped to those attributes. Removing them restores the previous look,
+   which is the one-line way to roll this back. src/theme/modernTokens.test.js keeps the palette readable (WCAG AA). */
+
+/* ── Tokens: dark ("Graphite") ── */
+html[data-look="modern"]:not([data-theme="light"]) {
+  --bg-primary: #0a0b0e;
+  --bg-secondary: #111318;
+  --bg-tertiary: #181b22;
+  --border-color: #252932;
+  --gold: #d8bc7e;
+  --gold-hover: #e8d09b;
+  --gold-muted: #8f7a4a;
+  --accent: #8aa9ff;
+  --accent-strong: #6c8ef5;
+  --text-primary: #edeef2;
+  --text-secondary: #a6abb8;
+  --text-tertiary: #878d9b;
+  --green: #3ddc97;
+  --red: #ff6f86;
+  --green-muted: #0f3326;
+  --red-muted: #3a1620;
+  --card-bg: #111318;
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 26px rgba(0, 0, 0, 0.4);
+  --scrollbar-track: #0a0b0e;
+  --scrollbar-thumb: #252932;
+  --scrollbar-hover: #333847;
+  --text-strong: #ffffff;
+  --text-label: rgba(255, 255, 255, 0.72);
+  --text-muted: rgba(255, 255, 255, 0.54);
+  --text-faint: rgba(255, 255, 255, 0.38);
+  --text-dim: rgba(255, 255, 255, 0.26);
+  --text-ghost: rgba(255, 255, 255, 0.08);
+  --row-border: rgba(255, 255, 255, 0.07);
+  --row-section-bg: rgba(255, 255, 255, 0.04);
+  --row-hover-bg: rgba(255, 255, 255, 0.035);
+  --gold-row-bg: rgba(216, 188, 126, 0.05);
+  --gold-subtle-bg: rgba(216, 188, 126, 0.08);
+  --gold-active-bg: rgba(216, 188, 126, 0.14);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-text: #b9cbff;
+  --accent-green: #6ee7b7;
+  --accent-red: #ff9aab;
+  --glow-1: rgba(138, 169, 255, 0.09);
+  --glow-2: rgba(216, 188, 126, 0.06);
+  --radius-sm: 9px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+}
+
+/* ── Tokens: light ("Paper") ── */
+html[data-look="modern"][data-theme="light"] {
+  --bg-primary: #f6f5f1;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #efede7;
+  --border-color: #e4e1d9;
+  --gold: #7c5c14;
+  --gold-hover: #5f450c;
+  --gold-muted: #b38b35;
+  --accent: #2f4bd8;
+  --accent-strong: #2540c0;
+  --text-primary: #14161b;
+  --text-secondary: #474c59;
+  --text-tertiary: #636978;
+  --green: #0b7a57;
+  --red: #c0283f;
+  --green-muted: #ddf3e9;
+  --red-muted: #fbe3e7;
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 2px rgba(20, 22, 27, 0.05), 0 10px 26px rgba(20, 22, 27, 0.06);
+  --scrollbar-track: #f6f5f1;
+  --scrollbar-thumb: #e4e1d9;
+  --scrollbar-hover: #cfcbc0;
+  --text-strong: #14161b;
+  --text-label: #2b2f3a;
+  --text-muted: #636978;
+  --text-faint: #8a90a0;
+  --text-dim: #c9ccd4;
+  --text-ghost: #e7e5de;
+  --row-border: #ece9e1;
+  --row-section-bg: #f3f1eb;
+  --row-hover-bg: #f8f7f3;
+  --gold-row-bg: rgba(124, 92, 20, 0.06);
+  --gold-subtle-bg: rgba(124, 92, 20, 0.08);
+  --gold-active-bg: rgba(124, 92, 20, 0.14);
+  --input-bg: rgba(47, 75, 216, 0.05);
+  --input-text: #2f4bd8;
+  --accent-green: #0b7a57;
+  --accent-red: #c0283f;
+  --glow-1: rgba(47, 75, 216, 0.05);
+  --glow-2: rgba(179, 139, 53, 0.07);
+  --radius-sm: 9px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+}
+
+/* ── Typography: Geist for the interface, Geist Mono for every number ── */
+html[data-look="modern"] body {
+  font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: -0.006em;
+  background-image:
+    radial-gradient(1000px 460px at 50% -12%, var(--glow-1), transparent 62%),
+    radial-gradient(700px 380px at 92% -6%, var(--glow-2), transparent 62%);
+}
+html[data-look="modern"] button,
+html[data-look="modern"] input,
+html[data-look="modern"] select,
+html[data-look="modern"] textarea { font-family: inherit; }
+html[data-look="modern"] [style*="monospace"],
+html[data-look="modern"] code,
+html[data-look="modern"] pre {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+/* small spaced-out capital labels become quieter */
+html[data-look="modern"] [style*="text-transform: uppercase"] { letter-spacing: 0.06em !important; }
+html[data-look="modern"] h1, html[data-look="modern"] h2, html[data-look="modern"] h3 { letter-spacing: -0.02em; }
+html[data-look="modern"] ::selection { background: color-mix(in srgb, var(--gold) 35%, transparent); }
+
+/* ── Home ── */
+html[data-look="modern"] .gradient-text {
+  font-size: clamp(46px, 9vw, 80px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.05em !important;
+  padding-left: 0 !important;
+  text-transform: none !important;
+  margin: 0 0 12px !important;
+  background-image: linear-gradient(180deg, var(--text-primary) 35%, color-mix(in srgb, var(--text-primary) 50%, var(--bg-primary))) !important;
+}
+html[data-look="modern"] .hero-glow { opacity: 0.9; animation: none; }
+
+/* the two big gradient banners become calm surfaces with a faint glow, in both themes */
+html[data-look="modern"] .hero-tile {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--card-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 150ms ease, transform 180ms ease !important;
+}
+html[data-look="modern"] .hero-tile::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(460px 190px at 100% 0%, var(--glow-1), transparent 70%);
+}
+html[data-look="modern"] .hero-tile:hover { filter: none !important; border-color: var(--gold) !important; transform: translateY(-2px); }
+html[data-look="modern"]:not([data-theme="light"]) .hero-tile { --gold: #d8bc7e; }
+html[data-look="modern"][data-theme="light"] .hero-tile { --gold: #7c5c14; }
+html[data-look="modern"] .hero-tile [style*="color: white"] { color: var(--text-primary) !important; }
+html[data-look="modern"] .hero-tile [style*="rgba(255, 255, 255, 0.74)"] { color: var(--text-secondary) !important; }
+html[data-look="modern"] .hero-tile [style*="rgba(255, 255, 255, 0.06)"],
+html[data-look="modern"] .hero-tile [style*="rgba(255, 255, 255, 0.05)"] { background-color: var(--bg-tertiary) !important; }
+html[data-look="modern"] .lift:hover { transform: translateY(-2px); }
+
+/* ── Dashboard: colour stays on the labels (it matches each chart line); fills and borders go neutral ── */
+html[data-look="modern"] div[style*="padding: 10px 12px"][style*="cursor: pointer"] { border-radius: var(--radius-md) !important; }
+/* a selected index card: a quiet raised surface instead of a coloured wash */
+html[data-look="modern"] div[style*="padding: 10px 12px"][style*="cursor: pointer"]:not([style*="var(--bg-primary)"]) {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+}
+/* chart legend: pills; the active one is a raised surface with its colour kept on the text */
+html[data-look="modern"] button[style*="padding: 4px 10px"][style*="border-radius: 4px"] { border-radius: 999px !important; }
+html[data-look="modern"] button[style*="padding: 4px 10px"][style*="border-radius: 4px"]:not([style*="background: none"]) {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* ── Light theme: bright data colours used as text are darkened so they stay readable on paper ── */
+html[data-look="modern"][data-theme="light"] [style*="color: rgb(229, 185, 78)"] { color: #7c5c14 !important; }
+html[data-look="modern"][data-theme="light"] [style*="color: rgb(46, 230, 166)"] { color: #0b7a57 !important; }
+html[data-look="modern"][data-theme="light"] [style*="color: rgb(255, 107, 135)"] { color: #c0283f !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════
+   Structure: atmosphere, glass cards with a hairline edge and a cursor spotlight (public/spotlight.js), a floating
+   nav bar, per-tile up/down accents, refined buttons, charts and motion. Active for any data-tier.
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* atmosphere: an aurora wash plus a faint dot grid that fades out away from the top */
+html[data-look="modern"][data-tier] body {
+  background-image:
+    radial-gradient(1200px 540px at 50% -16%, var(--aurora-1), transparent 62%),
+    radial-gradient(820px 440px at 100% 0%, var(--aurora-2), transparent 60%),
+    radial-gradient(900px 520px at 0% 34%, var(--aurora-3), transparent 64%);
+}
+html[data-look="modern"][data-tier] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1.3px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 85% 55% at 50% 0%, #000 0%, transparent 74%);
+  mask-image: radial-gradient(ellipse 85% 55% at 50% 0%, #000 0%, transparent 74%);
+}
+
+/* glass cards: a gradient hairline edge, a soft sheen, and a spotlight that follows the cursor */
+html[data-look="modern"][data-tier] [style*="background-color: var(--bg-secondary)"][style*="border"],
+html[data-look="modern"][data-tier] .hero-tile {
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-lg) !important;
+  background:
+    radial-gradient(280px circle at var(--mx, -400px) var(--my, -400px), var(--spot), transparent 70%) padding-box,
+    linear-gradient(180deg, var(--card-top), var(--bg-secondary) 48%) padding-box,
+    linear-gradient(150deg, var(--edge-1), var(--edge-2) 40%, var(--edge-3)) border-box !important;
+  box-shadow: var(--card-shadow-e) !important;
+}
+html[data-look="modern"][data-tier] [style*="background-color: var(--bg-secondary)"][style*="border"]:hover,
+html[data-look="modern"][data-tier] .hero-tile:hover {
+  --edge-1: color-mix(in srgb, var(--gold) 75%, transparent);
+  --edge-2: color-mix(in srgb, var(--gold) 22%, transparent);
+}
+html[data-look="modern"][data-tier] .hero-tile::before { display: none; }
+
+/* an up/down accent along the top edge of every tile, taken from the sign of its change */
+html[data-look="modern"][data-tier] .lift,
+html[data-look="modern"][data-tier] div[style*="padding: 10px 12px"][style*="cursor: pointer"] { position: relative; }
+html[data-look="modern"][data-tier] :is(.lift, div[style*="padding: 10px 12px"][style*="cursor: pointer"]):has([style*="color: var(--green)"]) { --signal: var(--green); }
+html[data-look="modern"][data-tier] :is(.lift, div[style*="padding: 10px 12px"][style*="cursor: pointer"]):has([style*="color: var(--red)"]) { --signal: var(--red); }
+html[data-look="modern"][data-tier] :is(.lift, div[style*="padding: 10px 12px"][style*="cursor: pointer"]):is(:has([style*="color: var(--green)"]), :has([style*="color: var(--red)"]))::after {
+  content: ''; position: absolute; top: -1px; left: 22%; right: 22%; height: 2px; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--signal), transparent);
+}
+
+/* floating glass nav */
+html[data-look="modern"][data-tier] nav[style*="position: fixed"] {
+  top: 10px !important; left: 50% !important; right: auto !important;
+  transform: translateX(-50%);
+  width: min(1180px, calc(100% - 24px));
+  height: 54px !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 999px !important;
+  background-color: color-mix(in srgb, var(--bg-primary) 68%, transparent) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(165%) !important;
+  backdrop-filter: blur(20px) saturate(165%) !important;
+  box-shadow: var(--nav-shadow);
+}
+html[data-look="modern"][data-tier] nav[style*="position: fixed"] button[style*="var(--radius-sm)"] { border-radius: 999px !important; }
+
+/* typography: a clearer hierarchy */
+html[data-look="modern"][data-tier] h1:not(.gradient-text) {
+  font-size: clamp(30px, 4.4vw, 44px) !important; font-weight: 650 !important; letter-spacing: -0.035em !important; line-height: 1.05 !important;
+}
+html[data-look="modern"][data-tier] .gradient-text { filter: drop-shadow(0 10px 40px var(--aurora-1)); }
+
+/* buttons: the champagne call-to-action gets depth */
+html[data-look="modern"][data-tier] :is(button, a)[style*="var(--gold)"][style*="color: var(--bg-primary)"] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold-hover) 88%, #fff), var(--gold)) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 8px 22px -8px color-mix(in srgb, var(--gold) 70%, transparent);
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease !important;
+}
+html[data-look="modern"][data-tier] :is(button, a)[style*="var(--gold)"][style*="color: var(--bg-primary)"]:hover { transform: translateY(-1px); }
+
+/* charts: quieter grid, glass tooltips, mono axis labels */
+html[data-look="modern"][data-tier] .recharts-cartesian-grid line { stroke: var(--row-border) !important; stroke-dasharray: 2 6 !important; }
+html[data-look="modern"][data-tier] .recharts-line-curve { filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.12)); stroke-linecap: round; }
+html[data-look="modern"][data-tier] .recharts-text { font-family: 'Geist Mono', ui-monospace, monospace !important; }
+html[data-look="modern"][data-tier] .recharts-tooltip-wrapper > div {
+  background: var(--tip-bg) !important;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* motion: a springier, calmer easing everywhere */
+html[data-look="modern"][data-tier] .page-fade-in { animation: fadeIn 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+html[data-look="modern"][data-tier] .stagger > * { animation-duration: 560ms; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+html[data-look="modern"][data-tier] .lift { transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 260ms ease; }
+html[data-look="modern"][data-tier] .lift:hover { transform: translateY(-4px); }
+
+/* keyboard focus in champagne */
+html[data-look="modern"][data-tier] :is(button, a, select, [role="button"], [tabindex]):focus-visible { outline-color: var(--gold); }
+
+@media (max-width: 720px) {
+  html[data-look="modern"][data-tier] nav[style*="position: fixed"] { width: calc(100% - 16px); top: 8px !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════
+   REFINED (data-tier="refined"): the structure above with the flash dialled back. A calmer atmosphere, a quieter
+   hairline edge and spotlight, a floating bar instead of a pill, hairline accents, no glows, tighter type details.
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* tokens: dark */
+html[data-look="modern"][data-tier="refined"]:not([data-theme="light"]) {
+  --aurora-1: rgba(120, 150, 255, 0.09); --aurora-2: rgba(216, 188, 126, 0.04); --aurora-3: rgba(130, 100, 255, 0.03);
+  --grid-dot: rgba(255, 255, 255, 0.04);
+  --card-top: #14161c;
+  --edge-1: rgba(255, 255, 255, 0.11); --edge-2: rgba(255, 255, 255, 0.04); --edge-3: rgba(255, 255, 255, 0.07);
+  --spot: rgba(255, 255, 255, 0.04);
+  --card-shadow-e: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 28px -16px rgba(0, 0, 0, 0.6);
+  --nav-shadow: 0 8px 28px -14px rgba(0, 0, 0, 0.65);
+  --tip-bg: rgba(18, 20, 26, 0.88);
+  --gold: #cdb27a;
+  --gold-hover: #dcc590;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+}
+/* tokens: light */
+html[data-look="modern"][data-tier="refined"][data-theme="light"] {
+  --aurora-1: rgba(47, 75, 216, 0.04); --aurora-2: rgba(179, 139, 53, 0.05); --aurora-3: rgba(120, 100, 220, 0.02);
+  --grid-dot: rgba(20, 22, 27, 0.055);
+  --card-top: #ffffff;
+  --edge-1: rgba(20, 22, 27, 0.09); --edge-2: rgba(20, 22, 27, 0.05); --edge-3: rgba(20, 22, 27, 0.07);
+  --spot: rgba(47, 75, 216, 0.035);
+  --card-shadow-e: 0 1px 2px rgba(20, 22, 27, 0.04), 0 14px 32px -20px rgba(20, 22, 27, 0.22);
+  --nav-shadow: 0 8px 24px -14px rgba(20, 22, 27, 0.22), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --tip-bg: rgba(255, 255, 255, 0.9);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+}
+html[data-look="modern"][data-tier="refined"]:not([data-theme="light"]) .hero-tile { --gold: #cdb27a; }
+/* one gold everywhere on dark: literal bright-gold text follows the token */
+html[data-look="modern"][data-tier="refined"]:not([data-theme="light"]) [style*="color: rgb(229, 185, 78)"] { color: var(--gold) !important; }
+
+/* no glow on the wordmark or the chart lines */
+html[data-look="modern"][data-tier="refined"] .gradient-text { filter: none; }
+html[data-look="modern"][data-tier="refined"] .recharts-line-curve { filter: none; }
+
+/* the nav: a refined floating bar, not a pill */
+html[data-look="modern"][data-tier="refined"] nav[style*="position: fixed"] {
+  top: 12px !important; height: 52px !important; border-radius: 16px !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%) !important; backdrop-filter: blur(16px) saturate(150%) !important;
+}
+html[data-look="modern"][data-tier="refined"] nav[style*="position: fixed"] button[style*="var(--radius-sm)"] { border-radius: 8px !important; }
+
+/* cards: a quieter hover edge, a shallower lift */
+html[data-look="modern"][data-tier="refined"] [style*="background-color: var(--bg-secondary)"][style*="border"]:hover,
+html[data-look="modern"][data-tier="refined"] .hero-tile:hover {
+  --edge-1: color-mix(in srgb, var(--gold) 45%, transparent);
+  --edge-2: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+html[data-look="modern"][data-tier="refined"] .lift:hover { transform: translateY(-2px); }
+
+/* the up/down accent becomes a hairline */
+html[data-look="modern"][data-tier="refined"] :is(.lift, div[style*="padding: 10px 12px"][style*="cursor: pointer"]):is(:has([style*="color: var(--green)"]), :has([style*="color: var(--red)"]))::after {
+  height: 1px; left: 32%; right: 32%; opacity: 0.8;
+}
+
+/* buttons: flat champagne with a fine inner highlight */
+html[data-look="modern"][data-tier="refined"] :is(button, a)[style*="var(--gold)"][style*="color: var(--bg-primary)"] {
+  background: var(--gold) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) inset;
+}
+html[data-look="modern"][data-tier="refined"] :is(button, a)[style*="var(--gold)"][style*="color: var(--bg-primary)"]:hover { transform: none; filter: brightness(1.06); }
+
+/* type: calmer headline weight, balanced wrapping, steadier numerals, quieter gold labels */
+html[data-look="modern"][data-tier="refined"] h1:not(.gradient-text) { font-weight: 600 !important; letter-spacing: -0.03em !important; }
+html[data-look="modern"][data-tier="refined"] :is(h1, h2, h3) { text-wrap: balance; }
+html[data-look="modern"][data-tier="refined"] p { text-wrap: pretty; }
+html[data-look="modern"][data-tier="refined"] [style*="monospace"] { font-feature-settings: "tnum" 1, "zero" 0; }
+html[data-look="modern"][data-tier="refined"] [style*="text-transform: uppercase"][style*="color: var(--gold)"] {
+  color: color-mix(in srgb, var(--gold) 80%, var(--text-secondary)) !important;
+}
+
+@media (max-width: 720px) {
+  html[data-look="modern"][data-tier="refined"] nav[style*="position: fixed"] { top: 8px !important; width: calc(100% - 16px); }
+}
