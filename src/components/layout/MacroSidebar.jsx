@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, Menu } from 'lucide-react';
 import { formatQuoteValue, formatPercent } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
+import PriceFlash from '../ui/PriceFlash';
 
 const INSTRUMENTS = [
   // US Indices
@@ -77,7 +78,7 @@ function MacroItem({ item, onSelect }) {
           fontFamily: 'monospace',
           fontVariantNumeric: 'tabular-nums',
         }}>
-          {formatQuoteValue(item.symbol, item.price)}
+          <PriceFlash value={item.price}>{formatQuoteValue(item.symbol, item.price)}</PriceFlash>
         </span>
         <span style={{
           color: changeColor,

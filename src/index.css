@@ -1,99 +1,121 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ── Theme tokens ──────────────────────────────────────────────────────────────
+   Every component reads these via var(--token), so changing the look means changing this file.
+   src/theme/tokens.test.js keeps text and accent colors readable (WCAG AA) in both themes. */
 :root,
 [data-theme="dark"] {
-  --bg-primary: #0A0E1A;
-  --bg-secondary: #0F1623;
-  --bg-tertiary: #151C2C;
-  --border-color: #1E2A3E;
-  --gold: #C9A84C;
-  --gold-hover: #E2BC5A;
-  --gold-muted: #8B6914;
-  --text-primary: #F0F2F5;
-  --text-secondary: #8A95A3;
-  --text-tertiary: #4A5568;
-  --green: #22C55E;
-  --red: #EF4444;
-  --green-muted: #052E16;
-  --red-muted: #2D0A0A;
-  --card-bg: #0F1623;
-  --card-shadow: 0 0 0 transparent;
-  --scrollbar-track: #0A0E1A;
-  --scrollbar-thumb: #1E2A3E;
-  --scrollbar-hover: #2A3A54;
+  --bg-primary: #070B16;
+  --bg-secondary: #0F1A33;
+  --bg-tertiary: #162447;
+  --border-color: #1F3058;
+  --gold: #E5B94E;
+  --gold-hover: #F2CB68;
+  --gold-muted: #9B7A24;
+  --accent: #6EA2FF;
+  --accent-strong: #4C8DFF;
+  --text-primary: #F3F6FC;
+  --text-secondary: #A9B8D6;
+  --text-tertiary: #8497BC;
+  --green: #2EE6A6;
+  --red: #FF6B87;
+  --green-muted: #0A3329;
+  --red-muted: #3A1423;
+  --card-bg: #0F1A33;
+  --card-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 28px rgba(2,6,18,0.45);
+  --scrollbar-track: #070B16;
+  --scrollbar-thumb: #1F3058;
+  --scrollbar-hover: #2C4378;
   --text-strong: #ffffff;
-  --text-label: rgba(255,255,255,0.7);
-  --text-muted: rgba(255,255,255,0.5);
-  --text-faint: rgba(255,255,255,0.35);
-  --text-dim: rgba(255,255,255,0.25);
+  --text-label: rgba(255,255,255,0.74);
+  --text-muted: rgba(255,255,255,0.56);
+  --text-faint: rgba(255,255,255,0.4);
+  --text-dim: rgba(255,255,255,0.28);
   --text-ghost: rgba(255,255,255,0.1);
-  --row-border: rgba(255,255,255,0.05);
-  --row-section-bg: rgba(255,255,255,0.04);
-  --row-hover-bg: rgba(255,255,255,0.03);
-  --gold-row-bg: rgba(240,165,0,0.04);
-  --gold-subtle-bg: rgba(240,165,0,0.06);
-  --gold-active-bg: rgba(234,179,8,0.12);
-  --input-bg: rgba(147,197,253,0.08);
-  --input-text: #93c5fd;
-  --accent-green: #4ade80;
-  --accent-red: #f87171;
+  --row-border: rgba(150,175,230,0.1);
+  --row-section-bg: rgba(150,175,230,0.06);
+  --row-hover-bg: rgba(150,175,230,0.05);
+  --gold-row-bg: rgba(229,185,78,0.05);
+  --gold-subtle-bg: rgba(229,185,78,0.08);
+  --gold-active-bg: rgba(229,185,78,0.14);
+  --input-bg: rgba(110,162,255,0.08);
+  --input-text: #8FB8FF;
+  --accent-green: #5CF0B8;
+  --accent-red: #FF8CA1;
+  --glow-1: rgba(76,141,255,0.16);
+  --glow-2: rgba(229,185,78,0.09);
+  --flash-up: rgba(46,230,166,0.30);
+  --flash-down: rgba(255,107,135,0.30);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
 [data-theme="light"] {
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8F9FA;
-  --bg-tertiary: #EEF0F2;
-  --border-color: #DEE2E6;
-  --gold: #C9A84C;
-  --gold-hover: #B8952F;
-  --gold-muted: #8B6914;
-  --text-primary: #1A1A2E;
-  --text-secondary: #4A5568;
-  --text-tertiary: #8A95A3;
-  --green: #16A34A;
-  --red: #DC2626;
-  --green-muted: #DCFCE7;
-  --red-muted: #FEE2E2;
-  --card-bg: #F8F9FA;
-  --card-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  --scrollbar-track: #F8F9FA;
-  --scrollbar-thumb: #DEE2E6;
-  --scrollbar-hover: #CED4DA;
-  --text-strong: #111827;
-  --text-label: #374151;
-  --text-muted: #6b7280;
-  --text-faint: #9ca3af;
-  --text-dim: #d1d5db;
-  --text-ghost: #e5e7eb;
-  --row-border: #e5e7eb;
-  --row-section-bg: #f3f4f6;
-  --row-hover-bg: #f9fafb;
-  --gold-row-bg: rgba(240,165,0,0.06);
-  --gold-subtle-bg: rgba(240,165,0,0.08);
-  --gold-active-bg: rgba(234,179,8,0.15);
-  --input-bg: rgba(37,99,235,0.06);
-  --input-text: #2563eb;
-  --accent-green: #16a34a;
-  --accent-red: #dc2626;
+  --bg-primary: #F5F7FC;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #EAF0FA;
+  --border-color: #DCE3F0;
+  --gold: #8A6410;
+  --gold-hover: #6F500C;
+  --gold-muted: #B8892B;
+  --accent: #1D4ED8;
+  --accent-strong: #2563EB;
+  --text-primary: #0B1530;
+  --text-secondary: #3C4C6E;
+  --text-tertiary: #5B6B8C;
+  --green: #0A7F5A;
+  --red: #C42B4A;
+  --green-muted: #DDF7EC;
+  --red-muted: #FDE4EA;
+  --card-bg: #FFFFFF;
+  --card-shadow: 0 1px 2px rgba(11,21,48,0.06), 0 8px 24px rgba(11,21,48,0.06);
+  --scrollbar-track: #F5F7FC;
+  --scrollbar-thumb: #DCE3F0;
+  --scrollbar-hover: #C3CCDF;
+  --text-strong: #0B1530;
+  --text-label: #2A3A5E;
+  --text-muted: #5B6B8C;
+  --text-faint: #7C8BAA;
+  --text-dim: #C3CCDF;
+  --text-ghost: #E4E9F4;
+  --row-border: #E3E9F5;
+  --row-section-bg: #EFF3FB;
+  --row-hover-bg: #F5F8FD;
+  --gold-row-bg: rgba(138,100,16,0.06);
+  --gold-subtle-bg: rgba(138,100,16,0.08);
+  --gold-active-bg: rgba(138,100,16,0.14);
+  --input-bg: rgba(29,78,216,0.06);
+  --input-text: #1D4ED8;
+  --accent-green: #0A7F5A;
+  --accent-red: #C42B4A;
+  --glow-1: rgba(29,78,216,0.07);
+  --glow-2: rgba(184,137,43,0.08);
+  --flash-up: rgba(10,127,90,0.22);
+  --flash-down: rgba(196,43,74,0.20);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
+/* Kept in step with the dark tokens above (Tailwind is not compiled under Create React App; this block is inert). */
 @theme {
-  --color-bg-primary: #0A0E1A;
-  --color-bg-secondary: #0F1623;
-  --color-bg-tertiary: #151C2C;
-  --color-border: #1E2A3E;
-  --color-gold: #C9A84C;
-  --color-gold-hover: #E2BC5A;
-  --color-gold-muted: #8B6914;
-  --color-text-primary: #F0F2F5;
-  --color-text-secondary: #8A95A3;
-  --color-text-tertiary: #4A5568;
-  --color-green: #22C55E;
-  --color-red: #EF4444;
-  --color-green-muted: #052E16;
-  --color-red-muted: #2D0A0A;
+  --color-bg-primary: #070B16;
+  --color-bg-secondary: #0F1A33;
+  --color-bg-tertiary: #162447;
+  --color-border: #1F3058;
+  --color-gold: #E5B94E;
+  --color-gold-hover: #F2CB68;
+  --color-gold-muted: #9B7A24;
+  --color-text-primary: #F3F6FC;
+  --color-text-secondary: #A9B8D6;
+  --color-text-tertiary: #8497BC;
+  --color-green: #2EE6A6;
+  --color-red: #FF6B87;
+  --color-green-muted: #0A3329;
+  --color-red-muted: #3A1423;
 
   --font-family-sans: 'Inter', system-ui, sans-serif;
   --font-family-mono: 'Menlo', 'Monaco', 'Courier New', monospace;
@@ -106,6 +128,12 @@
 body {
   margin: 0;
   background-color: var(--bg-primary);
+  /* two soft glows at the top of the page give the dark theme depth without adding any images */
+  background-image:
+    radial-gradient(1100px 520px at 12% -8%, var(--glow-1), transparent 60%),
+    radial-gradient(900px 480px at 92% -12%, var(--glow-2), transparent 60%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -131,19 +159,92 @@ body {
   background: var(--scrollbar-hover);
 }
 
+/* Keyboard focus: most inputs hide the browser outline, so give every control a visible ring */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-@keyframes pulse-skeleton {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+/* Visually hidden but read by screen readers (form labels that the design shows as placeholders) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Sign-in, sign-up and password forms */
+.auth-field {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 150ms ease;
+}
+.auth-field::placeholder { color: var(--text-tertiary); }
+.auth-field:focus { border-color: var(--accent); }
+.auth-field:disabled { opacity: 0.6; }
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--gold);
+  color: var(--bg-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 150ms ease, transform 150ms ease;
+}
+.auth-btn:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.auth-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--gold);
+  font: inherit;
+  cursor: pointer;
+}
+.auth-link:hover { text-decoration: underline; }
+
+/* ── Motion ─────────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .skeleton {
-  animation: pulse-skeleton 1.5s ease-in-out infinite;
-  background-color: var(--bg-tertiary);
-  border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+  border-radius: var(--radius-sm);
 }
 
 .gold-underline-active {
@@ -163,7 +264,7 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -177,8 +278,88 @@ body {
   100% { transform: translateX(-50%); }
 }
 
+@keyframes flashUp {
+  from { background-color: var(--flash-up); }
+  to { background-color: transparent; }
+}
+
+@keyframes flashDown {
+  from { background-color: var(--flash-down); }
+  to { background-color: transparent; }
+}
+
+@keyframes breathe {
+  from { opacity: 0.55; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.08); }
+}
+
 .page-fade-in {
-  animation: fadeIn 150ms ease;
+  animation: fadeIn 280ms ease both;
+}
+
+/* Children fade in one after another (up to 12) */
+.stagger > * {
+  animation: fadeIn 420ms ease both;
+}
+.stagger > *:nth-child(1) { animation-delay: 30ms; }
+.stagger > *:nth-child(2) { animation-delay: 80ms; }
+.stagger > *:nth-child(3) { animation-delay: 130ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 230ms; }
+.stagger > *:nth-child(6) { animation-delay: 280ms; }
+.stagger > *:nth-child(7) { animation-delay: 330ms; }
+.stagger > *:nth-child(8) { animation-delay: 380ms; }
+.stagger > *:nth-child(9) { animation-delay: 430ms; }
+.stagger > *:nth-child(10) { animation-delay: 480ms; }
+.stagger > *:nth-child(11) { animation-delay: 530ms; }
+.stagger > *:nth-child(12) { animation-delay: 580ms; }
+
+/* A price that just changed flashes green or red (see src/hooks/usePriceFlash.js) */
+.flash-up { animation: flashUp 900ms ease-out; border-radius: 4px; }
+.flash-down { animation: flashDown 900ms ease-out; border-radius: 4px; }
+
+/* Tiles with a fixed dark gradient keep the bright gold in both themes (the light theme's gold is a dark brown) */
+.hero-tile {
+  --gold: #E5B94E;
+}
+
+/* Cards that rise slightly under the pointer */
+.lift {
+  transition: transform 180ms ease, border-color 150ms ease, box-shadow 180ms ease;
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow);
+}
+
+.gradient-text {
+  background-image: linear-gradient(90deg, var(--gold-hover) 0%, var(--gold) 45%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.hero-glow {
+  position: absolute;
+  inset: -80px 0 auto 0;
+  height: 420px;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(520px 260px at 50% 40%, var(--glow-1), transparent 70%),
+    radial-gradient(380px 200px at 62% 30%, var(--glow-2), transparent 70%);
+  animation: breathe 8s ease-in-out infinite alternate;
+}
+
+/* Respect "reduce motion": no looping or entrance animation, no smooth scrolling */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Tooltip styles */
@@ -199,7 +380,7 @@ body {
   color: var(--text-secondary);
   font-size: 11px;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
   z-index: 999;
   pointer-events: none;
@@ -226,6 +407,7 @@ body {
 
   body {
     background-color: #fff !important;
+    background-image: none !important;
     color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;

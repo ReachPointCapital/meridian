@@ -60,15 +60,15 @@ function HeroBar({ onItemClick }) {
 
 // Yahoo marketState: REGULAR, PRE/PREPRE, POST/POSTPOST, CLOSED. Showing "CLOSED" at 8:50am ET was misleading.
 const MARKET_STATES = {
-  REGULAR: { label: 'OPEN', bg: 'rgba(34,197,94,0.15)', color: 'var(--green)' },
-  PRE: { label: 'PRE-MKT', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
-  PREPRE: { label: 'PRE-MKT', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
-  POST: { label: 'AFTER-HRS', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
-  POSTPOST: { label: 'AFTER-HRS', bg: 'rgba(201,168,76,0.15)', color: 'var(--gold)' },
+  REGULAR: { label: 'OPEN', bg: 'rgba(46,230,166,0.15)', color: 'var(--green)' },
+  PRE: { label: 'PRE-MKT', bg: 'rgba(229,185,78,0.15)', color: 'var(--gold)' },
+  PREPRE: { label: 'PRE-MKT', bg: 'rgba(229,185,78,0.15)', color: 'var(--gold)' },
+  POST: { label: 'AFTER-HRS', bg: 'rgba(229,185,78,0.15)', color: 'var(--gold)' },
+  POSTPOST: { label: 'AFTER-HRS', bg: 'rgba(229,185,78,0.15)', color: 'var(--gold)' },
 };
 
 function MarketStateBadge({ state }) {
-  const s = MARKET_STATES[state] || { label: 'CLOSED', bg: 'rgba(239,68,68,0.15)', color: 'var(--red)' };
+  const s = MARKET_STATES[state] || { label: 'CLOSED', bg: 'rgba(255,107,135,0.15)', color: 'var(--red)' };
   return (
     <span style={{ fontSize: '9px', fontWeight: 600, padding: '2px 6px', borderRadius: '3px', backgroundColor: s.bg, color: s.color }}>
       {s.label}
@@ -92,7 +92,7 @@ function GlobalMarketsOverview({ onRowClick }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Global Markets Overview</span>
       </div>
@@ -167,7 +167,7 @@ function CentralBankTracker({ onRowClick }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Central Bank Policy Rates</span>
       </div>
@@ -244,7 +244,7 @@ function M2MoneySupply() {
   }, [m2FullData, m2Timeframe]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>M2 Money Supply</span>
         <div style={{ display: 'flex', gap: '2px' }}>
@@ -253,7 +253,7 @@ function M2MoneySupply() {
               key={period}
               onClick={() => setM2Timeframe(period)}
               style={{
-                background: m2Timeframe === period ? '#F0A500' : 'transparent',
+                background: m2Timeframe === period ? 'var(--gold)' : 'transparent',
                 color: m2Timeframe === period ? '#000000' : 'rgba(255,255,255,0.4)',
                 fontSize: '10px', fontWeight: '600',
                 padding: '2px 8px', borderRadius: '4px',
@@ -292,7 +292,7 @@ function M2MoneySupply() {
                   <XAxis dataKey="date" tick={false} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 9 }} axisLine={false} tickLine={false} width={50}
                     tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v.toFixed(0)} />
-                  <Tooltip formatter={(v) => [Number(v).toLocaleString(), s.unit]} contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '11px' }} />
+                  <Tooltip formatter={(v) => [Number(v).toLocaleString(), s.unit]} contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', fontSize: '11px' }} />
                   <Line type="monotone" dataKey="value" stroke="var(--gold)" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -321,14 +321,14 @@ function GlobalYieldCurves() {
 
   if (!loading && yields.length === 0) {
     return (
-      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '20px', marginBottom: '16px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '20px', marginBottom: '16px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>
         Yield curve data temporarily unavailable
       </div>
     );
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '14px', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '14px', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
       <div style={{ marginBottom: '8px' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>US Treasury Yield Curve</span>
       </div>
@@ -340,7 +340,7 @@ function GlobalYieldCurves() {
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
             <XAxis dataKey="maturity" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} axisLine={false} tickLine={false} width={36} tickFormatter={v => `${v}%`} />
-            <Tooltip formatter={(v) => [`${Number(v).toFixed(2)}%`, 'Yield']} contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '11px' }} />
+            <Tooltip formatter={(v) => [`${Number(v).toFixed(2)}%`, 'Yield']} contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', fontSize: '11px' }} />
             <Line type="monotone" dataKey="yield" stroke="var(--gold)" strokeWidth={2} dot={{ r: 3, fill: 'var(--gold)' }} />
           </LineChart>
         </ResponsiveContainer>
@@ -374,13 +374,13 @@ function CommoditiesDashboard({ onItemClick }) {
   }, [commodities]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px', height: '100%', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Commodities Dashboard</span>
       </div>
       {loading ? (
         <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '60px', borderRadius: '6px' }} />)}
+          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '60px', borderRadius: 'var(--radius-sm)' }} />)}
         </div>
       ) : commodities.length === 0 ? (
         <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '12px' }}>
@@ -396,7 +396,7 @@ function CommoditiesDashboard({ onItemClick }) {
                   const isPos = (c.changePercent || 0) >= 0;
                   return (
                     <div key={c.symbol} onClick={() => onItemClick && onItemClick(c)}
-                      style={{ backgroundColor: 'var(--bg-tertiary)', borderRadius: '6px', padding: '10px', cursor: 'pointer', transition: 'background 150ms' }}
+                      style={{ backgroundColor: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', padding: '10px', cursor: 'pointer', transition: 'background 150ms' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}>
                       <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 500, marginBottom: '4px' }}>{c.name}</div>
@@ -434,7 +434,7 @@ function CurrencyStrengthIndex({ onItemClick }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px', height: '100%', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Currency Strength Index</span>
       </div>
@@ -529,13 +529,13 @@ function RecentEconomicReleases({ onRowClick }) {
   const impactStyle = (impact) => {
     if (!impact) return { bg: 'rgba(255,255,255,0.05)', color: 'var(--text-tertiary)', label: 'LOW' };
     const i = impact.toLowerCase();
-    if (i === 'high') return { bg: 'rgba(239,68,68,0.15)', color: '#EF4444', label: 'HIGH' };
+    if (i === 'high') return { bg: 'rgba(255,107,135,0.15)', color: '#FF6B87', label: 'HIGH' };
     if (i === 'medium') return { bg: 'rgba(245,158,11,0.15)', color: '#F59E0B', label: 'MED' };
     return { bg: 'rgba(255,255,255,0.05)', color: 'var(--text-tertiary)', label: 'LOW' };
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '16px' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Recent Economic Releases</span>
       </div>
@@ -628,7 +628,7 @@ export default function MacroPage({ setActiveTab }) {
         </div>
         {symbol && (
           <button onClick={() => { setActiveSymbol(symbol); setActiveTab('Analysis'); setDetailOpen(false); }}
-            style={{ marginTop: '16px', width: '100%', padding: '10px', backgroundColor: 'var(--gold)', color: 'var(--bg-primary)', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+            style={{ marginTop: '16px', width: '100%', padding: '10px', backgroundColor: 'var(--gold)', color: 'var(--bg-primary)', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
             View Full Analysis
           </button>
         )}

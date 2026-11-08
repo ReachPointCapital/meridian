@@ -36,10 +36,10 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#F0F2F5', backgroundColor: '#0A0E1A', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h2 style={{ color: '#C9A84C', marginBottom: '12px' }}>Something went wrong</h2>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#F0F2F5', backgroundColor: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ color: 'var(--gold)', marginBottom: '12px' }}>Something went wrong</h2>
           <p style={{ color: '#8A95A3', fontSize: '14px', marginBottom: '20px' }}>{this.state.error?.message || 'An unexpected error occurred'}</p>
-          <button onClick={() => window.location.reload()} style={{ background: '#C9A84C', color: '#0A0E1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={() => window.location.reload()} style={{ background: 'var(--gold)', color: 'var(--bg-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
             Reload Page
           </button>
         </div>
@@ -146,7 +146,7 @@ function AlertModal({ alerts, onAdd, onRemove, onClose }) {
     }} onClick={onClose}>
       <div style={{
         backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-        borderRadius: '12px', padding: '24px', width: '420px', maxWidth: '90vw',
+        borderRadius: 'var(--radius-lg)', padding: '24px', width: '420px', maxWidth: '90vw',
         maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
       }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -160,19 +160,19 @@ function AlertModal({ alerts, onAdd, onRemove, onClose }) {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
           <input value={symbol} onChange={e => setSymbol(e.target.value)} placeholder="Symbol"
-            style={{ flex: '1 0 80px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'monospace', outline: 'none' }}
+            style={{ flex: '1 0 80px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'monospace', outline: 'none' }}
           />
           <input value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" type="number" step="0.01"
-            style={{ flex: '1 0 80px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'monospace', outline: 'none' }}
+            style={{ flex: '1 0 80px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'monospace', outline: 'none' }}
           />
           <select value={direction} onChange={e => setDirection(e.target.value)}
-            style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
+            style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
           >
             <option value="above">Above</option>
             <option value="below">Below</option>
           </select>
           <button type="submit" style={{
-            backgroundColor: 'var(--gold)', border: 'none', borderRadius: '6px', padding: '8px 16px',
+            backgroundColor: 'var(--gold)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px',
             color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
           }}>
             Add
@@ -233,7 +233,7 @@ function ShortcutsModal({ onClose }) {
     }} onClick={onClose}>
       <div style={{
         backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-        borderRadius: '12px', padding: '24px', width: '360px', maxWidth: '90vw',
+        borderRadius: 'var(--radius-lg)', padding: '24px', width: '360px', maxWidth: '90vw',
         boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
       }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

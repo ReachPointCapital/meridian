@@ -29,7 +29,7 @@ export function ToastProvider({ children }) {
             <div key={t.id} style={{
               background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
               borderLeft: `3px solid ${borderColor}`,
-              borderRadius: '6px', padding: '10px 16px', fontSize: '12px',
+              borderRadius: 'var(--radius-sm)', padding: '10px 16px', fontSize: '12px',
               color: 'var(--text-primary)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
               animation: 'toastSlideIn 200ms ease-out',
               pointerEvents: 'auto', maxWidth: '320px',

@@ -14,7 +14,7 @@ function StatCard({ label, value }) {
       padding: '10px 12px',
       backgroundColor: 'var(--bg-secondary)',
       border: '1px solid var(--border-color)',
-      borderRadius: '6px',
+      borderRadius: 'var(--radius-sm)',
     }}>
       <div style={{ color: 'var(--text-secondary)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '4px' }}>
         {label}
@@ -48,7 +48,7 @@ function PriceTargetBar({ symbol, currentPrice }) {
   return (
     <div style={{
       backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-      borderRadius: '8px', padding: '14px 16px', marginBottom: '16px', boxShadow: 'var(--card-shadow)',
+      borderRadius: 'var(--radius-md)', padding: '14px 16px', marginBottom: '16px', boxShadow: 'var(--card-shadow)',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Analyst Price Target</span>
@@ -119,7 +119,7 @@ function LogoWithFallback({ src, symbol, size = 48 }) {
 const CARD_STYLE = {
   backgroundColor: 'var(--bg-secondary)',
   border: '1px solid var(--border-color)',
-  borderRadius: '8px',
+  borderRadius: 'var(--radius-md)',
   overflow: 'hidden',
   boxShadow: 'var(--card-shadow)',
   marginBottom: '16px',
@@ -166,11 +166,11 @@ function AnalystRatingsMini({ symbol }) {
   const fd = data;
 
   const segments = [
-    { label: 'Strong Buy', count: strongBuy, color: '#22c55e' },
-    { label: 'Buy', count: buy, color: '#4ade80' },
+    { label: 'Strong Buy', count: strongBuy, color: '#2EE6A6' },
+    { label: 'Buy', count: buy, color: '#5CF0B8' },
     { label: 'Hold', count: hold, color: '#eab308' },
     { label: 'Sell', count: sell, color: '#f97316' },
-    { label: 'Strong Sell', count: strongSell, color: '#ef4444' },
+    { label: 'Strong Sell', count: strongSell, color: '#FF6B87' },
   ];
 
   return (
@@ -252,7 +252,7 @@ function PeersSection({ profile, symbol }) {
               style={{
                 backgroundColor: 'var(--bg-primary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 color: 'var(--gold)',
                 fontSize: '11px',
                 fontWeight: 600,
@@ -403,7 +403,7 @@ function DCFValuation({ quote, profile }) {
           padding: '8px 12px',
           backgroundColor: upsideColor + '15',
           border: `1px solid ${upsideColor}33`,
-          borderRadius: '6px',
+          borderRadius: 'var(--radius-sm)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -447,7 +447,7 @@ export default function OverviewPanel({ symbol, onAddWatchlist, onAddAlert }) {
         padding: '20px',
         backgroundColor: 'var(--red-muted)',
         border: '1px solid #7F1D1D',
-        borderRadius: '8px',
+        borderRadius: 'var(--radius-md)',
         marginBottom: '16px',
       }}>
         <p style={{ color: 'var(--red)', margin: '0 0 8px' }}>{error}</p>
@@ -536,7 +536,7 @@ export default function OverviewPanel({ symbol, onAddWatchlist, onAddAlert }) {
           </span>
           {onAddWatchlist && (
             <button onClick={onAddWatchlist}
-              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-secondary)', padding: '3px 10px', cursor: 'pointer', fontSize: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 150ms ease' }}
+              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', padding: '3px 10px', cursor: 'pointer', fontSize: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 150ms ease' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
             >
@@ -545,7 +545,7 @@ export default function OverviewPanel({ symbol, onAddWatchlist, onAddAlert }) {
           )}
           {onAddAlert && (
             <button onClick={onAddAlert}
-              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-secondary)', padding: '3px 10px', cursor: 'pointer', fontSize: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 150ms ease' }}
+              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', padding: '3px 10px', cursor: 'pointer', fontSize: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 150ms ease' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
             >
@@ -626,7 +626,7 @@ export default function OverviewPanel({ symbol, onAddWatchlist, onAddAlert }) {
       <div style={{
         backgroundColor: 'var(--bg-secondary)',
         border: '1px solid var(--border-color)',
-        borderRadius: '8px',
+        borderRadius: 'var(--radius-md)',
         padding: '16px',
         boxShadow: 'var(--card-shadow)',
         marginBottom: '16px',
@@ -645,12 +645,12 @@ export default function OverviewPanel({ symbol, onAddWatchlist, onAddAlert }) {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
           {profile.sector && (
-            <span style={{ border: '1px solid var(--gold)', color: 'var(--gold)', fontSize: '11px', padding: '2px 10px', borderRadius: '12px' }}>
+            <span style={{ border: '1px solid var(--gold)', color: 'var(--gold)', fontSize: '11px', padding: '2px 10px', borderRadius: 'var(--radius-lg)' }}>
               {profile.sector}
             </span>
           )}
           {profile.industry && (
-            <span style={{ border: '1px solid var(--gold-muted)', color: 'var(--gold-muted)', fontSize: '11px', padding: '2px 10px', borderRadius: '12px' }}>
+            <span style={{ border: '1px solid var(--gold-muted)', color: 'var(--gold-muted)', fontSize: '11px', padding: '2px 10px', borderRadius: 'var(--radius-lg)' }}>
               {profile.industry}
             </span>
           )}

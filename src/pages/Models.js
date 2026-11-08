@@ -36,7 +36,7 @@ const fmtX = (v, d = 1) => {
 const CARD = {
   backgroundColor: 'var(--bg-secondary)',
   border: '1px solid var(--border-color)',
-  borderRadius: '8px',
+  borderRadius: 'var(--radius-md)',
   overflow: 'hidden',
   boxShadow: 'var(--card-shadow)',
   marginBottom: '16px',
@@ -237,16 +237,16 @@ function ModelsEmptyState({ onSearch }) {
           placeholder="Search any ticker, ETF, or company..."
           style={{
             flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-            borderRadius: '8px', padding: '16px 24px', color: 'var(--text-primary)',
+            borderRadius: 'var(--radius-md)', padding: '16px 24px', color: 'var(--text-primary)',
             fontSize: '16px', fontFamily: 'monospace', outline: 'none',
-            boxShadow: focused ? '0 0 0 2px rgba(240,165,0,0.3)' : 'none',
+            boxShadow: focused ? '0 0 0 2px rgba(229,185,78,0.3)' : 'none',
             transition: 'box-shadow 150ms ease, border-color 150ms ease',
           }}
           onFocus={e => { e.target.style.borderColor = 'var(--gold)'; setFocused(true); }}
           onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; setFocused(false); }}
         />
         <button type="submit" style={{
-          backgroundColor: 'var(--gold)', border: 'none', borderRadius: '8px',
+          backgroundColor: 'var(--gold)', border: 'none', borderRadius: 'var(--radius-md)',
           padding: '16px 32px', color: 'var(--bg-primary)', fontSize: '15px',
           fontWeight: 600, cursor: 'pointer',
         }}>Search</button>
@@ -256,7 +256,7 @@ function ModelsEmptyState({ onSearch }) {
         {POPULAR.map(sym => (
           <button key={sym} onClick={() => onSearch(sym)} style={{
             backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)',
-            borderRadius: '6px', color: 'var(--gold)', fontSize: '12px', fontWeight: 600,
+            borderRadius: 'var(--radius-sm)', color: 'var(--gold)', fontSize: '12px', fontWeight: 600,
             fontFamily: 'monospace', padding: '6px 14px', cursor: 'pointer', transition: 'all 150ms',
           }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.backgroundColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--bg-primary)'; }}
@@ -268,7 +268,7 @@ function ModelsEmptyState({ onSearch }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%' }}>
         {descriptions.map(d => (
           <div key={d.title} style={{
-            backgroundColor: 'var(--row-section-bg)', borderRadius: '8px', padding: '16px',
+            backgroundColor: 'var(--row-section-bg)', borderRadius: 'var(--radius-md)', padding: '16px',
           }}>
             <div style={{ color: 'var(--gold)', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>{d.title}</div>
             <div style={{ color: 'var(--text-faint)', fontSize: '11px', lineHeight: 1.4 }}>{d.desc}</div>
@@ -552,7 +552,7 @@ function DCFModel({ data, quote }) {
                 />
               </div>
             ))}
-            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--row-section-bg)', borderRadius: '6px' }}>
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--row-section-bg)', borderRadius: 'var(--radius-sm)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
                 <span>Cost of Equity</span><span style={{ color: 'var(--gold)' }}>{fmtPct(costEquity, 2)}</span>
               </div>
@@ -593,7 +593,7 @@ function DCFModel({ data, quote }) {
               </div>
             ))}
 
-            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Implied Share Price</div>
               <div style={{ color: 'var(--gold)', fontSize: '32px', fontWeight: 900, fontFamily: 'monospace' }}>{fmtPS(impliedPrice)}</div>
               <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-faint)' }}>
@@ -894,7 +894,7 @@ function LBOModel({ data, quote }) {
           <div style={{ color: 'var(--text-faint)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', marginBottom: '8px' }}>Exit</div>
           {outputRow('Exit EV', fmtB(exitEV), true)}
           {outputRow('Exit Equity Value', fmtB(exitEquity), true)}
-          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
             <div>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>MOIC</div>
               <div style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtX(moic, 2)}</div>
@@ -1284,7 +1284,7 @@ function ThreeStatementModel({ data, quote }) {
           { label: 'Net Income', value: fmtB(ni2025) },
           { label: 'FCF', value: fmtB(fcf2025) },
         ].map(s => (
-          <div key={s.label} style={{ backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '6px', padding: '10px 14px', textAlign: 'center' }}>
+          <div key={s.label} style={{ backgroundColor: 'var(--gold-subtle-bg)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', textAlign: 'center' }}>
             <div style={{ color: 'var(--text-faint)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>{s.label}</div>
             <div style={{ color: 'var(--gold)', fontSize: '16px', fontWeight: 700, fontFamily: 'monospace' }}>{s.value}</div>
           </div>
@@ -1832,9 +1832,9 @@ function MergerModel() {
 
           {/* Accretion / Dilution result */}
           <div style={{
-            marginTop: '16px', padding: '24px', borderRadius: '12px', textAlign: 'center',
-            backgroundColor: isAccretive ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
-            border: `2px solid ${isAccretive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+            marginTop: '16px', padding: '24px', borderRadius: 'var(--radius-lg)', textAlign: 'center',
+            backgroundColor: isAccretive ? 'rgba(46,230,166,0.08)' : 'rgba(255,107,135,0.08)',
+            border: `2px solid ${isAccretive ? 'rgba(46,230,166,0.3)' : 'rgba(255,107,135,0.3)'}`,
           }}>
             <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
               Accretion / (Dilution)
@@ -1859,7 +1859,7 @@ function MergerModel() {
           </div>
 
           {/* Breakeven */}
-          <div style={{ marginTop: '16px', padding: '14px 18px', backgroundColor: 'var(--row-section-bg)', borderRadius: '8px', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+          <div style={{ marginTop: '16px', padding: '14px 18px', backgroundColor: 'var(--row-section-bg)', borderRadius: 'var(--radius-md)', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Breakeven Synergies</div>
               <div style={{ color: 'var(--gold)', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
@@ -2153,7 +2153,7 @@ function MasterModel({ data, quote }) {
               onChange={e => applyScenario(Number(e.target.value))}
               style={{
                 width: '100%', height: '6px', appearance: 'none', WebkitAppearance: 'none',
-                background: 'linear-gradient(to right, #dc2626, #f59e0b, #F0A500, #4ade80, #a855f7, #6b7280)',
+                background: 'linear-gradient(to right, #dc2626, #f59e0b, var(--gold), #5CF0B8, #a855f7, #6b7280)',
                 borderRadius: '3px', outline: 'none', cursor: 'pointer',
               }}
             />
@@ -2195,13 +2195,13 @@ function MasterModel({ data, quote }) {
                 const field = OVERRIDE_FIELDS.find(f => f.key === k);
                 return (
                   <span key={k} style={{
-                    fontSize: '10px', padding: '2px 8px', borderRadius: '10px',
+                    fontSize: '10px', padding: '2px 8px', borderRadius: 'var(--radius-md)',
                     backgroundColor: 'var(--gold-active-bg)', color: 'var(--gold)', fontWeight: 600,
                   }}>{field?.label || k}: {userOverrides[k]}</span>
                 );
               })}
               <button onClick={clearOverrides} style={{
-                fontSize: '10px', padding: '2px 8px', borderRadius: '10px', cursor: 'pointer',
+                fontSize: '10px', padding: '2px 8px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
                 backgroundColor: 'var(--row-section-bg)', color: 'var(--accent-red)',
                 border: '1px solid var(--border-color)', fontWeight: 600,
               }}>Clear All</button>
@@ -2295,7 +2295,7 @@ function MasterModel({ data, quote }) {
                 <span style={{ color: r.gold ? 'var(--gold)' : 'var(--text-strong)', fontSize: '12px', fontWeight: r.gold ? 700 : 400, fontFamily: 'monospace' }}>{r.val}</span>
               </div>
             ))}
-            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
               <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>DCF Implied Price</div>
               <div style={{ color: 'var(--gold)', fontSize: '28px', fontWeight: 900, fontFamily: 'monospace' }}>{fmtPS(outputs.dcfPrice)}</div>
               <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-faint)' }}>
@@ -2310,7 +2310,7 @@ function MasterModel({ data, quote }) {
         <div style={CARD}>
           <h3 style={HEADER}>Return Metrics</h3>
           <div style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: '16px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: '16px', padding: '12px', backgroundColor: 'var(--gold-subtle-bg)', borderRadius: 'var(--radius-md)' }}>
               <div>
                 <div style={{ color: 'var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>MOIC</div>
                 <div style={{ color: 'var(--gold)', fontSize: '22px', fontWeight: 700, fontFamily: 'monospace' }}>{fmtX(outputs.moic, 2)}</div>
@@ -2354,7 +2354,7 @@ function MasterModel({ data, quote }) {
                   if (Array.isArray(value)) return [`${fmtPS(value[0])} - ${fmtPS(value[1])}`, 'Range'];
                   return [fmtPS(value), ''];
                 }}
-                contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '11px' }}
+                contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', fontSize: '11px' }}
                 labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
                 itemStyle={{ color: 'var(--text-secondary)' }}
               />
@@ -2434,7 +2434,7 @@ function MasterModel({ data, quote }) {
           background: var(--gold);
           cursor: pointer;
           border: 2px solid var(--bg-primary);
-          box-shadow: 0 0 4px rgba(201,168,76,0.4);
+          box-shadow: 0 0 4px rgba(229,185,78,0.4);
         }
       `}</style>
     </div>
@@ -2544,7 +2544,7 @@ export default function Models() {
       ) : loading ? (
         <div style={{ padding: '40px', textAlign: 'center' }}>
           {[1, 2, 3].map(i => (
-            <div key={i} className="skeleton" style={{ height: '200px', marginBottom: '16px', borderRadius: '8px' }} />
+            <div key={i} className="skeleton" style={{ height: '200px', marginBottom: '16px', borderRadius: 'var(--radius-md)' }} />
           ))}
         </div>
       ) : !stockData ? (

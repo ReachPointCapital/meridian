@@ -32,6 +32,10 @@ create policy "Users can manage own notes" on notes
 
 import { createClient } from '@supabase/supabase-js'
 
+// The URL this page was opened with. Supabase processes and then clears a password-recovery link, so the
+// reset-password page reads this to know the visit really came from a recovery email.
+export const INITIAL_URL = typeof window !== 'undefined' ? window.location.href : ''
+
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || ''
 

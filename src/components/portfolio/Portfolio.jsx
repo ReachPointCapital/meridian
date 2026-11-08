@@ -5,7 +5,7 @@ import { getQuotes } from '../../services/fmp';
 import { formatPrice } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
 
-const PIE_COLORS = ['#C9A84C', '#22C55E', '#3B82F6', '#8B5CF6', '#EC4899', '#F97316', '#06B6D4', '#EAB308'];
+const PIE_COLORS = ['var(--gold)', '#2EE6A6', '#3B82F6', '#8B5CF6', '#EC4899', '#F97316', '#06B6D4', '#EAB308'];
 
 function loadPortfolio() {
   try { return JSON.parse(localStorage.getItem('meridian-portfolio') || '[]'); } catch { return []; }
@@ -138,7 +138,7 @@ export default function Portfolio({ setActiveTab }) {
           { label: 'Total P&L', value: `${isPlPos ? '+' : ''}${formatPrice(totalPL)}`, color: isPlPos ? 'var(--green)' : 'var(--red)' },
           { label: 'Return', value: `${isPlPos ? '+' : ''}${totalPLPct.toFixed(2)}%`, color: isPlPos ? 'var(--green)' : 'var(--red)' },
         ].map(item => (
-          <div key={item.label} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '14px', boxShadow: 'var(--card-shadow)' }}>
+          <div key={item.label} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '14px', boxShadow: 'var(--card-shadow)' }}>
             <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{item.label}</div>
             <div style={{ color: item.color, fontSize: '20px', fontWeight: 700, fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}>{item.value}</div>
           </div>
@@ -147,7 +147,7 @@ export default function Portfolio({ setActiveTab }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '16px', marginBottom: '16px' }}>
         {/* Holdings Table */}
-        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Holdings</span>
             <div style={{ display: 'flex', gap: '6px' }}>
@@ -159,7 +159,7 @@ export default function Portfolio({ setActiveTab }) {
           {holdings.length === 0 ? (
             <div style={{ padding: '48px 16px', textAlign: 'center' }}>
               <p style={{ color: 'var(--text-tertiary)', fontSize: '13px', margin: '0 0 12px' }}>No holdings yet. Add a transaction to get started.</p>
-              <button onClick={() => setShowAdd(true)} style={{ backgroundColor: 'var(--gold)', border: 'none', borderRadius: '6px', color: 'var(--bg-primary)', padding: '8px 16px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+              <button onClick={() => setShowAdd(true)} style={{ backgroundColor: 'var(--gold)', border: 'none', borderRadius: 'var(--radius-sm)', color: 'var(--bg-primary)', padding: '8px 16px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
                 Add Transaction
               </button>
             </div>
@@ -201,7 +201,7 @@ export default function Portfolio({ setActiveTab }) {
         </div>
 
         {/* Allocation Donut */}
-        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: 'var(--card-shadow)', padding: '16px' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--card-shadow)', padding: '16px' }}>
           <div style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Allocation</div>
           {allocationData.length === 0 ? (
             <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px 0' }}>No data</p>
@@ -218,7 +218,7 @@ export default function Portfolio({ setActiveTab }) {
                     if (!active || !payload?.length) return null;
                     const d = payload[0].payload;
                     return (
-                      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
+                      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px' }}>
                         <div style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{d.name}</div>
                         <div style={{ color: 'var(--text-secondary)' }}>{formatPrice(d.value)} ({d.pct.toFixed(1)}%)</div>
                       </div>
@@ -243,7 +243,7 @@ export default function Portfolio({ setActiveTab }) {
       </div>
 
       {/* Transaction Log */}
-      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
         <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Transaction Log</span>
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -294,12 +294,12 @@ export default function Portfolio({ setActiveTab }) {
       {/* Add Transaction Modal */}
       {showAdd && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAdd(false)}>
-          <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '24px', width: '400px', maxWidth: '90vw', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '24px', width: '400px', maxWidth: '90vw', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, color: 'var(--gold)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Add Transaction</h3>
               <button onClick={() => setShowAdd(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
             </div>
-            <div style={{ display: 'flex', gap: '0', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', gap: '0', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)', marginBottom: '12px' }}>
               {['buy', 'sell'].map(t => (
                 <button key={t} onClick={() => setForm(f => ({ ...f, type: t }))}
                   style={{ flex: 1, padding: '8px', border: 'none', backgroundColor: form.type === t ? (t === 'buy' ? 'var(--green)' : 'var(--red)') : 'var(--bg-primary)', color: form.type === t ? '#000' : 'var(--text-secondary)', fontWeight: 600, fontSize: '12px', textTransform: 'uppercase', cursor: 'pointer' }}>
@@ -317,10 +317,10 @@ export default function Portfolio({ setActiveTab }) {
                 <label style={{ color: 'var(--text-secondary)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>{f.label}</label>
                 <input value={form[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: f.key === 'symbol' ? e.target.value.toUpperCase() : e.target.value }))}
                   type={f.type} placeholder={f.placeholder}
-                  style={{ width: '100%', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', padding: '8px 10px', outline: 'none', fontFamily: f.key === 'symbol' ? 'monospace' : 'inherit', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '13px', padding: '8px 10px', outline: 'none', fontFamily: f.key === 'symbol' ? 'monospace' : 'inherit', boxSizing: 'border-box' }} />
               </div>
             ))}
-            <button onClick={addTransaction} style={{ width: '100%', backgroundColor: 'var(--gold)', border: 'none', borderRadius: '6px', color: 'var(--bg-primary)', fontSize: '13px', fontWeight: 700, padding: '10px', cursor: 'pointer', marginTop: '8px' }}>
+            <button onClick={addTransaction} style={{ width: '100%', backgroundColor: 'var(--gold)', border: 'none', borderRadius: 'var(--radius-sm)', color: 'var(--bg-primary)', fontSize: '13px', fontWeight: 700, padding: '10px', cursor: 'pointer', marginTop: '8px' }}>
               Add {form.type === 'buy' ? 'Buy' : 'Sell'} Transaction
             </button>
           </div>

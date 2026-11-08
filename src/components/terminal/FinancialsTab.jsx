@@ -159,7 +159,7 @@ export default function FinancialsTab({ symbol }) {
   const tabRows = tab === 'income' ? INCOME_ROWS : tab === 'balance' ? BALANCE_ROWS : CASHFLOW_ROWS;
 
   return (
-    <div className="page-fade-in" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', marginBottom: '16px', boxShadow: 'var(--card-shadow)' }}>
+    <div className="page-fade-in" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '16px', boxShadow: 'var(--card-shadow)' }}>
       {/* Tab bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '2px' }}>
@@ -218,7 +218,7 @@ export default function FinancialsTab({ symbol }) {
           ))}
         </div>
       ) : error ? (
-        <div style={{ padding: '16px', backgroundColor: 'var(--red-muted)', borderRadius: '6px' }}>
+        <div style={{ padding: '16px', backgroundColor: 'var(--red-muted)', borderRadius: 'var(--radius-sm)' }}>
           <p style={{ color: 'var(--red)', margin: '0 0 8px', fontSize: '13px' }}>{error}</p>
           <button onClick={load} style={{ background: 'var(--red)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
             Retry

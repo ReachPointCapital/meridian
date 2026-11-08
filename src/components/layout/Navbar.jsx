@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, LogOut, Menu, ChevronDown, Settings } from 'lucide-react';
+import { Sun, Moon, LogOut, Menu, ChevronDown, Settings, Bell } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { usePro } from '../../context/ProContext';
@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import TickerSearch from '../TickerSearch';
 import AuthModal from '../auth/AuthModal';
 import NamePromptModal from '../auth/NamePromptModal';
+import { hasSkippedNamePrompt } from '../../lib/auth';
 
 function isMarketOpen() {
   const now = new Date();
@@ -43,6 +44,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [isNarrow, setIsNarrow] = useState(window.innerWidth < 1100);
+  const [isPhone, setIsPhone] = useState(window.innerWidth < 720);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [prevUser, setPrevUser] = useState(null);
   const avatarRef = useRef(null);
@@ -59,7 +61,10 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
 
   // Responsive resize listener
   useEffect(() => {
-    const handleResize = () => setIsNarrow(window.innerWidth < 1100);
+    const handleResize = () => {
+      setIsNarrow(window.innerWidth < 1100);
+      setIsPhone(window.innerWidth < 720);
+    };
     window.addEventListener('resize', handleResize);
     handleResize();
     return () => window.removeEventListener('resize', handleResize);
@@ -90,7 +95,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
     if (!user || prevUser?.id === user.id) return;
     setPrevUser(user);
     const fullName = user.user_metadata?.full_name;
-    if (!fullName) {
+    if (!fullName && !hasSkippedNamePrompt(user.id)) {
       setShowNamePrompt(true);
     }
   }, [user, prevUser]);
@@ -135,21 +140,31 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
     || 'User';
   const avatarLetter = displayName[0].toUpperCase();
 
+  const menuChipStyle = {
+    display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'none',
+    border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '7px 12px',
+    color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
+  };
+
   return (
+    <>
     <nav style={{
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
       height: '56px',
-      backgroundColor: theme === 'light' ? '#FFFFFF' : 'var(--bg-primary)',
+      // frosted glass: the page glow shows faintly through the bar
+      backgroundColor: 'color-mix(in srgb, var(--bg-primary) 82%, transparent)',
+      backdropFilter: 'blur(14px) saturate(140%)',
+      WebkitBackdropFilter: 'blur(14px) saturate(140%)',
       borderBottom: '1px solid var(--border-color)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 20px',
+      padding: isPhone ? '0 12px' : '0 20px',
       zIndex: 100,
-      gap: '16px',
+      gap: isPhone ? '8px' : '16px',
     }}>
       {/* Left: Compass + Wordmark */}
       <div
@@ -167,9 +182,11 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
           }}>
             MERIDIAN
           </span>
-          <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', letterSpacing: '0.05em' }}>
-            by Reach Point Research
-          </span>
+          {!isPhone && (
+            <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', letterSpacing: '0.05em' }}>
+              by Reach Point Research
+            </span>
+          )}
         </div>
       </div>
 
@@ -182,7 +199,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
               onClick={() => setNavOpen(!navOpen)}
               style={{
                 background: 'none', border: '1px solid var(--border-color)',
-                borderRadius: '6px', padding: '5px 10px',
+                borderRadius: 'var(--radius-sm)', padding: '5px 10px',
                 color: 'var(--text-secondary)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: '6px',
                 fontSize: '12px', fontWeight: 500,
@@ -196,10 +213,12 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
             </button>
             {navOpen && (
               <div style={{
-                position: 'absolute', top: '42px', left: 0,
-                background: '#0D1117', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '0 0 8px 8px', zIndex: 200,
-                minWidth: '180px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                ...(isPhone
+                  ? { position: 'fixed', top: '60px', left: '12px', right: '12px', maxHeight: 'calc(100vh - 76px)', overflowY: 'auto' }
+                  : { position: 'absolute', top: '42px', left: 0 }),
+                background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)', zIndex: 200,
+                minWidth: isPhone ? 0 : '200px', boxShadow: '0 16px 40px rgba(2,6,18,0.5)',
               }}>
                 {tabs.map(tab => (
                   <button
@@ -209,7 +228,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
                       display: 'block', width: '100%', textAlign: 'left',
                       background: 'none', border: 'none',
                       padding: '12px 24px',
-                      color: activeTab === tab ? '#F0A500' : 'var(--text-secondary)',
+                      color: activeTab === tab ? 'var(--gold)' : 'var(--text-secondary)',
                       fontSize: '12px', fontWeight: activeTab === tab ? 600 : 400,
                       letterSpacing: '0.08em', textTransform: 'uppercase',
                       cursor: 'pointer',
@@ -220,6 +239,29 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
                     {tab}
                   </button>
                 ))}
+                {isPhone && (
+                  <div style={{ borderTop: '1px solid var(--border-color)', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <TickerSearch
+                      size="sm"
+                      placeholder="Search ticker or company..."
+                      onSelect={(sym) => { setActiveSymbol(sym); handleNavTab('Analysis'); }}
+                    />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      <button onClick={toggleTheme} style={menuChipStyle}>
+                        {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+                        {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                      </button>
+                      <button onClick={() => { setNavOpen(false); if (onAlertClick) onAlertClick(); }} style={menuChipStyle}>
+                        <Bell size={14} /> Alerts{alertCount > 0 ? ` (${alertCount})` : ''}
+                      </button>
+                      {!authLoading && !user && (
+                        <button onClick={() => { setNavOpen(false); setAuthModal('signup'); }} style={{ ...menuChipStyle, color: 'var(--gold)', borderColor: 'var(--gold)' }}>
+                          Create account
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -253,21 +295,25 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
             ))}
           </div>
         )}
-        <div style={{ width: isNarrow ? '200px' : '320px', maxWidth: '320px' }}>
-          <TickerSearch
-            size="sm"
-            placeholder="Search ticker or company..."
-            onSelect={(sym) => { setActiveSymbol(sym); setActiveTab('Analysis'); }}
-          />
-        </div>
+        {!isPhone && (
+          <div style={{ width: isNarrow ? '200px' : '320px', maxWidth: '320px' }}>
+            <TickerSearch
+              size="sm"
+              placeholder="Search ticker or company..."
+              onSelect={(sym) => { setActiveSymbol(sym); setActiveTab('Analysis'); }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Right: Pro badge + Theme toggle + Alert badge + Auth + Market status + time */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isPhone ? '8px' : '12px', flexShrink: 0 }}>
+        {!isPhone && (
+        <>
         <button
           onClick={togglePro}
           style={{
-            background: isPro ? 'linear-gradient(135deg, var(--gold), #E2BC5A)' : 'none',
+            background: isPro ? 'linear-gradient(135deg, var(--gold), var(--gold-hover))' : 'none',
             border: isPro ? 'none' : '1px solid var(--gold)',
             borderRadius: '4px',
             color: isPro ? 'var(--bg-primary)' : 'var(--gold)',
@@ -287,7 +333,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
           style={{
             background: 'none',
             border: '1px solid var(--border-color)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             color: 'var(--text-secondary)',
             cursor: 'pointer',
             padding: '5px 7px',
@@ -303,12 +349,14 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
           {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
         </button>
 
-        <div
+        <button
+          type="button"
           onClick={onAlertClick}
-          style={{ position: 'relative', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          aria-label="Price alerts"
+          style={{ position: 'relative', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'none', border: 'none', padding: 0, color: 'var(--text-secondary)' }}
           title="Price Alerts"
         >
-          <span style={{ fontSize: '14px' }}>&#128276;</span>
+          <Bell size={16} aria-hidden="true" />
           {alertCount > 0 && (
             <span style={{
               position: 'absolute', top: '-4px', right: '-4px',
@@ -320,7 +368,9 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
               {alertCount}
             </span>
           )}
-        </div>
+        </button>
+        </>
+        )}
 
         {/* Auth section */}
         {authLoading ? null : user ? (
@@ -334,7 +384,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
               onClick={() => setAvatarOpen(!avatarOpen)}
               style={{
                 width: '30px', height: '30px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--gold), #E2BC5A)',
+                background: 'linear-gradient(135deg, var(--gold), var(--gold-hover))',
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--bg-primary)', fontSize: '12px', fontWeight: 700,
@@ -347,7 +397,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
               <div style={{
                 position: 'absolute', top: '38px', right: 0,
                 background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-                borderRadius: '8px', padding: '8px 0', minWidth: '200px',
+                borderRadius: 'var(--radius-md)', padding: '8px 0', minWidth: '200px',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 200,
               }}>
                 <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-color)' }}>
@@ -395,7 +445,7 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
               onClick={() => setAuthModal('signin')}
               style={{
                 background: 'none', border: '1px solid var(--border-color)',
-                borderRadius: '6px', padding: '5px 12px',
+                borderRadius: 'var(--radius-sm)', padding: '5px 12px',
                 color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 500,
                 cursor: 'pointer', transition: 'all 150ms ease',
               }}
@@ -404,17 +454,19 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
             >
               Sign In
             </button>
-            <button
-              onClick={() => setAuthModal('signup')}
-              style={{
-                background: 'var(--gold)', border: 'none',
-                borderRadius: '6px', padding: '5px 12px',
-                color: 'var(--bg-primary)', fontSize: '11px', fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Sign Up
-            </button>
+            {!isPhone && (
+              <button
+                onClick={() => setAuthModal('signup')}
+                style={{
+                  background: 'var(--gold)', border: 'none',
+                  borderRadius: 'var(--radius-sm)', padding: '5px 12px',
+                  color: 'var(--bg-primary)', fontSize: '11px', fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Sign Up
+              </button>
+            )}
           </div>
         )}
 
@@ -450,8 +502,11 @@ export default function Navbar({ activeTab, setActiveTab, alertCount = 0, onAler
         )}
       </div>
 
-      {authModal && <AuthModal onClose={() => setAuthModal(null)} initialMode={authModal} />}
-      {showNamePrompt && <NamePromptModal onClose={() => setShowNamePrompt(false)} />}
     </nav>
+    {/* Dialogs sit beside the nav, not inside it: the nav's backdrop-filter would otherwise become their containing
+        block and shrink their full-screen overlay to the height of the bar. */}
+    {authModal && <AuthModal onClose={() => setAuthModal(null)} initialMode={authModal} />}
+    {showNamePrompt && <NamePromptModal userId={user?.id} onClose={() => setShowNamePrompt(false)} />}
+    </>
   );
 }

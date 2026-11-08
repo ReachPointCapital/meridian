@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-look="modern" data-tier="refined">
   <head>
     <meta charset="utf-8" />
     <meta name="google-site-verification" content="rKpkWZ5h1ufENXifVPM303KPohfupAiNfvsNkSaCg6k" />
@@ -36,7 +36,11 @@
     <meta name="twitter:site" content="@ReachPointCap" />
 
     <!-- Theme -->
-    <meta name="theme-color" content="#0D1117" />
+    <meta name="theme-color" content="#070B16" />
+    <!-- Apply the saved theme before first paint (ThemeContext does it after React mounts, which flashed dark for light-theme users) -->
+    <script>
+      try { var t = localStorage.getItem('meridian-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+    </script>
     <meta name="application-name" content="Meridian" />
 
     <!-- Preconnect hints -->
@@ -75,6 +79,7 @@
       }
     }
     </script>
+    <script src="%PUBLIC_URL%/spotlight.js" defer></script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

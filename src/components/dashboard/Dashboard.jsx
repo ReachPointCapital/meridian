@@ -9,6 +9,7 @@ import {
 } from '../../services/fmp';
 import { api } from '../../services/api';
 import { formatPrice, formatPercent, formatDate, formatVolume, formatTimeAgo, formatQuoteValue } from '../../utils/formatters';
+import PriceFlash from '../ui/PriceFlash';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { ExternalLink, Maximize2, Minimize2, Plus, X } from 'lucide-react';
@@ -77,7 +78,7 @@ function MarketSnapshot({ onNavigate }) {
   }, []);
 
   const renderColumn = (group) => (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{group.label}</span>
       </div>
@@ -109,7 +110,7 @@ function MarketSnapshot({ onNavigate }) {
                 </div>
                 <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'monospace' }}>
-                    {formatQuoteValue(item.symbol, d?.price)}
+                    <PriceFlash value={d?.price}>{formatQuoteValue(item.symbol, d?.price)}</PriceFlash>
                   </span>
                   <span style={{ color: pct != null ? (isPos ? 'var(--green)' : 'var(--red)') : 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace', minWidth: '55px', textAlign: 'right' }}>
                     {pct != null ? formatPercent(pct) : '\u2014'}
@@ -139,9 +140,9 @@ const CUSTOM_COLORS = ['#00bcd4', '#9c27b0', '#ff5722', '#4caf50', '#e91e63'];
 
 function IndexPerformancePanel() {
   const INDICES = [
-    { symbol: 'SPY', label: 'S&P 500', color: '#F0A500' },
+    { symbol: 'SPY', label: 'S&P 500', color: '#E5B94E' },
     { symbol: 'QQQ', label: 'NASDAQ 100', color: '#3B82F6' },
-    { symbol: 'DIA', label: 'Dow Jones', color: '#22C55E' },
+    { symbol: 'DIA', label: 'Dow Jones', color: '#2EE6A6' },
     { symbol: 'IWM', label: 'Russell 2000', color: '#A855F7' },
   ];
 
@@ -328,7 +329,7 @@ function IndexPerformancePanel() {
   });
 
   return (
-    <div ref={sectionRef} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div ref={sectionRef} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Index Performance</span>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -356,7 +357,7 @@ function IndexPerformancePanel() {
           <div ref={popoverRef} style={{
             position: 'absolute', top: '100%', right: '60px', zIndex: 60,
             backgroundColor: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '8px', padding: '8px', marginTop: '4px',
+            borderRadius: 'var(--radius-md)', padding: '8px', marginTop: '4px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
           }}>
             <form onSubmit={(e) => { e.preventDefault(); addCustomTicker(addInput); }}>
@@ -424,7 +425,7 @@ function IndexPerformancePanel() {
               <Tooltip content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 return (
-                  <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
+                  <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px' }}>
                     {payload.map(p => (
                       <div key={p.dataKey} style={{ color: p.color }}>{p.dataKey}: {Number(p.value).toFixed(2)}%</div>
                     ))}
@@ -446,7 +447,7 @@ function IndexPerformancePanel() {
           onMouseLeave={() => setHandleHovered(false)}
           style={{
             width: '6px', cursor: 'col-resize', flexShrink: 0,
-            backgroundColor: handleHovered ? 'rgba(240,165,0,0.4)' : 'rgba(255,255,255,0.05)',
+            backgroundColor: handleHovered ? 'rgba(229,185,78,0.4)' : 'rgba(255,255,255,0.05)',
             borderRadius: '2px', transition: 'background 0.15s',
           }}
         />
@@ -461,7 +462,7 @@ function IndexPerformancePanel() {
               <div key={idx.symbol} onClick={() => toggleIndex(idx.symbol)} style={{
                 backgroundColor: selected.includes(idx.symbol) ? idx.color + '12' : 'var(--bg-primary)',
                 border: `1px solid ${selected.includes(idx.symbol) ? idx.color + '44' : 'var(--border-color)'}`,
-                borderRadius: '6px', padding: '10px 12px', cursor: 'pointer', transition: 'all 150ms ease',
+                borderRadius: 'var(--radius-sm)', padding: '10px 12px', cursor: 'pointer', transition: 'all 150ms ease',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <span style={{ color: idx.color, fontSize: '11px', fontWeight: 600 }}>{idx.label}</span>
@@ -482,7 +483,7 @@ function IndexPerformancePanel() {
       </div>
 
       <style>{`
-        :fullscreen { background: #0D1117; padding: 24px; display: flex; flex-direction: column; }
+        :fullscreen { background: var(--bg-secondary); padding: 24px; display: flex; flex-direction: column; }
       `}</style>
     </div>
   );
@@ -519,7 +520,7 @@ function YieldCurvePanel() {
   }, [yields]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
           Yield Curve
@@ -551,7 +552,7 @@ function YieldCurvePanel() {
                   if (!active || !payload || !payload.length) return null;
                   const d = payload[0].payload;
                   return (
-                    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px 12px', fontSize: '11px' }}>
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px' }}>
                       <div style={{ color: 'var(--text-primary)' }}>{d.maturity}: {d.yield?.toFixed(3)}%</div>
                     </div>
                   );
@@ -570,7 +571,7 @@ function YieldCurvePanel() {
             {yields.map(y => (
               <div key={y.maturity} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>{y.maturity}</span>
-                <span style={{ color: '#F0A500', fontSize: '12px', fontFamily: 'monospace' }}>{y.yield?.toFixed(3)}%</span>
+                <span style={{ color: '#E5B94E', fontSize: '12px', fontFamily: 'monospace' }}>{y.yield?.toFixed(3)}%</span>
               </div>
             ))}
           </div>
@@ -601,10 +602,10 @@ function FearGreedPanel() {
   }, []);
 
   const getLabel = (score) => {
-    if (score <= 25) return { text: 'EXTREME FEAR', color: '#ef4444' };
+    if (score <= 25) return { text: 'EXTREME FEAR', color: '#FF6B87' };
     if (score <= 45) return { text: 'FEAR', color: '#f97316' };
     if (score <= 55) return { text: 'NEUTRAL', color: '#eab308' };
-    if (score <= 75) return { text: 'GREED', color: '#22c55e' };
+    if (score <= 75) return { text: 'GREED', color: '#2EE6A6' };
     return { text: 'EXTREME GREED', color: '#16a34a' };
   };
 
@@ -657,7 +658,7 @@ function FearGreedPanel() {
   ];
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Fear & Greed Index</span>
       </div>
@@ -712,7 +713,7 @@ function FearGreedPanel() {
                   <div key={ind.key}
                     onMouseEnter={() => setHoveredIndicator(ind.key)}
                     onMouseLeave={() => setHoveredIndicator(null)}
-                    style={{ backgroundColor: lt ? '#f3f4f6' : 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '8px', position: 'relative', cursor: 'help' }}
+                    style={{ backgroundColor: lt ? '#f3f4f6' : 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-sm)', padding: '8px', position: 'relative', cursor: 'help' }}
                   >
                     <div style={{ color: lt ? '#6b7280' : 'rgba(255,255,255,0.4)', fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                       {ind.name}<span style={{ opacity: lt ? 0.5 : 0.3, fontSize: '9px', marginLeft: '3px', color: lt ? '#9ca3af' : undefined }}>ⓘ</span>
@@ -721,13 +722,13 @@ function FearGreedPanel() {
                       {Math.round(ind.score)}
                     </div>
                     <div style={{ width: '100%', height: '4px', borderRadius: '9999px', backgroundColor: lt ? '#e5e7eb' : 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                      <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: '#F0A500', borderRadius: '9999px', transition: 'width 600ms ease' }} />
+                      <div style={{ width: `${ind.score}%`, height: '100%', backgroundColor: '#E5B94E', borderRadius: '9999px', transition: 'width 600ms ease' }} />
                     </div>
                     {hoveredIndicator === ind.key && tip && (
                       <div style={{
                         position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
                         width: '200px', backgroundColor: lt ? '#ffffff' : '#1a1f2e', border: `1px solid ${lt ? '#e5e7eb' : 'rgba(255,255,255,0.1)'}`,
-                        borderRadius: '6px', padding: '10px 12px', zIndex: 50, pointerEvents: 'none',
+                        borderRadius: 'var(--radius-sm)', padding: '10px 12px', zIndex: 50, pointerEvents: 'none',
                         boxShadow: lt ? '0 4px 12px rgba(0,0,0,0.1)' : '0 4px 12px rgba(0,0,0,0.4)',
                       }}>
                         <div style={{ color: lt ? '#111827' : '#ffffff', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>{tip.title}</div>
@@ -774,7 +775,7 @@ function TopMovers({ onNavigate }) {
   }, []);
 
   const renderColumn = (title, items, showVolume = false) => (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{title}</span>
       </div>
@@ -876,20 +877,20 @@ function SectorHeatmap({ onNavigate }) {
   }, [sectors]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Sector Performance</span>
       </div>
       <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
         {loading ? (
-          Array.from({ length: 12 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '80px', borderRadius: '6px' }} />)
+          Array.from({ length: 12 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-sm)' }} />)
         ) : displaySectors.length === 0 ? (
           <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', gridColumn: '1 / -1', textAlign: 'center', padding: '16px' }}>No sector data available.</p>
         ) : displaySectors.map((s, i) => {
           const pctNum = typeof s.changesPercentage === 'number' ? s.changesPercentage : parseFloat(s.changesPercentage || '0');
           return (
             <div key={i} onClick={() => { const etf = SECTOR_ETF_MAP[(s.sector || '').toLowerCase()]; if (etf && onNavigate) onNavigate(etf); }}
-              style={{ backgroundColor: getColor(pctNum), borderRadius: '6px', padding: '12px', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
+              style={{ backgroundColor: getColor(pctNum), borderRadius: 'var(--radius-sm)', padding: '12px', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               <span style={{ color: '#FFFFFF', fontSize: '13px', fontWeight: 600 }}>{(s.sector || '').replace(/_/g, ' ')}</span>
@@ -933,7 +934,7 @@ function InlineArticlePreview({ url }) {
       ) : article ? (
         <>
           {article.image && (
-            <img src={article.image} alt="" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '6px', marginBottom: '10px' }}
+            <img src={article.image} alt="" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: 'var(--radius-sm)', marginBottom: '10px' }}
               onError={e => e.target.style.display = 'none'} />
           )}
           {article.description && (
@@ -992,7 +993,7 @@ function NewsAndEarnings({ onNavigate }) {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '60fr 40fr', gap: '12px', marginBottom: '0' }}>
-      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
         <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
           <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Market News</span>
         </div>
@@ -1035,7 +1036,7 @@ function NewsAndEarnings({ onNavigate }) {
         )}
       </div>
 
-      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
         <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
           <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Upcoming Earnings</span>
         </div>
@@ -1103,13 +1104,13 @@ function EconomicCalendarPanel() {
   const impactColor = (impact) => {
     if (!impact) return { bg: '#1E2A3E', color: '#8A95A3', label: 'Low' };
     const i = impact.toLowerCase();
-    if (i === 'high') return { bg: '#2D0A0A', color: '#EF4444', label: 'High' };
+    if (i === 'high') return { bg: '#2D0A0A', color: '#FF6B87', label: 'High' };
     if (i === 'medium') return { bg: '#2D1A00', color: '#F59E0B', label: 'Med' };
     return { bg: '#1E2A3E', color: '#8A95A3', label: 'Low' };
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Economic Calendar</span>
       </div>
@@ -1139,7 +1140,7 @@ function EconomicCalendarPanel() {
                     <td style={{ padding: '6px 10px', color: 'var(--text-primary)', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event || '\u2014'}</td>
                     <td style={{ padding: '6px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>{ev.country || '\u2014'}</td>
                     <td style={{ padding: '6px 10px', textAlign: 'right' }}>
-                      <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 600, backgroundColor: imp.bg, color: imp.color }}>{imp.label}</span>
+                      <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 'var(--radius-md)', fontSize: '10px', fontWeight: 600, backgroundColor: imp.bg, color: imp.color }}>{imp.label}</span>
                     </td>
                     <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{ev.estimate ?? '\u2014'}</td>
                     <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{ev.previous ?? '\u2014'}</td>
@@ -1176,7 +1177,7 @@ function IPOCalendarPanel() {
   const displayIpos = expanded ? ipos : ipos.slice(0, 10);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Upcoming IPOs</span>
         {!loading && ipos.length > 0 && (
@@ -1253,13 +1254,13 @@ function ForexPanel({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Currency Exchange Rates</span>
       </div>
       {loading ? (
         <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '60px', borderRadius: '6px' }} />)}
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" style={{ height: '60px', borderRadius: 'var(--radius-sm)' }} />)}
         </div>
       ) : pairs.length === 0 ? (
         <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', padding: '24px' }}>No forex data.</p>
@@ -1269,7 +1270,7 @@ function ForexPanel({ onNavigate }) {
             const isPos = (p.changePercent || 0) >= 0;
             return (
               <div key={i} onClick={() => onNavigate && onNavigate(p.symbol)}
-                style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px 12px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
+                style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                 <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600, marginBottom: '4px' }}>{p.pair}</div>
@@ -1306,7 +1307,7 @@ function MostShortedPanel({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Most Shorted</span>
       </div>
@@ -1379,7 +1380,7 @@ function AIDailyBrief() {
   if (!loading && !brief?.brief && !error) return null;
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: brief?.brief ? '1px solid var(--border-color)' : 'none' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI Market Daily Brief</span>
         {brief?.generatedAt && <span style={{ color: 'var(--text-tertiary)', fontSize: '9px' }}>{new Date(brief.generatedAt).toLocaleTimeString()}</span>}
@@ -1453,7 +1454,7 @@ function GlobalExchangeStatus({ onNavigate }) {
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
+    <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--card-shadow)', marginBottom: '0' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-color)' }}>
         <span style={{ color: 'var(--gold)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Global Exchange Status</span>
       </div>
@@ -1462,7 +1463,7 @@ function GlobalExchangeStatus({ onNavigate }) {
           const { status, color } = getStatus(ex);
           return (
             <div key={ex.name} onClick={() => { const idx = EXCHANGE_INDEX_MAP[ex.name]; if (idx && onNavigate) onNavigate(idx); }}
-              style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px 12px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
+              style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', cursor: 'pointer', transition: 'opacity 150ms ease' }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -1509,7 +1510,7 @@ export default function Dashboard({ setActiveTab }) {
         )}
         {symbol && (
           <button onClick={() => { setActiveSymbol(symbol); setActiveTab('Analysis'); setDetailOpen(false); }}
-            style={{ marginTop: '12px', width: '100%', padding: '10px', backgroundColor: 'var(--gold)', color: 'var(--bg-primary)', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+            style={{ marginTop: '12px', width: '100%', padding: '10px', backgroundColor: 'var(--gold)', color: 'var(--bg-primary)', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
             View Full Analysis
           </button>
         )}

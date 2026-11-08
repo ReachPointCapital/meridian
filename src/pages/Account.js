@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 const INPUT_STYLE = {
   width: '100%', boxSizing: 'border-box',
   background: 'var(--bg-primary)', border: '1px solid var(--border-color)',
-  borderRadius: '8px', padding: '10px 14px', color: 'var(--text-primary)', fontSize: '13px',
+  borderRadius: 'var(--radius-md)', padding: '10px 14px', color: 'var(--text-primary)', fontSize: '13px',
   outline: 'none', fontFamily: 'inherit',
 }
 
@@ -19,7 +19,7 @@ const LABEL_STYLE = {
 
 const CARD_STYLE = {
   background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '12px', padding: '24px',
+  borderRadius: 'var(--radius-lg)', padding: '24px',
 }
 
 const SECTION_TITLE = {
@@ -29,7 +29,7 @@ const SECTION_TITLE = {
 
 const GOLD_BTN = {
   background: 'var(--gold)', color: 'var(--bg-primary)', border: 'none',
-  borderRadius: '8px', padding: '10px 20px', fontSize: '13px', fontWeight: 600,
+  borderRadius: 'var(--radius-md)', padding: '10px 20px', fontSize: '13px', fontWeight: 600,
   cursor: 'pointer',
 }
 
@@ -178,7 +178,7 @@ export default function Account() {
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <div style={{
           width: '64px', height: '64px', borderRadius: '50%',
-          background: 'linear-gradient(135deg, var(--gold), #E2BC5A)',
+          background: 'linear-gradient(135deg, var(--gold), var(--gold-hover))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 12px', color: 'var(--bg-primary)',
           fontSize: '24px', fontWeight: 900,
@@ -259,7 +259,7 @@ export default function Account() {
                 style={INPUT_STYLE} onFocus={focusBorder} onBlur={blurBorder} />
             </div>
             {passwordError && (
-              <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px' }}>{passwordError}</div>
+              <div style={{ color: '#FF6B87', fontSize: '12px', marginTop: '8px' }}>{passwordError}</div>
             )}
             <SaveButton loading={passwordSaving} onClick={handlePasswordUpdate}
               label="Update Password" loadingLabel="Updating..." />
@@ -277,15 +277,15 @@ export default function Account() {
         borderColor: 'rgba(127,29,29,0.3)',
         background: 'rgba(127,29,29,0.1)',
       }}>
-        <div style={{ ...SECTION_TITLE, color: 'rgba(239,68,68,0.5)' }}>Danger Zone</div>
+        <div style={{ ...SECTION_TITLE, color: 'rgba(255,107,135,0.5)' }}>Danger Zone</div>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button
             onClick={handleSignOutAll}
             disabled={signingOutAll}
             style={{
-              background: 'none', border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: '8px', padding: '10px 16px',
-              color: '#ef4444', fontSize: '12px', fontWeight: 600,
+              background: 'none', border: '1px solid rgba(255,107,135,0.3)',
+              borderRadius: 'var(--radius-md)', padding: '10px 16px',
+              color: '#FF6B87', fontSize: '12px', fontWeight: 600,
               cursor: 'pointer', opacity: signingOutAll ? 0.6 : 1,
             }}
           >
@@ -294,9 +294,9 @@ export default function Account() {
           <button
             onClick={() => setShowDeleteConfirm(true)}
             style={{
-              background: 'none', border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: '8px', padding: '10px 16px',
-              color: '#ef4444', fontSize: '12px', fontWeight: 600,
+              background: 'none', border: '1px solid rgba(255,107,135,0.3)',
+              borderRadius: 'var(--radius-md)', padding: '10px 16px',
+              color: '#FF6B87', fontSize: '12px', fontWeight: 600,
               cursor: 'pointer',
             }}
           >
@@ -312,11 +312,11 @@ export default function Account() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999,
         }} onClick={() => setShowDeleteConfirm(false)}>
           <div style={{
-            background: '#0D1117', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '12px', padding: '32px', maxWidth: '400px', width: '100%',
+            background: 'var(--bg-secondary)', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 'var(--radius-lg)', padding: '32px', maxWidth: '400px', width: '100%',
             textAlign: 'center',
           }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ color: '#ef4444', fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>
+            <h3 style={{ color: '#FF6B87', fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>
               Delete Account?
             </h3>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', margin: '0 0 24px' }}>
@@ -327,7 +327,7 @@ export default function Account() {
                 onClick={() => setShowDeleteConfirm(false)}
                 style={{
                   background: 'none', border: '1px solid var(--border-color)',
-                  borderRadius: '8px', padding: '10px 20px',
+                  borderRadius: 'var(--radius-md)', padding: '10px 20px',
                   color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer',
                 }}
               >
@@ -336,8 +336,8 @@ export default function Account() {
               <button
                 onClick={handleDeleteAccount}
                 style={{
-                  background: '#ef4444', border: 'none',
-                  borderRadius: '8px', padding: '10px 20px',
+                  background: '#FF6B87', border: 'none',
+                  borderRadius: 'var(--radius-md)', padding: '10px 20px',
                   color: '#ffffff', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                 }}
               >
