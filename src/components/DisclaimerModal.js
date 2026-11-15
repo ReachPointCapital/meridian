@@ -20,10 +20,15 @@ export default function DisclaimerModal() {
       position: 'fixed', inset: 0, zIndex: 99999,
       background: 'rgba(0,0,0,0.85)',
       backdropFilter: 'blur(6px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      // The card is taller than a phone screen (about 900px on a 375px-wide one), so the layer scrolls. The card is
+      // centred with auto margins instead of align-items: center, which would push its top edge off screen where it
+      // cannot be scrolled to.
+      display: 'flex',
+      overflowY: 'auto',
       padding: '24px',
     }}>
       <div style={{
+        margin: 'auto',
         background: 'var(--bg-secondary)',
         border: '1px solid rgba(229,185,78,0.3)',
         borderRadius: 'var(--radius-lg)',

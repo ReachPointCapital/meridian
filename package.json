@@ -28,7 +28,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "test:api": "node --test \"test/**/*.test.js\"",
-    "test:utils": "TZ=America/Los_Angeles CI=true react-scripts test --watchAll=false \"src/(utils|theme|lib|hooks|components/ui)/\""
+    "test:utils": "TZ=America/Los_Angeles CI=true react-scripts test --watchAll=false \"src/((utils|theme|lib|hooks|components/ui)/|components/DisclaimerModal)\""
   },
   "eslintConfig": {
     "extends": [
