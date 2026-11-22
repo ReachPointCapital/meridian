@@ -236,7 +236,8 @@ function ModelsEmptyState({ onSearch }) {
           onChange={e => setQuery(e.target.value)}
           placeholder="Search any ticker, ETF, or company..."
           style={{
-            flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+            flex: 1, minWidth: 0, // minWidth: 0 lets the input shrink on a phone; without it the Search button is pushed past the edge
+            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-md)', padding: '16px 24px', color: 'var(--text-primary)',
             fontSize: '16px', fontFamily: 'monospace', outline: 'none',
             boxShadow: focused ? '0 0 0 2px rgba(229,185,78,0.3)' : 'none',
@@ -265,7 +266,9 @@ function ModelsEmptyState({ onSearch }) {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%' }}>
+      {/* Three columns from tablet width up; two (or one) on a narrow phone. A bare repeat(3, 1fr) cannot go narrower than
+          its text, which pushed the page 24px past a 320px screen. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(max(130px, calc((100% - 24px) / 3)), 1fr))', gap: '12px', width: '100%' }}>
         {descriptions.map(d => (
           <div key={d.title} style={{
             backgroundColor: 'var(--row-section-bg)', borderRadius: 'var(--radius-md)', padding: '16px',
