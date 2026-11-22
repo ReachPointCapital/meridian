@@ -25,7 +25,7 @@ export default function DisclaimerModal() {
       // cannot be scrolled to.
       display: 'flex',
       overflowY: 'auto',
-      padding: '24px',
+      padding: 'clamp(12px, 4vw, 24px)', // tighter on a phone so the whole notice fits a tall screen; 24px from 600px wide up
     }}>
       <div style={{
         margin: 'auto',
@@ -34,7 +34,7 @@ export default function DisclaimerModal() {
         borderRadius: 'var(--radius-lg)',
         maxWidth: '560px',
         width: '100%',
-        padding: '36px',
+        padding: 'clamp(20px, 6vw, 36px)', // 36px from 600px wide up
         boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
       }}>
         {/* Header */}

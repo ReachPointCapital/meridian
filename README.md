@@ -46,7 +46,7 @@ git-ignored.
 ## Tests
 ```bash
 npm run test:api     # serverless functions: statement mapping, Yahoo client
-npm run test:utils   # formatters, theme contrast, sign-in helpers, price flash, disclaimer modal, headline index list
+npm run test:utils   # formatters, theme contrast, sign-in helpers, price flash, disclaimer modal, headline index list, Models layout
 ```
 `npm run build` is what Vercel runs; it treats lint warnings as errors when `CI=true`.
 

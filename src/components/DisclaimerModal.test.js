@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DisclaimerModal from './DisclaimerModal';
@@ -35,6 +37,15 @@ describe('DisclaimerModal: small screens', () => {
     render(<DisclaimerModal />);
     const { overlay } = overlayAndCard();
     expect(overlay.style.overflowY).toBe('auto');
+  });
+
+  // At 375x812 the card was about 907px tall, so the button sat below the fold. Padding that shrinks with the screen lets the
+  // whole notice, button included, fit a tall phone without scrolling, while a desktop keeps the roomy 36px / 24px.
+  test('card and overlay padding shrink on a small screen with clamp(), and stay 36px / 24px at their largest', () => {
+    // jsdom's CSS parser discards clamp() values, so the rendered element reports no padding: read the source instead.
+    const src = fs.readFileSync(path.join(__dirname, 'DisclaimerModal.js'), 'utf8');
+    expect(src).toMatch(/padding:\s*'clamp\(\s*\d+px,\s*[\d.]+vw,\s*36px\s*\)'/);
+    expect(src).toMatch(/padding:\s*'clamp\(\s*\d+px,\s*[\d.]+vw,\s*24px\s*\)'/);
   });
 
   test('the card is centred with auto margins, not align-items: center, so its top edge can always be reached', () => {
