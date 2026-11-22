@@ -1,0 +1,18 @@
+# Meridian
+
+> Meridian is a free, institutional-grade financial terminal by Reach Point Research, a division of Reach Point Capital LLC (Westport, Connecticut). It offers real-time stock analysis, DCF and LBO models, an S&P 500 heatmap, an earnings calendar, a stock screener and an options calculator. No subscription is required. Meridian provides data for informational purposes only and is not investment advice.
+
+## Pages
+
+- [Home](https://meridian.reachpointcapital.com/): Overview of the terminal
+- [Dashboard](https://meridian.reachpointcapital.com/dashboard): Live S&P 500 heatmap, market movers, yield curve, fear & greed index, sector performance, and global markets
+- [Stock analysis](https://meridian.reachpointcapital.com/analysis): Price charts, financial models, analyst targets, technical indicators, and valuation analysis for any stock or ETF
+- [Financial models](https://meridian.reachpointcapital.com/models): DCF, LBO, 3-Statement, and comparable company models with scenario analysis and football field valuation
+- [Stock screener](https://meridian.reachpointcapital.com/screener): Screen stocks by market cap, P/E ratio, revenue growth, margins, and more
+- [Earnings calendar](https://meridian.reachpointcapital.com/earnings): Upcoming earnings reports, EPS estimates, and revenue forecasts
+- [Options calculator](https://meridian.reachpointcapital.com/options): Black-Scholes pricing with full Greeks
+- [Disclaimer](https://meridian.reachpointcapital.com/disclaimer): Important information about the content of Meridian
+
+## About
+
+- [Reach Point Capital](https://reachpointcapital.com/): The parent company

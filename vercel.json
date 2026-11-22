@@ -1,4 +1,6 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "functions": {
     "api/*.js": {
       "memory": 512,
@@ -25,6 +27,6 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/(login|signup|reset-password|account|watchlist|portfolio)", "destination": "/app.html" }
   ]
 }

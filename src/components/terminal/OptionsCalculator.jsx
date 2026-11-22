@@ -5,6 +5,7 @@ import {
 import { useOptions } from '../../hooks/useOptions';
 import { calculateOption } from '../../utils/blackScholes';
 import { api } from '../../services/api';
+import RouteMeta from '../../seo/RouteMeta';
 
 function InfoTooltip({ text }) {
   const [show, setShow] = useState(false);
@@ -297,10 +298,11 @@ export default function OptionsCalculator() {
 
   return (
     <div className="page-fade-in">
+      <RouteMeta routeKey="options" />
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
+        <h1 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
           Options Calculator
-        </h2>
+        </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
           Black-Scholes pricing with full Greeks
         </p>

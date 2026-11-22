@@ -6,6 +6,9 @@ import './modern.css'; // the modern look ("Graphite & Champagne"); scoped to <h
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
 
+// scripts/prerender.mjs puts static text for crawlers inside #root. Remove it as the app starts so it is never shown twice.
+document.querySelectorAll('[data-seo-static]').forEach((node) => node.remove());
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

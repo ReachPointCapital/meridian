@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import RouteMeta from '../seo/RouteMeta';
 
 const sectionHeaderStyle = {
   color: 'var(--gold)',
@@ -31,6 +32,7 @@ export default function Disclaimer() {
       backgroundColor: 'var(--bg-primary)',
       padding: '64px 32px',
     }}>
+      <RouteMeta routeKey="disclaimer" />
       <div style={{ maxWidth: '860px', margin: '0 auto' }}>
         {/* Back button */}
         <button
@@ -185,7 +187,7 @@ export default function Disclaimer() {
 
         {/* Footer */}
         <p style={{
-          color: 'rgba(255,255,255,0.2)',
+          color: 'rgba(255,255,255,0.55)',
           fontSize: '11px',
           textAlign: 'center',
           marginTop: '64px',

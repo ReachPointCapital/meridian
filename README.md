@@ -59,6 +59,23 @@ npm run test:utils   # formatters, theme contrast, sign-in helpers, price flash,
 | `supabase/schema.sql` | Database tables and row-level security for accounts |
 | `docs/` | Setup guides |
 
+## Search and link previews
+The app is a single-page app, so `npm run build` finishes with `scripts/prerender.mjs` (the npm `postbuild` step). It
+writes real HTML for every public page, so crawlers and link-preview bots that do not run JavaScript still see each
+page's title, description, canonical address, heading, text and links.
+
+- **Page titles and descriptions live in one file**, `src/seo/routes.json`. The pages read them through `<RouteMeta>`
+  and the build writes the same values into the HTML. To add a public page, add it there, route it in `src/App.js`,
+  and `test/prerender.test.js` checks that everything agrees.
+- The build outputs `index.html` (home), `<page>.html` per public page (Vercel `cleanUrls` serves it at `/<page>`),
+  `app.html` (shell for `/login`, `/watchlist` and other client-only pages, marked noindex), `404.html` (served with a
+  real 404 status for any other address) and `sitemap.xml` (generated from the same list; do not edit by hand).
+- `vercel.json` has no catch-all rewrite. Client-only pages are listed in its `rewrites` and in `routes.json` under
+  `clientOnly`; the test fails if the two lists drift.
+- The static text sits inside `#root` and is removed by `src/index.js` as the app starts.
+- Icons are `public/favicon.ico`, `logo192.png`, `logo512.png` and `apple-touch-icon.png`; the link-preview card is
+  `public/og-image.jpg` (1200x630). `public/llms.txt` describes the site for AI tools.
+
 ## Deploying
 Pushing to `main` deploys to production on Vercel; other branches get a preview URL (behind a Vercel login). The
 Supabase values are baked in at build time, so changing them needs a redeploy.

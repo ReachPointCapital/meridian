@@ -89,7 +89,7 @@ export default function DisclaimerModal() {
           >
             Read full disclaimer →
           </a>
-          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.55)' }}>
             © 2026 Reach Point Research · Reach Point Capital LLC
           </span>
         </div>
@@ -118,7 +118,7 @@ export default function DisclaimerModal() {
 
         {/* Sub note */}
         <p style={{
-          fontSize: '10px', color: 'rgba(255,255,255,0.2)',
+          fontSize: '10px', color: 'rgba(255,255,255,0.55)',
           textAlign: 'center', marginTop: '12px', marginBottom: '0',
         }}>
           This notice will not appear again on this device.

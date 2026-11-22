@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Helmet } from 'react-helmet-async';
+import RouteMeta from '../../seo/RouteMeta';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, LabelList,
 } from 'recharts';
@@ -1514,15 +1514,12 @@ export default function Dashboard({ setActiveTab }) {
 
   return (
     <>
-    <Helmet>
-      <title>Market Dashboard — Real-Time Stocks, Indices & Heatmap | Meridian</title>
-      <meta name="description" content="Live S&P 500 heatmap, market movers, yield curve, fear & greed index, sector performance, and global markets. Free real-time market dashboard." />
-    </Helmet>
+    <RouteMeta routeKey="dashboard" />
     <div className="page-fade-in" style={{ paddingTop: '12px' }}>
       <div style={{ marginBottom: '8px' }}>
-        <h2 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
+        <h1 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>
           Market Intelligence
-        </h2>
+        </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
           Real-time market overview, movers, sectors, and economic events
         </p>
