@@ -3,13 +3,11 @@ import { ChevronLeft, ChevronRight, X, Menu } from 'lucide-react';
 import { formatQuoteValue, formatPercent } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
 import PriceFlash from '../ui/PriceFlash';
+import { MAIN_INDICES } from '../../constants/marketIndices';
 
 const INSTRUMENTS = [
   // US Indices
-  { symbol: '^GSPC', label: 'S&P 500', group: 'US INDICES' },
-  { symbol: '^NDX', label: 'NASDAQ 100', group: null },
-  { symbol: '^DJI', label: 'Dow Jones', group: null },
-  { symbol: '^RUT', label: 'Russell 2000', group: null },
+  ...MAIN_INDICES.map(({ symbol, label }, i) => ({ symbol, label, group: i === 0 ? 'US INDICES' : null })),
   // Futures
   { symbol: 'ES=F', label: 'S&P Futures', group: 'FUTURES' },
   { symbol: 'NQ=F', label: 'Nasdaq Futures', group: null },

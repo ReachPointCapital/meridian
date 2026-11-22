@@ -1,5 +1,6 @@
 const { yf: yahooFinance } = require('./_yf');
 const { getLegacyStatements } = require('./_fundamentals');
+const { MACRO_INSTRUMENTS } = require('./_marketData');
 
 // A raw Yahoo quote in the shape the frontend reads. dividendYield is a percentage (0.32 means 0.32%).
 function mapQuote(quote) {
@@ -255,33 +256,7 @@ async function yahooCrypto() {
 }
 
 async function yahooMacro() {
-  const instruments = [
-    // US Indices
-    // ETF proxies: label them as ETFs (their price is not the index level)
-    { symbol: 'SPY', label: 'S&P 500 ETF (SPY)' }, { symbol: 'QQQ', label: 'NASDAQ 100 ETF (QQQ)' },
-    { symbol: 'DIA', label: 'Dow Jones ETF (DIA)' }, { symbol: 'IWM', label: 'Russell 2000 ETF (IWM)' },
-    { symbol: '^VIX', label: 'VIX' },
-    { symbol: 'ES=F', label: 'S&P Futures' }, { symbol: 'NQ=F', label: 'Nasdaq Futures' },
-    { symbol: 'YM=F', label: 'Dow Futures' },
-    { symbol: '^SP600', label: 'S&P 600' }, { symbol: '^MID', label: 'S&P 400' },
-    { symbol: '^NYA', label: 'NYSE Composite' }, { symbol: '^W5000', label: 'Wilshire 5000' },
-    // Commodities & Rates
-    { symbol: 'GC=F', label: 'Gold' }, { symbol: 'CL=F', label: 'WTI Oil' },
-    { symbol: 'HG=F', label: 'Copper' }, { symbol: '^TNX', label: '10Y Yield' },
-    { symbol: 'EURUSD=X', label: 'EUR/USD' },
-    { symbol: 'SI=F', label: 'Silver' }, { symbol: 'NG=F', label: 'Natural Gas' },
-    { symbol: 'BZ=F', label: 'Brent Crude' },
-    { symbol: '^IRX', label: '3M T-Bill Yield' }, { symbol: '^TYX', label: '30Y Yield' },
-    { symbol: 'GBPUSD=X', label: 'GBP/USD' }, { symbol: 'JPY=X', label: 'USD/JPY' },
-    // Digital Assets
-    { symbol: 'BTC-USD', label: 'Bitcoin' }, { symbol: 'ETH-USD', label: 'Ethereum' },
-    { symbol: 'SOL-USD', label: 'Solana' }, { symbol: 'XRP-USD', label: 'XRP' },
-    { symbol: 'ADA-USD', label: 'Cardano' },
-    { symbol: 'DOGE-USD', label: 'Dogecoin' }, { symbol: 'BNB-USD', label: 'BNB' },
-    { symbol: 'AVAX-USD', label: 'Avalanche' },
-    { symbol: 'LINK-USD', label: 'Chainlink' }, { symbol: 'DOT-USD', label: 'Polkadot' },
-    { symbol: 'LTC-USD', label: 'Litecoin' }, { symbol: 'XLM-USD', label: 'Stellar' },
-  ];
+  const instruments = MACRO_INSTRUMENTS; // the list lives in _marketData.js so a test can read it without the Yahoo client
   const quotes = await getQuoteMap(instruments.map(inst => inst.symbol));
   return instruments.map((inst) => {
     const q = quotes.get(inst.symbol);

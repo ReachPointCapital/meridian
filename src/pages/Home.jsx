@@ -6,6 +6,7 @@ import { formatPct } from '../utils/format';
 import { formatQuoteValue } from '../utils/formatters';
 import { useApp } from '../context/AppContext';
 import PriceFlash from '../components/ui/PriceFlash';
+import { MAIN_INDICES } from '../constants/marketIndices';
 
 const TICKER_CHIPS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'SPY', 'BTC-USD'];
 
@@ -22,9 +23,7 @@ const NAV_TILES = [
 
 // Real index levels, not the SPY/QQQ/DIA ETF prices (an ETF price is ~1/10 of the index and was labelled as the index)
 const PRICE_TILES = [
-  { symbol: '^GSPC', label: 'S&P 500' },
-  { symbol: '^NDX', label: 'NASDAQ 100' },
-  { symbol: '^DJI', label: 'Dow Jones' },
+  ...MAIN_INDICES.slice(0, 3).map(({ symbol, label }) => ({ symbol, label })),
   { symbol: 'GC=F', label: 'Gold' },
   { symbol: '^VIX', label: 'VIX' },
   { symbol: 'BTC-USD', label: 'Bitcoin' },

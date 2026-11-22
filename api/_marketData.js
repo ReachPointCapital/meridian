@@ -53,6 +53,36 @@ const INDICES = [
   { symbol: '^AXJO', name: 'ASX 200', region: 'Asia' },
 ];
 
+// What the dashboard's market snapshot (api/dashboard.js) and the daily brief (api/content.js) read, one batched quote
+// request. The first four rows are the headline index levels, not the SPY/QQQ/DIA/IWM funds: a fund price is about a
+// tenth of its index and reads as wrong under an index name. test/macroInstruments.test.js guards this.
+const MACRO_INSTRUMENTS = [
+  // US indices
+  { symbol: '^GSPC', label: 'S&P 500' }, { symbol: '^NDX', label: 'NASDAQ 100' },
+  { symbol: '^DJI', label: 'Dow Jones' }, { symbol: '^RUT', label: 'Russell 2000' },
+  { symbol: '^VIX', label: 'VIX' },
+  { symbol: 'ES=F', label: 'S&P Futures' }, { symbol: 'NQ=F', label: 'Nasdaq Futures' },
+  { symbol: 'YM=F', label: 'Dow Futures' },
+  { symbol: '^SP600', label: 'S&P 600' }, { symbol: '^MID', label: 'S&P 400' },
+  { symbol: '^NYA', label: 'NYSE Composite' }, { symbol: '^W5000', label: 'Wilshire 5000' },
+  // Commodities & Rates
+  { symbol: 'GC=F', label: 'Gold' }, { symbol: 'CL=F', label: 'WTI Oil' },
+  { symbol: 'HG=F', label: 'Copper' }, { symbol: '^TNX', label: '10Y Yield' },
+  { symbol: 'EURUSD=X', label: 'EUR/USD' },
+  { symbol: 'SI=F', label: 'Silver' }, { symbol: 'NG=F', label: 'Natural Gas' },
+  { symbol: 'BZ=F', label: 'Brent Crude' },
+  { symbol: '^IRX', label: '3M T-Bill Yield' }, { symbol: '^TYX', label: '30Y Yield' },
+  { symbol: 'GBPUSD=X', label: 'GBP/USD' }, { symbol: 'JPY=X', label: 'USD/JPY' },
+  // Digital Assets
+  { symbol: 'BTC-USD', label: 'Bitcoin' }, { symbol: 'ETH-USD', label: 'Ethereum' },
+  { symbol: 'SOL-USD', label: 'Solana' }, { symbol: 'XRP-USD', label: 'XRP' },
+  { symbol: 'ADA-USD', label: 'Cardano' },
+  { symbol: 'DOGE-USD', label: 'Dogecoin' }, { symbol: 'BNB-USD', label: 'BNB' },
+  { symbol: 'AVAX-USD', label: 'Avalanche' },
+  { symbol: 'LINK-USD', label: 'Chainlink' }, { symbol: 'DOT-USD', label: 'Polkadot' },
+  { symbol: 'LTC-USD', label: 'Litecoin' }, { symbol: 'XLM-USD', label: 'Stellar' },
+];
+
 // `quotes` is a Map of symbol -> raw Yahoo quote (see getQuoteMap in _yahoo.js).
 function buildCommodities(quotes) {
   const rows = [];
@@ -88,4 +118,4 @@ function buildIndices(quotes) {
   });
 }
 
-module.exports = { COMMODITIES, FOREX_PAIRS, INDICES, buildCommodities, buildForex, buildIndices };
+module.exports = { COMMODITIES, FOREX_PAIRS, INDICES, MACRO_INSTRUMENTS, buildCommodities, buildForex, buildIndices };
