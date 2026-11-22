@@ -4,6 +4,7 @@ import { formatQuoteValue, formatPercent } from '../../utils/formatters';
 import { useApp } from '../../context/AppContext';
 import PriceFlash from '../ui/PriceFlash';
 import { MAIN_INDICES } from '../../constants/marketIndices';
+import { twoYearQuote } from '../../utils/yields';
 
 const INSTRUMENTS = [
   // US Indices
@@ -39,7 +40,7 @@ const INSTRUMENTS = [
   { symbol: 'USDCNY=X', label: 'USD/CNY', group: null },
   // Bonds
   { symbol: '^IRX', label: '3M Yield', group: 'BONDS' },
-  { symbol: '2YY=F', label: '2Y Yield', group: null },
+  { symbol: 'DGS2', label: '2Y Yield', group: null, source: 'yields' }, // FRED daily, via the yields feed (not a Yahoo symbol)
   { symbol: '^FVX', label: '5Y Yield', group: null },
   { symbol: '^TNX', label: '10Y Yield', group: null },
   { symbol: '^TYX', label: '30Y Yield', group: null },
@@ -51,11 +52,12 @@ function MacroItem({ item, onSelect }) {
 
   return (
     <div
-      onClick={() => onSelect && onSelect(item.symbol)}
+      title={item.asOf ? `Previous close, ${item.asOf} (published a day behind the other yields)` : undefined}
+      onClick={() => onSelect && !item.source && onSelect(item.symbol)}
       style={{
         padding: '4px 12px',
         borderBottom: '1px solid var(--border-color)',
-        cursor: 'pointer',
+        cursor: item.source ? 'default' : 'pointer',
         transition: 'background 150ms ease',
         height: '32px',
         display: 'flex',
@@ -107,19 +109,29 @@ export default function MacroSidebar() {
   const fetchData = useCallback(async () => {
     if (prevDataRef.current.length === 0) setLoading(true);
     try {
-      const symbols = INSTRUMENTS.map(i => i.symbol);
-      const res = await fetch(`/api/market?type=quote&symbol=${encodeURIComponent(symbols.join(','))}`);
+      // Rows with a `source` are not Yahoo symbols: they come from the yields feed instead.
+      const symbols = INSTRUMENTS.filter(i => !i.source).map(i => i.symbol);
+      const [res, yieldsRes] = await Promise.all([
+        fetch(`/api/market?type=quote&symbol=${encodeURIComponent(symbols.join(','))}`),
+        fetch('/api/dashboard?type=yields').catch(() => null), // a failure leaves the 2Y row as a dash, not an empty sidebar
+      ]);
       const result = await res.json();
       const quoteList = Array.isArray(result) ? result : [result];
       const priceMap = {};
       quoteList.forEach(q => {
         if (q?.symbol) priceMap[q.symbol] = q;
       });
+      try {
+        const two = twoYearQuote(yieldsRes && yieldsRes.ok ? await yieldsRes.json() : null);
+        if (two) priceMap[two.symbol] = two;
+      } catch { /* the 2Y row stays a dash */ }
 
       const mapped = INSTRUMENTS.map(inst => ({
         symbol: inst.symbol,
         label: inst.label,
         group: inst.group,
+        source: inst.source,
+        asOf: priceMap[inst.symbol]?.asOf ?? null,
         price: priceMap[inst.symbol]?.price ?? null,
         changePercent: priceMap[inst.symbol]?.changesPercentage ?? priceMap[inst.symbol]?.changePercent ?? null,
       }));

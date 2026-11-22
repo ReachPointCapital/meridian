@@ -167,6 +167,24 @@ function buildM2(points) {
   return [{ seriesId: 'M2SL', name: 'US M2 Money Supply', unit: 'Billions USD', source: 'fred', data: points.slice(-120) }];
 }
 
+// ── the 2-year Treasury yield ────────────────────────────────────────────────────────────────────
+// FRED's daily DGS2 (the previous business day's close). It replaces Yahoo's `2YY=F`, a futures contract: once a contract
+// expires it keeps answering with a frozen price and a change of exactly 0. `points` come from parseFredCsv, which already
+// drops the blank "." rows. The change is a percent of the previous day's yield, like the other tenors in the yields feed.
+function twoYearFrom(points) {
+  if (!Array.isArray(points) || points.length < 2) return null;
+  const last = points[points.length - 1];
+  const prev = points[points.length - 2];
+  if (!Number.isFinite(last.value) || !Number.isFinite(prev.value) || prev.value === 0) return null;
+  return { yield: last.value, change: round(((last.value - prev.value) / prev.value) * 100, 2), date: last.date };
+}
+
+// The yields feed with its 2Y slot taken from FRED. With no FRED value the 2Y is left out, never a stale number.
+function withTwoYear(yields, two) {
+  const rest = (Array.isArray(yields) ? yields : []).filter((y) => y.maturity !== '2Y');
+  return two ? [...rest, { maturity: '2Y', yield: two.yield, change: two.change, asOf: two.date }] : rest;
+}
+
 module.exports = {
   parseFredCsv,
   parseBoeCsv,
@@ -178,4 +196,6 @@ module.exports = {
   nextFomcMeeting,
   buildCentralBanks,
   buildM2,
+  twoYearFrom,
+  withTwoYear,
 };

@@ -226,7 +226,8 @@ async function yahooSectors() {
 }
 
 async function yahooYields() {
-  const yieldSymbols = { '3M': '^IRX', '2Y': '2YY=F', '5Y': '^FVX', '10Y': '^TNX', '30Y': '^TYX' };
+  // No 2Y here: Yahoo's 2-year symbol is a futures contract that freezes when it expires. api/dashboard.js adds the 2Y from FRED.
+  const yieldSymbols = { '3M': '^IRX', '5Y': '^FVX', '10Y': '^TNX', '30Y': '^TYX' };
   const quotes = await getQuoteMap(Object.values(yieldSymbols));
   return Object.entries(yieldSymbols)
     .filter(([, sym]) => quotes.has(sym))
