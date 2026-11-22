@@ -60,7 +60,7 @@ describe('unitFor', () => {
     ['NQ=F', 'index'],
     ['^TNX', 'yield'],
     ['^IRX', 'yield'],
-    ['2YY=F', 'yield'],
+    ['DGS2', 'yield'],
     ['EURUSD=X', 'fx'],
     ['JPY=X', 'fx'],
   ])('%s is %s', (symbol, unit) => {

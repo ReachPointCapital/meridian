@@ -1,6 +1,6 @@
 const { getCached, setCached } = require('./_cache');
 const { yahooMacro, yahooYields } = require('./_yahoo');
-const { fetchFredSeries, fetchBoeBankRate, RELEASE_SERIES, buildRelease, buildCentralBanks, buildM2 } = require('./_macro');
+const { fetchFredSeries, fetchBoeBankRate, RELEASE_SERIES, buildRelease, buildCentralBanks, buildM2, twoYearFrom, withTwoYear } = require('./_macro');
 const { recurringEstimates, fomcEvents, buildIpoRows } = require('./_calendar');
 const { withApi } = require('./_api');
 
@@ -98,8 +98,17 @@ const TYPES = new Map([
   ['yields', {
     ttl: 120,
     load: async () => {
-      const yields = await yahooYields();
-      if (!yields || yields.length === 0) throw new Error('Yahoo returned no yield data');
+      // The 2Y is FRED's daily DGS2: Yahoo's 2-year symbol is a futures contract that freezes when it expires (see _macro.js).
+      // If FRED is down the 2Y is left out and the rest of the curve still answers.
+      const [yahoo, two] = await Promise.all([
+        yahooYields(),
+        fetchFredSeries('DGS2', { since: isoDate(new Date(Date.now() - 14 * DAY)) }).then(twoYearFrom).catch((e) => {
+          console.warn('2Y yield unavailable:', e.message);
+          return null;
+        }),
+      ]);
+      const yields = withTwoYear(yahoo, two);
+      if (yields.length === 0) throw new Error('Yahoo returned no yield data');
       const order = ['3M', '2Y', '5Y', '10Y', '30Y'];
       return yields.sort((a, b) => order.indexOf(a.maturity) - order.indexOf(b.maturity));
     },

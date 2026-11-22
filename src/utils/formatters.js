@@ -81,7 +81,7 @@ export function formatDividendYield(value) {
 
 // ── Quote values by instrument type: a $ only belongs on dollar prices ──
 const INDEX_FUTURES = /^(ES|NQ|YM|RTY|VX)=F$/;
-const YIELD_SYMBOLS = new Set(['^IRX', '^FVX', '^TNX', '^TYX', '2YY=F']);
+const YIELD_SYMBOLS = new Set(['^IRX', '^FVX', '^TNX', '^TYX', 'DGS2']); // DGS2: the sidebar's 2Y row (see utils/yields.js)
 
 export function unitFor(symbol = '') {
   if (YIELD_SYMBOLS.has(symbol)) return 'yield';
