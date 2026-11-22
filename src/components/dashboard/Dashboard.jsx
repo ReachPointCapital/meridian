@@ -19,16 +19,14 @@ import {
 } from '../terminal/MacroPage';
 import DetailPanel from '../ui/DetailPanel';
 import HeatmapCard from './HeatmapCard';
+import { MAIN_INDICES } from '../../constants/marketIndices';
 
 // ── Unified Market Snapshot ──
 const SNAPSHOT_GROUPS = [
   {
     label: 'US INDICES',
     items: [
-      { symbol: 'SPY', label: 'S&P 500 ETF' },
-      { symbol: 'QQQ', label: 'NASDAQ 100 ETF' },
-      { symbol: 'DIA', label: 'Dow Jones ETF' },
-      { symbol: 'IWM', label: 'Russell 2000 ETF' },
+      ...MAIN_INDICES.map(({ symbol, label }) => ({ symbol, label })),
       { symbol: '^VIX', label: 'VIX' },
     ],
   },
@@ -139,14 +137,9 @@ function MarketSnapshot({ onNavigate }) {
 const CUSTOM_COLORS = ['#00bcd4', '#9c27b0', '#ff5722', '#4caf50', '#e91e63'];
 
 function IndexPerformancePanel() {
-  const INDICES = [
-    { symbol: 'SPY', label: 'S&P 500', color: '#E5B94E' },
-    { symbol: 'QQQ', label: 'NASDAQ 100', color: '#3B82F6' },
-    { symbol: 'DIA', label: 'Dow Jones', color: '#2EE6A6' },
-    { symbol: 'IWM', label: 'Russell 2000', color: '#A855F7' },
-  ];
+  const INDICES = MAIN_INDICES; // the real index levels, not the SPY/QQQ/DIA/IWM funds
 
-  const [selected, setSelected] = useState(['SPY', 'QQQ', 'DIA', 'IWM']);
+  const [selected, setSelected] = useState(MAIN_INDICES.map(i => i.symbol));
   const [timeframe, setTimeframe] = useState('1M');
   const [chartData, setChartData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -470,7 +463,7 @@ function IndexPerformancePanel() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>
-                    {q?.price != null ? formatPrice(q.price) : '\u2014'}
+                    {q?.price != null ? formatQuoteValue(idx.symbol, q.price) : '\u2014'}
                   </span>
                   <span style={{ color: isPos ? 'var(--green)' : 'var(--red)', fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
                     {isPos ? '+' : ''}{pct.toFixed(2)}%
