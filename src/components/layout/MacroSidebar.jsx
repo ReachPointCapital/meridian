@@ -170,6 +170,7 @@ export default function MacroSidebar() {
         </span>
         <button
           onClick={() => setMobileOpen(false)}
+          aria-label="Close market overview"
           className="macro-mobile-close"
           style={{
             display: 'none',
@@ -283,6 +284,8 @@ export default function MacroSidebar() {
       {/* Mobile toggle */}
       <button
         className="macro-mobile-toggle"
+        aria-label={mobileOpen ? 'Close market overview' : 'Open market overview'}
+        aria-expanded={mobileOpen}
         onClick={() => setMobileOpen(!mobileOpen)}
         style={{
           display: 'none',

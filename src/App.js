@@ -22,6 +22,7 @@ import AnalysisTab from './components/analysis/AnalysisTab';
 import Home from './pages/Home';
 import Models from './pages/Models';
 import Disclaimer from './pages/Disclaimer';
+import NotFound from './pages/NotFound';
 import DisclaimerModal from './components/DisclaimerModal';
 import { Analytics } from '@vercel/analytics/react';
 
@@ -304,20 +305,14 @@ function AppContent() {
 
   const { activeSymbol, quote: ctxQuote } = useApp();
   useEffect(() => {
-    const tickerSuffix = activeSymbol && ctxQuote?.price
-      ? `${activeSymbol} $${Number(ctxQuote.price).toFixed(2)} | `
-      : '';
-    const titles = {
-      Dashboard: 'Meridian | Dashboard',
-      Watchlist: 'Meridian | Watchlist',
-      Portfolio: 'Meridian | Portfolio',
-      Earnings: 'Meridian | Earnings',
-      Options: 'Meridian | Options',
-      Screener: 'Meridian | Screener',
-      Models: 'Meridian | Models',
-      Analysis: `${tickerSuffix}Meridian | Analysis`,
-    };
-    document.title = titles[activeTab] || 'Meridian';
+    // Titles for the public pages come from <RouteMeta> (src/seo/routes.json), so search results see the descriptive
+    // ones. This effect only covers the two personal pages, plus the live price in the Analysis tab title.
+    const personalTitles = { Watchlist: 'Meridian | Watchlist', Portfolio: 'Meridian | Portfolio' };
+    if (personalTitles[activeTab]) {
+      document.title = personalTitles[activeTab];
+    } else if (activeTab === 'Analysis' && activeSymbol && ctxQuote?.price) {
+      document.title = `${activeSymbol} $${Number(ctxQuote.price).toFixed(2)} | Meridian | Analysis`;
+    }
   }, [activeTab, activeSymbol, ctxQuote]);
 
   const handleTabChange = useCallback((tab) => {
@@ -458,6 +453,29 @@ function HomeWithLayout() {
   );
 }
 
+function NotFoundWithLayout() {
+  const navigate = useNavigate();
+  const handleTabChange = useCallback((tab) => {
+    const path = TAB_TO_PATH[tab];
+    if (path) navigate(path);
+  }, [navigate]);
+
+  return (
+    <>
+      <Navbar activeTab="" setActiveTab={handleTabChange} alertCount={0} onAlertClick={() => {}} />
+      <Layout>
+        <NotFound />
+      </Layout>
+    </>
+  );
+}
+
+// Known tab addresses render the app; any other address gets the 404 page (Vercel answers those with a real 404 too).
+function CatchAll() {
+  const { pathname } = useLocation();
+  return PATH_TO_TAB[pathname] ? <AppContent /> : <NotFoundWithLayout />;
+}
+
 export default function App() {
   return (
     <HelmetProvider>
@@ -474,7 +492,7 @@ export default function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/disclaimer" element={<Disclaimer />} />
-                <Route path="/*" element={<AppContent />} />
+                <Route path="/*" element={<CatchAll />} />
               </Routes>
             </ProProvider>
           </AppProvider>

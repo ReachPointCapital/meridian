@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Helmet } from 'react-helmet-async';
+import RouteMeta from '../../seo/RouteMeta';
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
@@ -128,7 +128,7 @@ function EmptyState({ onSearch }) {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '40px', gap: '32px', maxWidth: '860px', margin: '0 auto' }}>
       {/* 1. Header */}
       <div style={{ textAlign: 'center' }}>
-        <h2 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>Analysis</h2>
+        <h1 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>Analysis</h1>
         <p style={{ color: 'var(--text-faint)', fontSize: '14px', margin: 0 }}>Deep-dive any stock, ETF, commodity, or index</p>
       </div>
 
@@ -1779,10 +1779,11 @@ export default function AnalysisTab({ setActiveTab }) {
 
   return (
     <>
-    <Helmet>
-      <title>{analysisSymbol ? `${analysisSymbol} Stock Analysis — DCF Valuation & Research | Meridian` : 'Stock Analysis — Research Any Stock or ETF | Meridian'}</title>
-      <meta name="description" content={analysisSymbol ? `Deep-dive analysis for ${analysisSymbol}. Price charts, key statistics, analyst consensus, DCF valuation, technical indicators, and more.` : 'Institutional-grade stock research. Price charts, financial models, analyst targets, technical indicators, and valuation analysis for any stock or ETF.'} />
-    </Helmet>
+    <RouteMeta
+      routeKey="analysis"
+      title={analysisSymbol ? `${analysisSymbol} Stock Analysis — DCF Valuation & Research | Meridian` : undefined}
+      description={analysisSymbol ? `Deep-dive analysis for ${analysisSymbol}. Price charts, key statistics, analyst consensus, DCF valuation, technical indicators, and more.` : undefined}
+    />
     <div className="page-fade-in">
       {/* Row 1: Sticky top bar with search + company info */}
       <div style={{

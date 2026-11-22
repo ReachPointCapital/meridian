@@ -1,0 +1,165 @@
+{
+  "site": {
+    "origin": "https://meridian.reachpointcapital.com",
+    "name": "Meridian",
+    "publisher": "Reach Point Research",
+    "ogImage": "https://meridian.reachpointcapital.com/og-image.jpg",
+    "ogImageAlt": "Meridian — a free, institutional-grade financial terminal by Reach Point Research"
+  },
+  "clientOnly": ["/login", "/signup", "/reset-password", "/account", "/watchlist", "/portfolio"],
+  "routes": [
+    {
+      "key": "home",
+      "path": "/",
+      "nav": "Home",
+      "title": "Meridian — Free Hedge Fund-Grade Financial Terminal | Reach Point Research",
+      "description": "Institutional-grade market intelligence. Real-time stock analysis, DCF & LBO models, S&P 500 heatmap, earnings calendar, screener, and more. No subscription required.",
+      "h1": "Meridian",
+      "intro": "Institutional-grade market intelligence. No subscription required.",
+      "features": [
+        { "label": "Dashboard", "path": "/dashboard", "text": "Real-time market intelligence — indices, sectors, heatmap, movers" },
+        { "label": "Models", "path": "/models", "text": "Integrated DCF, LBO, 3-Statement and scenario analysis for any stock" },
+        { "label": "Analysis", "path": "/analysis", "text": "Deep-dive research on any stock or ETF" },
+        { "label": "Earnings", "path": "/earnings", "text": "Upcoming earnings and EPS history" },
+        { "label": "Options", "path": "/options", "text": "Black-Scholes calculator and analytics" },
+        { "label": "Screener", "path": "/screener", "text": "Filter stocks by any metric" },
+        { "label": "Watchlist", "text": "Track your favorite tickers" },
+        { "label": "Portfolio", "text": "Track P&L, allocation and benchmark" }
+      ],
+      "indexable": true,
+      "changefreq": "daily",
+      "priority": "1.0"
+    },
+    {
+      "key": "dashboard",
+      "path": "/dashboard",
+      "nav": "Dashboard",
+      "title": "Market Dashboard — Real-Time Stocks, Indices & Heatmap | Meridian",
+      "description": "Live S&P 500 heatmap, market movers, yield curve, fear & greed index, sector performance, and global markets. Free real-time market dashboard.",
+      "h1": "Market Intelligence",
+      "intro": "Real-time market overview, movers, sectors, and economic events.",
+      "features": [
+        { "label": "Live S&P 500 heatmap" },
+        { "label": "Market movers" },
+        { "label": "Yield curve" },
+        { "label": "Fear & greed index" },
+        { "label": "Sector performance" },
+        { "label": "Global markets" }
+      ],
+      "indexable": true,
+      "changefreq": "daily",
+      "priority": "0.9"
+    },
+    {
+      "key": "analysis",
+      "path": "/analysis",
+      "nav": "Analysis",
+      "title": "Stock Analysis — Research Any Stock or ETF | Meridian",
+      "description": "Institutional-grade stock research. Price charts, financial models, analyst targets, technical indicators, and valuation analysis for any stock or ETF.",
+      "h1": "Stock Analysis",
+      "intro": "Deep-dive research on any stock or ETF.",
+      "features": [
+        { "label": "Price charts" },
+        { "label": "Financial models" },
+        { "label": "Analyst targets" },
+        { "label": "Technical indicators" },
+        { "label": "Valuation analysis" }
+      ],
+      "indexable": true,
+      "changefreq": "daily",
+      "priority": "0.9"
+    },
+    {
+      "key": "models",
+      "path": "/models",
+      "nav": "Models",
+      "title": "Financial Models — DCF, LBO, 3-Statement & Scenario Analysis | Meridian",
+      "description": "Free DCF, LBO, 3-Statement, and comparable company models for any stock. Integrated Master Model with scenario analysis and football field valuation.",
+      "h1": "Financial Models",
+      "intro": "Integrated DCF, LBO, 3-Statement and scenario analysis for any stock.",
+      "features": [
+        { "label": "DCF" },
+        { "label": "LBO" },
+        { "label": "3-Statement" },
+        { "label": "Comparable company models" },
+        { "label": "Integrated Master Model with scenario analysis" },
+        { "label": "Football field valuation" }
+      ],
+      "indexable": true,
+      "changefreq": "weekly",
+      "priority": "0.8"
+    },
+    {
+      "key": "screener",
+      "path": "/screener",
+      "nav": "Screener",
+      "title": "Stock Screener — Filter by Fundamentals & Technicals | Meridian",
+      "description": "Screen thousands of stocks by market cap, P/E ratio, revenue growth, margins, and more. Free institutional-grade stock screener.",
+      "h1": "Stock Screener",
+      "intro": "Filter stocks by any metric.",
+      "features": [
+        { "label": "Market cap" },
+        { "label": "P/E ratio" },
+        { "label": "Revenue growth" },
+        { "label": "Margins" }
+      ],
+      "indexable": true,
+      "changefreq": "weekly",
+      "priority": "0.8"
+    },
+    {
+      "key": "earnings",
+      "path": "/earnings",
+      "nav": "Earnings",
+      "title": "Earnings Calendar — Upcoming Reports & EPS Estimates | Meridian",
+      "description": "Track upcoming earnings reports, EPS estimates, and revenue forecasts. Real-time earnings calendar for all major stocks.",
+      "h1": "Earnings Calendar",
+      "intro": "Upcoming earnings and EPS history.",
+      "features": [
+        { "label": "Upcoming earnings reports" },
+        { "label": "EPS estimates" },
+        { "label": "Revenue forecasts" }
+      ],
+      "indexable": true,
+      "changefreq": "daily",
+      "priority": "0.7"
+    },
+    {
+      "key": "options",
+      "path": "/options",
+      "nav": "Options",
+      "title": "Options Calculator — Black-Scholes Pricing & Greeks | Meridian",
+      "description": "Black-Scholes options pricing with full Greeks. A free options calculator and analytics tool.",
+      "h1": "Options Calculator",
+      "intro": "Black-Scholes pricing with full Greeks.",
+      "features": [
+        { "label": "Black-Scholes pricing" },
+        { "label": "Full Greeks" }
+      ],
+      "indexable": true,
+      "changefreq": "monthly",
+      "priority": "0.6"
+    },
+    {
+      "key": "disclaimer",
+      "path": "/disclaimer",
+      "nav": "Disclaimer",
+      "title": "Disclaimer — Important Information | Meridian",
+      "description": "Meridian is a financial data and research platform provided for informational purposes only. Read the full disclaimer.",
+      "h1": "Disclaimer",
+      "intro": "Meridian is a financial data and research platform provided for informational purposes only. Nothing on this platform constitutes investment advice.",
+      "features": [
+        { "label": "No Investment Advice" },
+        { "label": "Data Accuracy & Sources" },
+        { "label": "Quantitative Models" },
+        { "label": "No Affiliation" },
+        { "label": "Limitation of Liability" },
+        { "label": "Third-Party Data Terms" },
+        { "label": "Changes to This Disclaimer" }
+      ],
+      "indexable": true,
+      "changefreq": "monthly",
+      "priority": "0.3"
+    }
+  ]
+}

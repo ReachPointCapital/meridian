@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Helmet } from 'react-helmet-async';
+import RouteMeta from '../seo/RouteMeta';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import TickerSearch from '../components/TickerSearch';
 import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -226,7 +226,7 @@ function ModelsEmptyState({ onSearch }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '40px', gap: '32px', maxWidth: '860px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center' }}>
-        <h2 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>Financial Models</h2>
+        <h1 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '0.04em' }}>Financial Models</h1>
         <p style={{ color: 'var(--text-faint)', fontSize: '14px', margin: 0 }}>Build institutional-grade valuation models for any stock</p>
       </div>
 
@@ -2482,10 +2482,7 @@ export default function Models() {
 
   return (
     <>
-    <Helmet>
-      <title>Financial Models — DCF, LBO, 3-Statement & Scenario Analysis | Meridian</title>
-      <meta name="description" content="Free DCF, LBO, 3-Statement, and comparable company models for any stock. Integrated Master Model with scenario analysis and football field valuation." />
-    </Helmet>
+    <RouteMeta routeKey="models" />
     <div className="page-fade-in">
       {/* Top bar */}
       <div style={{
